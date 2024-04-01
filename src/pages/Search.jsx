@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { searchPhotos } from '../services/photoService';
+import { SearchService } from '../api';
 import PhotoGrid from '../components/photos/PhotoGrid';
 import FilterSidebar from '../components/photos/FilterSidebar';
 import { FiSearch, FiSliders } from 'react-icons/fi';
@@ -28,12 +28,28 @@ export default function Search() {
   const loadPhotos = async () => {
     setLoading(true);
     try {
-      const result = await searchPhotos(searchQuery, filters);
-      setPhotos(result.data || result);
-      setTotalResults(result.total || result.length);
+      // Convertir les IDs de catégories en strings pour l'API
+      const categoryIds = filters.category && filters.category.length > 0
+        ? filters.category.map(id => String(id))
+        : undefined;
+
+      const result = await SearchService.searchPhotos(
+        searchQuery || undefined,
+        categoryIds,
+        undefined, // photographerId
+        filters.min_price,
+        filters.max_price,
+        filters.orientation,
+        filters.sort_by || 'popularity',
+        50 // perPage
+      );
+
+      setPhotos(result.data || []);
+      setTotalResults(result.meta?.total || result.data?.length || 0);
     } catch (error) {
       console.error('Erreur lors de la recherche:', error);
       setPhotos([]);
+      setTotalResults(0);
     } finally {
       setLoading(false);
     }

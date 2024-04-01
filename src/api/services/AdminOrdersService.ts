@@ -2,24 +2,20 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Order } from '../models/Order';
-import type { PaginationLinks } from '../models/PaginationLinks';
-import type { PaginationMeta } from '../models/PaginationMeta';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
-
 export class AdminOrdersService {
     /**
-     * List all orders (admin)
-     * Get all orders with pagination and filters. Requires admin role.
+     * Get all orders with filtering
+     * Retrieve all orders with advanced filtering options by status, user, photographer, date range, and search. Requires admin role.
      * @param status Filter by payment status
-     * @param userId Filter by buyer UUID
-     * @param photographerId Filter by photographer UUID (orders containing their photos)
+     * @param userId Filter by buyer user UUID
+     * @param photographerId Filter by photographer UUID (orders containing photos from this photographer)
      * @param dateFrom Filter orders from this date (YYYY-MM-DD)
      * @param dateTo Filter orders until this date (YYYY-MM-DD)
      * @param search Search by order number
-     * @param perPage Number of orders per page
+     * @param perPage Number of items per page
      * @returns any Orders retrieved successfully
      * @throws ApiError
      */
@@ -32,9 +28,12 @@ export class AdminOrdersService {
         search?: string,
         perPage: number = 20,
     ): CancelablePromise<{
-        data?: Array<Order>;
-        meta?: PaginationMeta;
-        links?: PaginationLinks;
+        success?: boolean;
+        data?: {
+            current_page?: number;
+            data?: Array<Record<string, any>>;
+            total?: number;
+        };
     }> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -54,10 +53,9 @@ export class AdminOrdersService {
             },
         });
     }
-
     /**
-     * Get order details (admin)
-     * Retrieve detailed information about a specific order. Requires admin role.
+     * Get order details
+     * Retrieve detailed information about a specific order including buyer info, items, and payment details. Requires admin role.
      * @param order Order UUID
      * @returns any Order details retrieved successfully
      * @throws ApiError
@@ -66,7 +64,7 @@ export class AdminOrdersService {
         order: string,
     ): CancelablePromise<{
         success?: boolean;
-        data?: Order;
+        data?: Record<string, any>;
     }> {
         return __request(OpenAPI, {
             method: 'GET',

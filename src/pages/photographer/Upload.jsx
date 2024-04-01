@@ -27,8 +27,8 @@ export default function Upload() {
     description: '',
     category_id: '',
     tags: '',
-    price_standard: 35,
-    price_extended: 100,
+    price_standard: 500,
+    price_extended: 1500,
     location: '',
   });
 
@@ -87,8 +87,8 @@ export default function Upload() {
           description: '',
           category_id: '',
           tags: '',
-          price_standard: 35,
-          price_extended: 100,
+          price_standard: '',
+          price_extended: '',
           location: '',
         }
       };
@@ -175,13 +175,13 @@ export default function Upload() {
       // Upload chaque fichier
       const uploadPromises = files.map(async (fileData, index) => {
         const photoData = {
-          file: fileData.file,
+          image: fileData.file,
           title: fileData.metadata.title || formData.title,
           description: fileData.metadata.description || formData.description,
           category_id: fileData.metadata.category_id || formData.category_id,
           tags: (fileData.metadata.tags || formData.tags).split(',').map(t => t.trim()).filter(t => t.length > 0),
-          price_standard: parseFloat(fileData.metadata.price_standard || formData.price_standard),
-          price_extended: parseFloat(fileData.metadata.price_extended || formData.price_extended),
+          price_standard: parseFloat(fileData.metadata.price_standard) || formData.price_standard,
+          price_extended: parseFloat(fileData.metadata.price_extended) || formData.price_extended,
           location: fileData.metadata.location || formData.location,
         };
 
@@ -206,8 +206,8 @@ export default function Upload() {
           description: '',
           category_id: '',
           tags: '',
-          price_standard: 35,
-          price_extended: 100,
+          price_standard: 500,
+          price_extended: 1500,
           location: '',
         });
         setUploadProgress(0);

@@ -7,6 +7,7 @@ import {
   PhotographerWithdrawalsService,
   Photo,
 } from '@/api';
+import { STORAGE_KEYS } from '@/utils/constants';
 
 // Type for transaction data
 interface Transaction {
@@ -55,7 +56,8 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
       salesOverTimeResponse,
       revenueOverTimeResponse,
       conversionOverTimeResponse,
-      hourlyDistributionResponse,
+      hourlyViewsDistributionResponse,
+      hourlySalesDistributionResponse,
       categoryPerformanceResponse,
     ] = await Promise.all([
       PhotographerAnalyticsService.getPhotographerAnalyticsSales(apiSalesPeriod),
@@ -65,6 +67,7 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
       PhotographerAnalyticsService.getPhotographerRevenueOverTime(timeSeriesPeriod).catch(() => ({ success: true, data: [], summary: {} })),
       PhotographerAnalyticsService.getPhotographerConversionOverTime(timeSeriesPeriod).catch(() => ({ success: true, data: [], summary: {} })),
       PhotographerAnalyticsService.getPhotographerHourlyDistribution(timeSeriesPeriod, 'views').catch(() => ({ success: true, data: [], peak_hours: [], lowest_hours: [] })),
+      PhotographerAnalyticsService.getPhotographerHourlyDistribution(timeSeriesPeriod, 'sales').catch(() => ({ success: true, data: [], peak_hours: [], lowest_hours: [] })),
       PhotographerAnalyticsService.getPhotographerCategoryPerformance(timeSeriesPeriod).catch(() => ({ success: true, data: [], top_category: {} })),
     ]);
 
@@ -104,11 +107,17 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
       conversion: item.conversion_rate,
     }));
 
-    // Transform hourly distribution data
-    const hourlyDistribution = (hourlyDistributionResponse.data || []).map((item: any) => ({
+    // Transform hourly distribution data - combine views and sales
+    const hourlyViewsData = hourlyViewsDistributionResponse.data || [];
+    const hourlySalesData = hourlySalesDistributionResponse.data || [];
+
+    // Create a map for quick lookup of sales by hour
+    const salesByHour = new Map(hourlySalesData.map((item: any) => [item.hour, item.value]));
+
+    const hourlyDistribution = hourlyViewsData.map((item: any) => ({
       hour: `${item.hour}h`,
       views: item.value,
-      sales: 0, // Will need separate call for sales metric
+      sales: salesByHour.get(item.hour) || 0,
     }));
 
     // Transform category performance data
@@ -163,7 +172,6 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
       }) : [],
       categoryPerformance: categoryPerformance.map((cat: any) => ({
         name: cat.category,
-        photos: cat.photos || 0,
         views: cat.views,
         sales: cat.sales,
         revenue: cat.revenue,
@@ -178,8 +186,8 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
       conversionOverTime: conversionOverTime,
       hourlyDistribution: hourlyDistribution,
       // Additional metadata
-      peakHours: hourlyDistributionResponse.peak_hours || [],
-      lowestHours: hourlyDistributionResponse.lowest_hours || [],
+      peakHours: hourlyViewsDistributionResponse.peak_hours || [],
+      lowestHours: hourlyViewsDistributionResponse.lowest_hours || [],
       topCategory: categoryPerformanceResponse.top_category || {},
     };
   } catch (error: any) {
@@ -387,19 +395,47 @@ export const uploadPhoto = async (photoData: {
     ? photoData.tags.join(',')
     : photoData.tags;
 
-  const formData = {
-    'photos[]': [photoData.image],
-    category_id: photoData.category_id,
-    title: photoData.title,
-    description: photoData.description,
-    tags: tagsString,
-    price_standard: photoData.price_standard,
-    price_extended: photoData.price_extended || photoData.price_standard * 3,
-    location: photoData.location,
-  };
+  // Build FormData manually to ensure proper file handling
+  const formData = new FormData();
+  formData.append('photos[]', photoData.image);
+  formData.append('category_id', photoData.category_id);
+  formData.append('title', photoData.title);
+  if (photoData.description) {
+    formData.append('description', photoData.description);
+  }
+  if (tagsString) {
+    formData.append('tags', tagsString);
+  }
+  formData.append('price_standard', String(photoData.price_standard));
+  formData.append('price_extended', String(photoData.price_extended || photoData.price_standard * 3));
+  if (photoData.location) {
+    formData.append('location', photoData.location);
+  }
 
-  const photos = await uploadPhotos(formData);
-  return photos[0]; // Return first photo
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/photographer/photos`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+        'Accept': 'application/json',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erreur lors de l\'upload');
+    }
+
+    const result = await response.json();
+    if (result.success && result.data) {
+      return result.data[0];
+    }
+    throw new Error('Erreur lors de l\'upload des photos');
+  } catch (error: any) {
+    console.error('Erreur lors de l\'upload de la photo:', error);
+    throw new Error(error.message || 'Impossible d\'uploader la photo');
+  }
 };
 
 /**
@@ -561,13 +597,25 @@ export const getRevenueHistory = async (): Promise<any> => {
 
     if (response.success && response.data?.data) {
       // Transform API response to match chart expectations
-      // API returns: { month, total, sales }
-      // Chart expects: { month, sales (gross), net }
-      return response.data.data.map((item: any) => ({
-        month: item.month,
-        sales: Math.round((item.total || 0) / 0.8), // Convert net to gross (total is 80% of gross)
-        net: item.total || 0,
-      }));
+      // API returns: { month: "2025-09-01T00:00:00.000000Z", total, sales }
+      // Chart expects: { month: "Sep 2025", sales (gross), net }
+      return response.data.data.map((item: any) => {
+        // Format month from ISO date to readable format
+        const date = new Date(item.month);
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+        const formattedMonth = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+
+        // total is already the net revenue (after commission)
+        const net = item.total || 0;
+        // Calculate gross: net = 80% of gross, so gross = net / 0.8
+        const gross = net > 0 ? Math.round(net / 0.8) : 0;
+
+        return {
+          month: formattedMonth,
+          sales: gross,
+          net: net,
+        };
+      }).reverse(); // Reverse to show oldest to newest for chart
     }
 
     return [];
@@ -584,31 +632,47 @@ export const getRevenueHistory = async (): Promise<any> => {
  */
 export const getRevenueSummary = async (): Promise<any> => {
   try {
-    // Récupérer les données disponibles et en attente en parallèle
-    const [availableResponse, pendingResponse] = await Promise.allSettled([
+    // Récupérer les données disponibles, en attente et les retraits en parallèle
+    const [availableResponse, pendingResponse, withdrawalsResponse] = await Promise.allSettled([
       PhotographerRevenueService.getPhotographerRevenueAvailable(),
       PhotographerRevenueService.getPhotographerRevenuePending(),
+      PhotographerWithdrawalsService.getPhotographerWithdrawals(),
     ]);
 
-    // Extraire le solde disponible
+    // Extraire le solde disponible (c'est déjà le montant net après commission)
     let availableBalance = 0;
     if (availableResponse.status === 'fulfilled' && availableResponse.value.success) {
-      availableBalance = availableResponse.value.data?.available_amount || 0;
+      // available_amount est une string, il faut la convertir en nombre
+      const amount = availableResponse.value.data?.available_amount;
+      availableBalance = typeof amount === 'string' ? parseFloat(amount) : (amount || 0);
     }
 
-    // Calculer le solde en attente
+    // Calculer le solde en attente (montant net)
     let pendingBalance = 0;
     if (pendingResponse.status === 'fulfilled' && pendingResponse.value.success) {
       const pendingData = pendingResponse.value.data;
       if (Array.isArray(pendingData)) {
-        pendingBalance = pendingData.reduce((sum: number, item: any) => sum + (item.photographer_amount || 0), 0);
+        pendingBalance = pendingData.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
       }
     }
 
-    // Calculer les totaux
-    const totalSales = availableBalance + pendingBalance;
-    const commission = totalSales * 0.15; // 15% commission
-    const netRevenue = totalSales - commission;
+    // Calculer le total retiré depuis les retraits complétés
+    let totalWithdrawn = 0;
+    if (withdrawalsResponse.status === 'fulfilled' && withdrawalsResponse.value.success) {
+      const withdrawalsData = withdrawalsResponse.value.data?.data || [];
+      totalWithdrawn = withdrawalsData
+        .filter((w: any) => w.status === 'completed')
+        .reduce((sum: number, w: any) => sum + (w.amount || 0), 0);
+    }
+
+    // Les montants disponibles et en attente sont déjà nets (après 20% commission)
+    // netRevenue = availableBalance + pendingBalance + totalWithdrawn
+    const netRevenue = availableBalance + pendingBalance + totalWithdrawn;
+
+    // Pour calculer les ventes brutes: netRevenue = 80% de totalSales
+    // donc totalSales = netRevenue / 0.8
+    const totalSales = netRevenue > 0 ? Math.round(netRevenue / 0.8) : 0;
+    const commission = totalSales - netRevenue;
 
     return {
       availableBalance,
@@ -616,8 +680,7 @@ export const getRevenueSummary = async (): Promise<any> => {
       totalSales,
       commission,
       netRevenue,
-      totalWithdrawn: 0, // TODO: Récupérer depuis l'API des retraits
-      nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Prochaine semaine
+      totalWithdrawn,
     };
   } catch (error: any) {
     console.error('Erreur lors de la récupération du résumé des revenus:', error);
@@ -629,7 +692,6 @@ export const getRevenueSummary = async (): Promise<any> => {
       commission: 0,
       netRevenue: 0,
       totalWithdrawn: 0,
-      nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
   }
 };
@@ -691,16 +753,29 @@ export const getWithdrawals = async (): Promise<any> => {
     if (response.success && response.data?.data) {
       // Transform API response to match component expectations
       return response.data.data.map((withdrawal: any) => {
-        // Extract account number from payment_details
-        let accountNumber = 'N/A';
-        if (withdrawal.payment_details) {
-          accountNumber = withdrawal.payment_details.phone_number ||
-                         withdrawal.payment_details.account_number ||
-                         withdrawal.payment_details.iban ||
-                         'N/A';
+        // Parse payment_details if it's a JSON string
+        let paymentDetails = withdrawal.payment_details;
+        if (typeof paymentDetails === 'string') {
+          try {
+            paymentDetails = JSON.parse(paymentDetails);
+          } catch {
+            paymentDetails = {};
+          }
         }
 
-        // Map payment_method to display name
+        // Extract account info from payment_details
+        let accountNumber = 'N/A';
+        let operatorName = '';
+        if (paymentDetails) {
+          accountNumber = paymentDetails.phone ||
+                         paymentDetails.phone_number ||
+                         paymentDetails.account_number ||
+                         paymentDetails.iban ||
+                         'N/A';
+          operatorName = paymentDetails.operator_name || '';
+        }
+
+        // Use operator_name from payment_details if available, otherwise map payment_method
         const methodNames: Record<string, string> = {
           'mobile_money': 'Mobile Money',
           'orange_money': 'Orange Money',
@@ -709,14 +784,18 @@ export const getWithdrawals = async (): Promise<any> => {
           'bank_transfer': 'Virement bancaire',
         };
 
+        const displayMethod = operatorName || methodNames[withdrawal.payment_method] || withdrawal.payment_method;
+
         return {
           id: withdrawal.id,
           amount: withdrawal.amount,
-          method: methodNames[withdrawal.payment_method] || withdrawal.payment_method,
+          method: displayMethod,
           accountNumber: accountNumber,
+          accountName: paymentDetails?.account_name || '',
           date: withdrawal.created_at,
           status: withdrawal.status,
           processedDate: withdrawal.processed_at,
+          rejectionReason: withdrawal.rejection_reason,
         };
       });
     }

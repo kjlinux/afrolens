@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MoreVertical, Ban, Trash2, UserCheck, Camera, ShoppingCart, Eye, Mail, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
-import { getUsers, deleteUser, toggleUserBan, updateUser } from '../../services/adminService';
+import { Search, Filter, Ban, UserCheck, Camera, ShoppingCart, Eye, Mail, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
+import { getUsers, toggleUserBan } from '../../services/adminService';
 import { formatDate, formatNumber } from '../../utils/helpers';
 import { PERMISSIONS } from '../../utils/permissions';
 import { Can } from '../../components/auth';
@@ -16,9 +16,7 @@ import Spinner from '../../components/common/Spinner';
 export default function Users() {
   // Permission checks
   const canViewUsers = usePermission(PERMISSIONS.VIEW_USERS);
-  const canEditUsers = usePermission(PERMISSIONS.EDIT_USERS);
   const canSuspendUsers = usePermission(PERMISSIONS.SUSPEND_USERS);
-  const canDeleteUsers = usePermission(PERMISSIONS.DELETE_USERS);
   const { toast } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,11 +24,8 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [showMenu, setShowMenu] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showBanModal, setShowBanModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
   const [userToBan, setUserToBan] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, perPage: 20, total: 0 });
 
@@ -82,7 +77,6 @@ export default function Users() {
   const handleBanClick = (user) => {
     setUserToBan(user);
     setShowBanModal(true);
-    setShowMenu(null);
   };
 
   const confirmBan = async () => {
@@ -101,49 +95,6 @@ export default function Users() {
     } catch (err) {
       toast.error(err.message || 'Erreur lors du changement de statut');
     }
-  };
-
-  const handleDeleteClick = (user) => {
-    setUserToDelete(user);
-    setShowDeleteModal(true);
-    setShowMenu(null);
-  };
-
-  const confirmDelete = async () => {
-    try {
-      await deleteUser(userToDelete.id);
-
-      const updatedUsers = users.filter(u => u.id !== userToDelete.id);
-      setUsers(updatedUsers);
-      setShowDeleteModal(false);
-      setUserToDelete(null);
-      toast.success('Utilisateur supprimé avec succès');
-    } catch (err) {
-      toast.error(err.message || 'Erreur lors de la suppression');
-    }
-  };
-
-  const handleChangeRole = async (user, newRole) => {
-    // TODO: Implement role change when API endpoint is available
-    toast.info('La modification de rôle n\'est pas encore disponible dans l\'API');
-    return;
-
-    // if (!window.confirm(`Changer le rôle de ${user.first_name} ${user.last_name} en "${newRole}" ?`)) {
-    //   return;
-    // }
-
-    // try {
-    //   await updateUser(user.id, { role: newRole });
-
-    //   const updatedUsers = users.map(u =>
-    //     u.id === user.id ? { ...u, role: newRole } : u
-    //   );
-    //   setUsers(updatedUsers);
-    //   setShowMenu(null);
-    //   alert('Rôle modifié avec succès');
-    // } catch (err) {
-    //   alert(err.message || 'Erreur lors du changement de rôle');
-    // }
   };
 
   const getRoleBadge = (role) => {
@@ -290,20 +241,6 @@ export default function Users() {
               >
                 <Ban className="w-4 h-4 mr-2" />
                 {user.is_active !== false ? 'Bannir' : 'Débannir'}
-              </Button>
-            </Can>
-
-            <Can permission={PERMISSIONS.DELETE_USERS}>
-              <Button
-                onClick={() => {
-                  onClose();
-                  handleDeleteClick(user);
-                }}
-                variant="danger"
-                fullWidth
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Supprimer
               </Button>
             </Can>
           </div>
@@ -465,55 +402,16 @@ export default function Users() {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <div className="relative">
-                          <button
-                            onClick={() => setShowMenu(showMenu === user.id ? null : user.id)}
-                            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                        <Can permission={PERMISSIONS.SUSPEND_USERS}>
+                          <Button
+                            onClick={() => handleBanClick(user)}
+                            size="sm"
+                            variant={user.is_active !== false ? 'warning' : 'success'}
+                            title={user.is_active !== false ? 'Bannir' : 'Débannir'}
                           >
-                            <MoreVertical className="w-5 h-5" />
-                          </button>
-
-                          {showMenu === user.id && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-10"
-                                onClick={() => setShowMenu(null)}
-                              ></div>
-                              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg z-20 border">
-                                <div className="py-1">
-                                  <button
-                                    onClick={() => {
-                                      const newRole = user.role === 'photographer' ? 'buyer' : 'photographer';
-                                      handleChangeRole(user, newRole);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                  >
-                                    <UserCheck className="w-4 h-4" />
-                                    Changer en {user.role === 'photographer' ? 'Acheteur' : 'Photographe'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleBanClick(user)}
-                                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                      user.is_active !== false
-                                        ? 'text-orange-600 hover:bg-orange-50'
-                                        : 'text-green-600 hover:bg-green-50'
-                                    }`}
-                                  >
-                                    <Ban className="w-4 h-4" />
-                                    {user.is_active !== false ? 'Bannir' : 'Débannir'}
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteClick(user)}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    Supprimer
-                                  </button>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                            <Ban className="w-4 h-4" />
+                          </Button>
+                        </Can>
                       </div>
                     </td>
                   </tr>
@@ -526,52 +424,6 @@ export default function Users() {
 
       {/* Modal Détails Utilisateur */}
       <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />
-
-      {/* Modal Suppression */}
-      {showDeleteModal && userToDelete && (
-        <Modal
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setUserToDelete(null);
-          }}
-          title="Supprimer l'utilisateur"
-        >
-          <div className="p-6">
-            <p className="text-gray-600 mb-4">
-              Êtes-vous sûr de vouloir supprimer définitivement <strong>{userToDelete.first_name} {userToDelete.last_name}</strong> ?
-              Cette action est irréversible et supprimera également toutes les données associées (photos, commandes, etc.).
-            </p>
-
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-red-800 font-medium">
-                ⚠️ Cette action est irréversible
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                onClick={confirmDelete}
-                variant="danger"
-                fullWidth
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Confirmer la suppression
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setUserToDelete(null);
-                }}
-                variant="ghost"
-                fullWidth
-              >
-                Annuler
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
 
       {/* ConfirmDialog Bannissement */}
       {showBanModal && userToBan && (

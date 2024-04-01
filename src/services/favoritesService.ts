@@ -1,12 +1,12 @@
-import { OpenAPI, FavoritesService } from '../api';
+import { FavoritesService } from '../api';
 
 /**
  * Get user's favorite photos
  */
-export const getFavorites = async () => {
+export const getFavorites = async (page: number = 1) => {
   try {
-    const response = await FavoritesService.getUserFavorites();
-    return response;
+    const response = await FavoritesService.getUserFavorites(page);
+    return response.data?.data || [];
   } catch (error: any) {
     console.error('Error fetching favorites:', error);
     throw new Error(error.body?.message || 'Impossible de charger les favoris');
@@ -18,7 +18,7 @@ export const getFavorites = async () => {
  */
 export const addToFavorites = async (photoId: string) => {
   try {
-    const response = await FavoritesService.addFavorite({ photo_id: photoId });
+    const response = await FavoritesService.storeUserFavorites(photoId);
     return response;
   } catch (error: any) {
     console.error('Error adding to favorites:', error);
@@ -31,7 +31,7 @@ export const addToFavorites = async (photoId: string) => {
  */
 export const removeFromFavorites = async (photoId: string) => {
   try {
-    const response = await FavoritesService.removeFavorite(photoId);
+    const response = await FavoritesService.deleteUserFavorites(photoId);
     return response;
   } catch (error: any) {
     console.error('Error removing from favorites:', error);

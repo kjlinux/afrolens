@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
 import {
   getRevenueSummary,
   getRevenueHistory,
@@ -20,8 +19,6 @@ import {
 import {
   formatPrice,
   formatDate,
-  formatNumber,
-  calculateCommission,
 } from "../../utils/helpers";
 import { CONFIG } from "../../utils/constants";
 import { useToast } from "../../contexts/ToastContext";
@@ -33,7 +30,6 @@ import Modal from "../../components/common/Modal";
 import Spinner from "../../components/common/Spinner";
 
 export default function Revenue() {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -73,7 +69,6 @@ export default function Revenue() {
         commission: 0,
         netRevenue: 0,
         totalWithdrawn: 0,
-        nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       const history = historyResult.status === 'fulfilled' ? historyResult.value : [];
@@ -104,7 +99,6 @@ export default function Revenue() {
         commission: 0,
         netRevenue: 0,
         totalWithdrawn: 0,
-        nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
       setMonthlyRevenue([]);
       setRecentTransactions([]);
@@ -129,18 +123,30 @@ export default function Revenue() {
       return;
     }
 
-    if (amount < CONFIG.MIN_WITHDRAWAL_AMOUNT) {
-      toast.warning(`Le montant minimum de retrait est de ${formatPrice(CONFIG.MIN_WITHDRAWAL_AMOUNT)}`);
+    if (amount < CONFIG.MINIMUM_WITHDRAWAL) {
+      toast.warning(`Le montant minimum de retrait est de ${formatPrice(CONFIG.MINIMUM_WITHDRAWAL)}`);
+      return;
+    }
+
+    if (!withdrawalDetails.trim()) {
+      toast.warning("Veuillez fournir les détails du compte");
       return;
     }
 
     try {
       setWithdrawalProcessing(true);
 
+      // Format payment_details as an object with the appropriate structure
+      const paymentDetails = {
+        phone: withdrawalMethod !== 'bank_transfer' ? withdrawalDetails : undefined,
+        iban: withdrawalMethod === 'bank_transfer' ? withdrawalDetails : undefined,
+        operator: withdrawalMethod.toUpperCase(),
+      };
+
       await createWithdrawal({
         amount,
-        payment_method: withdrawalMethod,
-        payment_details: withdrawalDetails,
+        payment_method: withdrawalMethod === 'bank_transfer' ? 'bank_transfer' : 'mobile_money',
+        payment_details: paymentDetails,
       });
 
       // Recharger les données
@@ -157,45 +163,6 @@ export default function Revenue() {
     } finally {
       setWithdrawalProcessing(false);
     }
-  };
-
-
-  const handleWithdrawalRequest = async (e) => {
-    e.preventDefault();
-
-    const amount = parseFloat(withdrawalAmount);
-
-    // Validations
-    if (amount < CONFIG.MINIMUM_WITHDRAWAL) {
-      toast.warning(
-        `Le montant minimum de retrait est de ${formatPrice(
-          CONFIG.MINIMUM_WITHDRAWAL
-        )}`
-      );
-      return;
-    }
-
-    if (amount > (revenueData?.availableBalance || 0)) {
-      toast.error("Solde disponible insuffisant");
-      return;
-    }
-
-    if (!withdrawalDetails.trim()) {
-      toast.warning("Veuillez fournir les détails du compte");
-      return;
-    }
-
-    // En production, appeler l'API
-    console.log("Demande de retrait:", {
-      amount,
-      method: withdrawalMethod,
-      details: withdrawalDetails,
-    });
-
-    toast.success(`Demande de retrait de ${formatPrice(amount)} soumise avec succès!`);
-    setShowWithdrawalModal(false);
-    setWithdrawalAmount("");
-    setWithdrawalDetails("");
   };
 
   const getStatusBadge = (status) => {
@@ -227,7 +194,6 @@ export default function Revenue() {
     commission: 0,
     netRevenue: 0,
     totalWithdrawn: 0,
-    nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   };
 
   return (
@@ -416,10 +382,6 @@ export default function Revenue() {
               <li>
                 • Délai de traitement: 24-48h pour Mobile Money, 3-5 jours pour
                 virement bancaire
-              </li>
-              <li>
-                • Prochaine date de paiement automatique:{" "}
-                {formatDate(data.nextPayoutDate, "dd MMMM yyyy")}
               </li>
             </ul>
           </div>
@@ -642,6 +604,9 @@ export default function Revenue() {
                     {getStatusBadge(withdrawal.status)}
                   </div>
                   <div className="space-y-1 text-sm text-gray-600">
+                    {withdrawal.accountName && (
+                      <p>Titulaire: {withdrawal.accountName}</p>
+                    )}
                     <p>Compte: {withdrawal.accountNumber}</p>
                     <p>
                       Demandé:{" "}
@@ -654,6 +619,11 @@ export default function Revenue() {
                           withdrawal.processedDate,
                           "dd MMM yyyy HH:mm"
                         )}
+                      </p>
+                    )}
+                    {withdrawal.rejectionReason && (
+                      <p className="text-red-600">
+                        Motif: {withdrawal.rejectionReason}
                       </p>
                     )}
                   </div>
@@ -671,7 +641,7 @@ export default function Revenue() {
           onClose={() => setShowWithdrawalModal(false)}
           title="Demander un retrait"
         >
-          <form onSubmit={handleWithdrawalRequest} className="p-6">
+          <form onSubmit={handleWithdrawal} className="p-6">
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Solde disponible</p>
               <p className="text-2xl font-bold text-green-600">

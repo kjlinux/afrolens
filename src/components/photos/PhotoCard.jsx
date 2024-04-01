@@ -143,7 +143,9 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
           <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 truncate">
             Par{' '}
             <span className="font-medium text-gray-900">
-              {photo.photographer_name || 'Photographe'}
+              {photo.photographer
+                ? `${photo.photographer.first_name} ${photo.photographer.last_name}`
+                : photo.photographer_name || 'Photographe'}
             </span>
           </p>
         )}

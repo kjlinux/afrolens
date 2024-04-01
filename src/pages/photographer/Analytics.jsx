@@ -32,13 +32,11 @@ import { formatPrice, formatNumber } from '../../utils/helpers';
 import { PhotographerGuard } from '../../components/auth';
 import Spinner from '../../components/common/Spinner';
 
-// Period filter options
+// Period filter options (API only supports 7d, 30d, 90d)
 const PERIODS = [
   { value: '7d', label: '7 derniers jours' },
   { value: '30d', label: '30 derniers jours' },
   { value: '90d', label: '90 derniers jours' },
-  { value: '1y', label: '1 an' },
-  { value: 'all', label: 'Tout' },
 ];
 
 // Chart colors
@@ -114,7 +112,7 @@ const Analytics = () => {
               onClick={() => setPeriod(p.value)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 period === p.value
-                  ? 'bg-primary text-white'
+                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600 ring-offset-2'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
               }`}
             >
@@ -279,7 +277,6 @@ const Analytics = () => {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-2 px-2 text-sm font-medium text-gray-700">Catégorie</th>
-                  <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">Photos</th>
                   <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">Vues</th>
                   <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">Ventes</th>
                   <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">CA</th>
@@ -298,7 +295,6 @@ const Analytics = () => {
                           <span className="font-medium">{category.name}</span>
                         </div>
                       </td>
-                      <td className="text-right py-3 px-2 text-gray-600">{category.photos}</td>
                       <td className="text-right py-3 px-2 text-gray-600">{formatNumber(category.views)}</td>
                       <td className="text-right py-3 px-2 text-gray-600">{formatNumber(category.sales)}</td>
                       <td className="text-right py-3 px-2 font-medium">{formatPrice(category.revenue)}</td>
@@ -306,7 +302,7 @@ const Analytics = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                    <td colSpan={4} className="py-8 text-center text-gray-500">
                       Aucune donnée de catégorie disponible
                     </td>
                   </tr>

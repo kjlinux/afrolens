@@ -4,7 +4,6 @@
 /* eslint-disable */
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios';
-import FormData from 'form-data';
 
 import { ApiError } from './ApiError';
 import type { ApiRequestOptions } from './ApiRequestOptions';
@@ -28,13 +27,13 @@ export const isStringWithValue = (value: any): value is string => {
 export const isBlob = (value: any): value is Blob => {
     return (
         typeof value === 'object' &&
-        typeof value.type === 'string' &&
-        typeof value.stream === 'function' &&
+        value !== null &&
+        (value instanceof Blob || value instanceof File ||
+        (typeof value.type === 'string' &&
         typeof value.arrayBuffer === 'function' &&
         typeof value.constructor === 'function' &&
         typeof value.constructor.name === 'string' &&
-        /^(Blob|File)$/.test(value.constructor.name) &&
-        /^(Blob|File)$/.test(value[Symbol.toStringTag])
+        /^(Blob|File)$/.test(value.constructor.name)))
     );
 };
 
@@ -110,11 +109,21 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
 
 export const getFormData = (options: ApiRequestOptions): FormData | undefined => {
     if (options.formData) {
+        // Use native browser FormData
         const formData = new FormData();
 
         const process = (key: string, value: any) => {
-            if (isString(value) || isBlob(value)) {
+            if (isString(value)) {
                 formData.append(key, value);
+            } else if (value instanceof File) {
+                // File object - append with filename
+                formData.append(key, value, value.name);
+            } else if (value instanceof Blob) {
+                // Blob object
+                formData.append(key, value);
+            } else if (typeof value === 'object' && value !== null && value.size !== undefined && value.type !== undefined) {
+                // Duck typing for File-like objects
+                formData.append(key, value, value.name || 'file');
             } else {
                 formData.append(key, JSON.stringify(value));
             }
@@ -152,13 +161,10 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
         resolve(options, config.HEADERS),
     ]);
 
-    const formHeaders = typeof formData?.getHeaders === 'function' && formData?.getHeaders() || {}
-
     const headers = Object.entries({
         Accept: 'application/json',
         ...additionalHeaders,
         ...options.headers,
-        ...formHeaders,
     })
     .filter(([_, value]) => isDefined(value))
     .reduce((headers, [key, value]) => ({
@@ -173,6 +179,12 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
     if (isStringWithValue(username) && isStringWithValue(password)) {
         const credentials = base64(`${username}:${password}`);
         headers['Authorization'] = `Basic ${credentials}`;
+    }
+
+    // Don't set Content-Type for FormData - browser will set it with boundary
+    if (formData) {
+        // Let browser set Content-Type with boundary for multipart/form-data
+        return headers;
     }
 
     if (options.body !== undefined) {

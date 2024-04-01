@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getPhoto, getSimilar } from '../services/photoService';
+import { getPhoto, getSimilar, incrementViews } from '../services/photoService';
+import { toggleFavorite, isFavorite } from '../services/favoritesService';
 import { useCart } from '../context/CartContext';
-import { formatPrice, formatDate, formatFileSize } from '../utils/helpers';
+import { useAuth } from '../context/AuthContext';
+import { formatPrice, formatDate } from '../utils/helpers';
 import {
   FiHeart,
   FiShoppingCart,
@@ -12,6 +14,8 @@ import {
   FiCamera,
   FiMapPin,
   FiCalendar,
+  FiAperture,
+  FiGrid,
 } from 'react-icons/fi';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
@@ -32,13 +36,41 @@ export default function PhotoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user, isAuthenticated } = useAuth();
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedLicense, setSelectedLicense] = useState('standard');
   const [similarPhotos, setSimilarPhotos] = useState([]);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const viewTracked = useRef(false);
 
   useEffect(() => {
     loadPhoto();
+  }, [id]);
+
+  // Track view when photo is loaded
+  useEffect(() => {
+    if (photo && id && !viewTracked.current) {
+      viewTracked.current = true;
+      incrementViews(id).then((result) => {
+        if (result) {
+          setPhoto(prev => ({ ...prev, views_count: result.views_count }));
+        }
+      }).catch(console.error);
+    }
+  }, [photo, id]);
+
+  // Check if photo is in favorites
+  useEffect(() => {
+    if (isAuthenticated && id) {
+      isFavorite(id).then(setIsFavorited).catch(console.error);
+    }
+  }, [isAuthenticated, id]);
+
+  // Reset view tracking when id changes
+  useEffect(() => {
+    viewTracked.current = false;
   }, [id]);
 
   const loadPhoto = async () => {
@@ -54,6 +86,30 @@ export default function PhotoDetail() {
       console.error('Erreur:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/photo/${id}` } });
+      return;
+    }
+
+    setFavoriteLoading(true);
+    try {
+      const newStatus = await toggleFavorite(id, isFavorited);
+      setIsFavorited(newStatus);
+      // Update favorites count
+      setPhoto(prev => ({
+        ...prev,
+        favorites_count: newStatus
+          ? (prev.favorites_count || 0) + 1
+          : Math.max(0, (prev.favorites_count || 0) - 1)
+      }));
+    } catch (error) {
+      console.error('Erreur favoris:', error);
+    } finally {
+      setFavoriteLoading(false);
     }
   };
 
@@ -163,21 +219,42 @@ export default function PhotoDetail() {
 
               {/* Photographe */}
               <div className="flex items-center gap-3 mb-6 pb-6 border-b">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-lg font-bold">
-                    {photo.photographer_name?.charAt(0) || 'P'}
-                  </span>
-                </div>
+                {photo.photographer?.avatar_url ? (
+                  <img
+                    src={photo.photographer.avatar_url}
+                    alt={`${photo.photographer.first_name} ${photo.photographer.last_name}`}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-lg font-bold">
+                      {photo.photographer?.first_name?.charAt(0) || 'P'}
+                    </span>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-600">Par</p>
                   <Link
-                    to={`/photographer/${photo.photographer_id}`}
+                    to={`/photographer/${photo.photographer?.id}`}
                     className="font-semibold text-gray-900 hover:text-primary"
                   >
-                    {photo.photographer_name || 'Photographe'}
+                    {photo.photographer ? `${photo.photographer.first_name} ${photo.photographer.last_name}` : 'Photographe'}
                   </Link>
                 </div>
               </div>
+
+              {/* Catégorie */}
+              {photo.category && (
+                <div className="mb-6 pb-6 border-b">
+                  <p className="text-sm text-gray-600 mb-1">Catégorie</p>
+                  <Link
+                    to={`/search?category=${photo.category.slug}`}
+                    className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors"
+                  >
+                    {photo.category.name}
+                  </Link>
+                </div>
+              )}
 
               {/* Choix licence */}
               <div className="mb-6">
@@ -258,33 +335,92 @@ export default function PhotoDetail() {
                   Ajouter au panier - {formatPrice(currentPrice)}
                 </Button>
 
-                <Button variant="outline" fullWidth onClick={handleShare} className="flex items-center justify-center gap-2">
-                  <FiShare2 />
-                  Partager
-                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    fullWidth
+                    onClick={handleToggleFavorite}
+                    loading={favoriteLoading}
+                    className={`flex items-center justify-center gap-2 ${
+                      isFavorited ? 'text-red-500 border-red-500 hover:bg-red-50' : ''
+                    }`}
+                  >
+                    <FiHeart className={isFavorited ? 'fill-current' : ''} />
+                    {isFavorited ? 'Favori' : 'Favoris'}
+                  </Button>
+
+                  <Button variant="outline" fullWidth onClick={handleShare} className="flex items-center justify-center gap-2">
+                    <FiShare2 />
+                    Partager
+                  </Button>
+                </div>
               </div>
 
               {/* Métadonnées image */}
               <div className="text-sm space-y-2 text-gray-700">
-                <div className="flex items-center gap-2">
-                  <FiCamera className="text-gray-400" />
-                  <span>{photo.camera || 'N/A'}</span>
-                </div>
+                {photo.camera && (
+                  <div className="flex items-center gap-2">
+                    <FiCamera className="text-gray-400" />
+                    <span>{photo.camera}</span>
+                  </div>
+                )}
+                {photo.lens && (
+                  <div className="flex items-center gap-2">
+                    <FiAperture className="text-gray-400" />
+                    <span>{photo.lens}</span>
+                  </div>
+                )}
                 {photo.location && (
                   <div className="flex items-center gap-2">
                     <FiMapPin className="text-gray-400" />
                     <span>{photo.location}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
-                  <FiCalendar className="text-gray-400" />
-                  <span>{formatDate(photo.taken_at || photo.created_at)}</span>
-                </div>
+                {(photo.taken_at || photo.created_at) && (
+                  <div className="flex items-center gap-2">
+                    <FiCalendar className="text-gray-400" />
+                    <span>{formatDate(photo.taken_at || photo.created_at)}</span>
+                  </div>
+                )}
+
+                {/* Paramètres techniques */}
+                {(photo.iso || photo.aperture || photo.shutter_speed || photo.focal_length) && (
+                  <div className="pt-2 border-t text-xs text-gray-500 grid grid-cols-2 gap-1">
+                    {photo.iso && <p>ISO: {photo.iso}</p>}
+                    {photo.aperture && <p>Ouverture: {photo.aperture}</p>}
+                    {photo.shutter_speed && <p>Vitesse: {photo.shutter_speed}</p>}
+                    {photo.focal_length && <p>Focale: {photo.focal_length}</p>}
+                  </div>
+                )}
+
+                {/* Dimensions et format */}
                 <div className="pt-2 border-t text-xs text-gray-500">
                   <p>Dimensions: {photo.width} × {photo.height}px</p>
                   <p>Format: {photo.format?.toUpperCase()}</p>
-                  <p>Taille: {formatFileSize(photo.file_size)}</p>
+                  <p>Orientation: {photo.orientation === 'landscape' ? 'Paysage' : photo.orientation === 'portrait' ? 'Portrait' : 'Carré'}</p>
                 </div>
+
+                {/* Palette de couleurs */}
+                {photo.color_palette && (
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-gray-500 mb-2">Palette de couleurs</p>
+                    <div className="flex gap-1">
+                      {(() => {
+                        const colors = typeof photo.color_palette === 'string'
+                          ? JSON.parse(photo.color_palette)
+                          : photo.color_palette;
+                        return colors.map((color, index) => (
+                          <div
+                            key={index}
+                            className="w-6 h-6 rounded border border-gray-200"
+                            style={{ backgroundColor: color }}
+                            title={color}
+                          />
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -295,19 +431,24 @@ export default function PhotoDetail() {
           <h2 className="text-xl font-bold mb-4">Description</h2>
           <p className="text-gray-700 mb-6">{photo.description}</p>
 
-          {photo.tags && Array.isArray(photo.tags) && photo.tags.length > 0 && (
+          {photo.tags && (
             <div>
               <h3 className="text-sm font-semibold text-gray-600 mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {photo.tags.map((tag, index) => (
-                  <Link
-                    key={index}
-                    to={`/search?q=${tag}`}
-                    className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary-600 hover:text-white transition-colors"
-                  >
-                    #{tag}
-                  </Link>
-                ))}
+                {(() => {
+                  const tags = typeof photo.tags === 'string'
+                    ? JSON.parse(photo.tags)
+                    : photo.tags;
+                  return tags.map((tag, index) => (
+                    <Link
+                      key={index}
+                      to={`/search?q=${tag}`}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary-600 hover:text-white transition-colors"
+                    >
+                      #{tag}
+                    </Link>
+                  ));
+                })()}
               </div>
             </div>
           )}

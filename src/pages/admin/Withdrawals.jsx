@@ -107,6 +107,10 @@ export default function Withdrawals() {
     }
 
     try {
+      // Étape 1: Approuver la demande
+      await approveWithdrawal(withdrawalToProcess.id, notes);
+
+      // Étape 2: Compléter le paiement
       await completeWithdrawal(withdrawalToProcess.id, transactionId);
 
       setSelectedWithdrawal(null);
