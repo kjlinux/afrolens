@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(robocopy:*)",
+      "Bash(dir:*)",
+      "Bash(pnpm dev)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
