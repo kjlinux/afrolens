@@ -30,12 +30,11 @@ export const addToCart = async (photo, licenseType = 'standard') => {
 
   const price = licenseType === 'extended' ? photo.price_extended : photo.price_standard;
 
+  // Store full photo object with cart item id and additional properties
   const item = {
-    id: `cart-${Date.now()}`,
-    photo_id: photo.id,
-    photo_title: photo.title,
-    photo_preview: photo.preview_url,
-    photographer_id: photo.photographer_id,
+    id: `cart-${Date.now()}`, // Unique cart item ID
+    photo_id: photo.id, // Original photo ID
+    ...photo, // Spread all photo properties (title, preview_url, etc.)
     license_type: licenseType,
     price,
     added_at: new Date().toISOString(),

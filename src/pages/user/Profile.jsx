@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { generateAvatarUrl } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';

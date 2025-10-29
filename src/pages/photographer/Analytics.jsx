@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LineChart,
   Line,
@@ -28,7 +28,7 @@ import {
   Award,
   Clock,
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { photographerService } from '../../services/api';
 import { formatPrice, formatNumber } from '../../utils/helpers';
 

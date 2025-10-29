@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { categories } from '../../data/mockData';
 import Button from '../common/Button';
 
@@ -33,7 +33,7 @@ export default function FilterSidebar({ filters, onFilterChange, onReset }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md sticky top-4">
+    <div className="bg-white p-6 rounded-lg shadow-md sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-bold">Filtres</h2>
         <button

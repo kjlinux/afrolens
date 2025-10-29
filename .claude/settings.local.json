@@ -3,7 +3,10 @@
     "allow": [
       "Bash(robocopy:*)",
       "Bash(dir:*)",
-      "Bash(pnpm dev)"
+      "Bash(pnpm dev)",
+      "Bash(pnpm add:*)",
+      "Bash(node -c:*)",
+      "Bash(pnpm list:*)"
     ],
     "deny": [],
     "ask": []

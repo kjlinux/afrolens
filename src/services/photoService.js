@@ -208,10 +208,14 @@ export const deletePhoto = async (id) => {
   return true;
 };
 
+// Export alias for backward compatibility
+export { search as searchPhotos };
+
 export default {
   getPhotos,
   getPhoto,
   search,
+  searchPhotos: search,
   getFeatured,
   getRecent,
   getPopular,

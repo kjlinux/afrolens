@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { getOrders } from '../../services/orderService';
 import { formatPrice, formatDate, downloadFile } from '../../utils/helpers';
 import { ORDER_STATUS, PAYMENT_PROVIDERS } from '../../utils/constants';

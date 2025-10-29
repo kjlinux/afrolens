@@ -4,15 +4,17 @@ import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 /**
- * Formate un prix en euros
+ * Formate un prix en Franc CFA
  * @param {number} price - Prix à formater
- * @param {string} currency - Devise (défaut: EUR)
+ * @param {string} currency - Devise (défaut: XOF)
  * @returns {string} - Prix formaté
  */
-export const formatPrice = (price, currency = 'EUR') => {
+export const formatPrice = (price, currency = 'XOF') => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(price);
 };
 

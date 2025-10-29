@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import * as cartService from '../services/cartService';
 
 const CartContext = createContext(null);
@@ -34,7 +34,7 @@ export const CartProvider = ({ children }) => {
     return updatedCart;
   };
 
-  const updateItem = async (itemId, updates) => {
+  const updateCartItem = async (itemId, updates) => {
     const updatedCart = await cartService.updateCartItem(itemId, updates);
     setCart(updatedCart);
     return updatedCart;
@@ -49,7 +49,7 @@ export const CartProvider = ({ children }) => {
     return cart.reduce((sum, item) => sum + item.price, 0);
   };
 
-  const getCount = () => {
+  const getItemCount = () => {
     return cart.length;
   };
 
@@ -58,10 +58,10 @@ export const CartProvider = ({ children }) => {
     loading,
     addToCart,
     removeFromCart,
-    updateItem,
+    updateCartItem,
     clearCart,
     getTotal,
-    getCount,
+    getItemCount,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

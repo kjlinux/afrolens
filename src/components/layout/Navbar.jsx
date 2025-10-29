@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -5,7 +6,7 @@ import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings } from 'react-ic
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
-  const { getCount } = useCart();
+  const { getItemCount } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -40,9 +41,9 @@ export default function Navbar() {
                 {/* Cart */}
                 <Link to="/cart" className="relative p-2 hover:bg-gray-100 rounded-lg">
                   <FiShoppingCart className="w-6 h-6" />
-                  {getCount() > 0 && (
+                  {getItemCount() > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {getCount()}
+                      {getItemCount()}
                     </span>
                   )}
                 </Link>

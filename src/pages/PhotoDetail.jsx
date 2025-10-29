@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getPhoto } from '../services/photoService';
 import { useCart } from '../context/CartContext';
@@ -153,7 +153,7 @@ export default function PhotoDetail() {
 
           {/* Sidebar info et achat */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
               <h1 className="text-2xl font-bold mb-4">{photo.title}</h1>
 
               {/* Photographe */}
@@ -179,40 +179,62 @@ export default function PhotoDetail() {
                 <label className="block text-sm font-medium mb-3">Type de licence</label>
                 <div className="space-y-3">
                   <button
+                    type="button"
                     onClick={() => setSelectedLicense('standard')}
-                    className={`w-full p-4 border-2 rounded-lg text-left transition-colors ${
+                    className={`w-full p-4 border-2 rounded-lg text-left transition-all cursor-pointer ${
                       selectedLicense === 'standard'
-                        ? 'border-primary bg-primary/5'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-primary bg-primary/10 shadow-md'
+                        : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold">Standard</span>
+                      <span className="font-semibold flex items-center gap-2">
+                        {selectedLicense === 'standard' && (
+                          <span className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                            <span className="w-2 h-2 bg-white rounded-full"></span>
+                          </span>
+                        )}
+                        {selectedLicense !== 'standard' && (
+                          <span className="w-4 h-4 border-2 border-gray-300 rounded-full"></span>
+                        )}
+                        Standard
+                      </span>
                       <span className="text-lg font-bold text-primary">
                         {formatPrice(photo.price_standard)}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 ml-6">
                       Usage personnel et commercial limité
                     </p>
                   </button>
 
                   {photo.price_extended && (
                     <button
+                      type="button"
                       onClick={() => setSelectedLicense('extended')}
-                      className={`w-full p-4 border-2 rounded-lg text-left transition-colors ${
+                      className={`w-full p-4 border-2 rounded-lg text-left transition-all cursor-pointer ${
                         selectedLicense === 'extended'
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-primary bg-primary/10 shadow-md'
+                          : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold">Extended</span>
+                        <span className="font-semibold flex items-center gap-2">
+                          {selectedLicense === 'extended' && (
+                            <span className="w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                              <span className="w-2 h-2 bg-white rounded-full"></span>
+                            </span>
+                          )}
+                          {selectedLicense !== 'extended' && (
+                            <span className="w-4 h-4 border-2 border-gray-300 rounded-full"></span>
+                          )}
+                          Extended
+                        </span>
                         <span className="text-lg font-bold text-primary">
                           {formatPrice(photo.price_extended)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-gray-600 ml-6">
                         Usage commercial étendu sans limite
                       </p>
                     </button>

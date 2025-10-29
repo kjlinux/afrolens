@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Composant Card réutilisable
  * @param {Object} props

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { photos, getPhotosByPhotographer } from '../../data/mockData';
 import { formatPrice, formatDate, formatNumber } from '../../utils/helpers';
 import { PHOTO_STATUS } from '../../utils/constants';

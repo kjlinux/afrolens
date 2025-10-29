@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Composant Spinner pour indiquer un chargement
  * @param {Object} props

@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Composant Badge pour afficher des statuts ou tags
  * @param {Object} props

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { getPhotoById } from '../../data/mockData';
 import { STORAGE_KEYS } from '../../utils/constants';
 import PhotoGrid from '../../components/photos/PhotoGrid';
@@ -228,7 +228,7 @@ export default function Favorites() {
                 {/* Bouton de suppression */}
                 <button
                   onClick={() => removeFavorite(photo.id)}
-                  className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                  className="absolute top-3 right-3 z-10 p-2 bg-white/90 text-gray-900 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
                   title="Retirer des favoris"
                 >
                   <svg

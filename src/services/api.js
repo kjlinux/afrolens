@@ -52,4 +52,24 @@ api.interceptors.response.use(
   }
 );
 
+// Photographer service
+export const photographerService = {
+  getAnalytics: async (photographerId, period = '30d') => {
+    const response = await api.get(`/photographers/${photographerId}/analytics`, {
+      params: { period }
+    });
+    return response.data;
+  },
+  getRevenue: async (photographerId, period = '30d') => {
+    const response = await api.get(`/photographers/${photographerId}/revenue`, {
+      params: { period }
+    });
+    return response.data;
+  },
+  getStats: async (photographerId) => {
+    const response = await api.get(`/photographers/${photographerId}/stats`);
+    return response.data;
+  },
+};
+
 export default api;

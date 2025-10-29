@@ -1,8 +1,8 @@
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiHeart, FiShoppingCart, FiEye } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import { formatPrice } from '../../utils/helpers';
-import { useState } from 'react';
 import { useCart } from '../../context/CartContext';
 
 /**
@@ -55,14 +55,14 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              className="p-3 bg-white rounded-full hover:bg-primary hover:text-white transition-colors"
+              className="p-3 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors"
               title="Ajouter au panier"
             >
               <FiShoppingCart className="w-5 h-5" />
             </button>
             <button
               onClick={handleFavoriteClick}
-              className="p-3 bg-white rounded-full hover:bg-red-500 hover:text-white transition-colors"
+              className="p-3 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors"
               title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
             >
               {isFavorite ? (

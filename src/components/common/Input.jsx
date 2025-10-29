@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 
 /**
  * Composant Input réutilisable avec label, erreur et icône
