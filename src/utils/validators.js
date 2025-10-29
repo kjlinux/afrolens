@@ -195,7 +195,7 @@ export const validatePrice = (price, minPrice = 5) => {
   if (price < minPrice) {
     return {
       valid: false,
-      error: `Le prix minimum est de ${minPrice}€`,
+      error: `Le prix minimum est de ${minPrice}FCFA`,
     };
   }
 
@@ -372,7 +372,7 @@ export const validateWithdrawalForm = (data, availableBalance) => {
   } else if (isNaN(data.amount) || data.amount <= 0) {
     errors.amount = 'Le montant doit être supérieur à 0';
   } else if (data.amount < CONFIG.MINIMUM_WITHDRAWAL) {
-    errors.amount = `Le montant minimum de retrait est de ${CONFIG.MINIMUM_WITHDRAWAL}€`;
+    errors.amount = `Le montant minimum de retrait est de ${CONFIG.MINIMUM_WITHDRAWAL}FCFA`;
   } else if (data.amount > availableBalance) {
     errors.amount = 'Montant supérieur au solde disponible';
   }

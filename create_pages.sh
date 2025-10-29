@@ -60,7 +60,7 @@ export default function Cart() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Mon Panier ({cart.length})</h1>
-      <p>Total: {getTotal()}€</p>
+      <p>Total: {getTotal()}FCFA</p>
     </div>
   );
 }
@@ -118,7 +118,7 @@ export default function Dashboard() {
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-gray-600">Revenus</h3>
-          <p className="text-3xl font-bold text-blue-600">18,650€</p>
+          <p className="text-3xl font-bold text-blue-600">18,650FCFA</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-gray-600">Followers</h3>
@@ -192,7 +192,7 @@ export default function Dashboard() {
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-gray-600">Revenus</h3>
-          <p className="text-3xl font-bold">5,420€</p>
+          <p className="text-3xl font-bold">5,420FCFA</p>
         </div>
       </div>
     </div>

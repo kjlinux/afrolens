@@ -320,14 +320,14 @@ export default function Revenue() {
                 dataKey="sales"
                 stroke="#3b82f6"
                 strokeWidth={2}
-                name="Ventes brutes (€)"
+                name="Ventes brutes (FCFA)"
               />
               <Line
                 type="monotone"
                 dataKey="net"
                 stroke="#22c55e"
                 strokeWidth={2}
-                name="Revenus nets (€)"
+                name="Revenus nets (FCFA)"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -470,7 +470,7 @@ export default function Revenue() {
             </div>
 
             <Input
-              label="Montant à retirer (€)"
+              label="Montant à retirer (FCFA)"
               type="number"
               value={withdrawalAmount}
               onChange={(e) => setWithdrawalAmount(e.target.value)}

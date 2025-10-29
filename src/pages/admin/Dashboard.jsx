@@ -15,7 +15,7 @@ export default function Dashboard() {
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-gray-600">Revenus</h3>
-          <p className="text-3xl font-bold">5,420€</p>
+          <p className="text-3xl font-bold">5,420FCFA</p>
         </div>
       </div>
     </div>

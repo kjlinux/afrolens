@@ -49,7 +49,7 @@ export const notifications = [
     user_id: 'photographer-1',
     type: 'new_sale',
     title: 'Nouvelle vente !',
-    message: 'Félicitations ! Votre photo "Gardien des Étalons avec trophée CAF" vient d\'être vendue pour 50.00 €.',
+    message: 'Félicitations ! Votre photo "Gardien des Étalons avec trophée CAF" vient d\'être vendue pour 50.00 FCFA.',
     data: {
       order_id: 'order-001',
       photo_id: 'photo-030',
@@ -91,7 +91,7 @@ export const notifications = [
     user_id: 'photographer-1',
     type: 'withdrawal_approved',
     title: 'Demande de retrait approuvée',
-    message: 'Votre demande de retrait de 500.00 € a été approuvée. Le paiement sera effectué sous 48h.',
+    message: 'Votre demande de retrait de 500.00 FCFA a été approuvée. Le paiement sera effectué sous 48h.',
     data: {
       withdrawal_id: 'withdrawal-001',
       amount: 500.00,
@@ -144,7 +144,7 @@ export const notifications = [
     user_id: 'admin-1',
     type: 'new_withdrawal_request',
     title: 'Nouvelle demande de retrait',
-    message: 'Aminata Sawadogo demande un retrait de 250.00 €.',
+    message: 'Aminata Sawadogo demande un retrait de 250.00 FCFA.',
     data: {
       withdrawal_id: 'withdrawal-002',
       photographer_id: 'photographer-2',
@@ -173,7 +173,7 @@ export const notifications = [
     user_id: 'photographer-2',
     type: 'new_sale',
     title: 'Nouvelle vente !',
-    message: 'Votre photo a été vendue pour 35.00 €.',
+    message: 'Votre photo a été vendue pour 35.00 FCFA.',
     data: {
       photo_id: 'photo-XXX',
       amount: 35.00,
