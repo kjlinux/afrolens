@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import * as photoService from '../services/photoService';
 import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/helpers';
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -40,7 +41,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
             <h3 className="font-semibold truncate">{photo.title}</h3>
-            <p className="text-sm text-gray-300">{photo.price_standard}€</p>
+            <p className="text-sm text-gray-300">{formatPrice(photo.price_standard)}</p>
           </div>
         </div>
       </div>

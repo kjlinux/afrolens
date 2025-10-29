@@ -471,7 +471,7 @@ export default function Upload() {
                 {/* Prix */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <Input
-                    label="Prix Standard (€)"
+                    label="Prix Standard (FCFA)"
                     name="price_standard"
                     type="number"
                     value={formData.price_standard}
@@ -482,7 +482,7 @@ export default function Upload() {
                     step="5"
                   />
                   <Input
-                    label="Prix Étendu (€)"
+                    label="Prix Étendu (FCFA)"
                     name="price_extended"
                     type="number"
                     value={formData.price_extended}
@@ -552,7 +552,7 @@ export default function Upload() {
                     <li>• Les photos seront modérées avant publication</li>
                     <li>• Un watermark sera automatiquement ajouté</li>
                     <li>• Commission de {CONFIG.COMMISSION_RATE * 100}% sur les ventes</li>
-                    <li>• Retrait minimum: {CONFIG.MINIMUM_WITHDRAWAL}€</li>
+                    <li>• Retrait minimum: {CONFIG.MINIMUM_WITHDRAWAL} FCFA</li>
                   </ul>
                 </div>
               </form>

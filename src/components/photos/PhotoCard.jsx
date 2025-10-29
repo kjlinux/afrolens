@@ -51,26 +51,28 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
         />
 
         {/* Overlay au hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-          <div className="flex gap-3">
-            <button
-              onClick={handleAddToCart}
-              className="p-3 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors"
-              title="Ajouter au panier"
-            >
-              <FiShoppingCart className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleFavoriteClick}
-              className="p-3 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors"
-              title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-            >
-              {isFavorite ? (
-                <FaHeart className="w-5 h-5 text-red-500" />
-              ) : (
-                <FiHeart className="w-5 h-5" />
-              )}
-            </button>
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 pointer-events-none">
+          <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="flex gap-3 pointer-events-auto">
+              <button
+                onClick={handleAddToCart}
+                className="p-3 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg"
+                title="Ajouter au panier"
+              >
+                <FiShoppingCart className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleFavoriteClick}
+                className="p-3 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors shadow-lg"
+                title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              >
+                {isFavorite ? (
+                  <FaHeart className="w-5 h-5 text-red-500" />
+                ) : (
+                  <FiHeart className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -108,7 +110,7 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
               {photo.favorites_count || 0}
             </span>
           </div>
-          <p className="text-lg font-bold text-primary">
+          <p className="text-base font-bold text-primary">
             {formatPrice(photo.price_standard)}
           </p>
         </div>

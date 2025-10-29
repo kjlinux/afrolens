@@ -240,7 +240,7 @@ export default function Dashboard() {
                 stroke="#22c55e"
                 fillOpacity={1}
                 fill="url(#colorRevenue)"
-                name="Revenus (€)"
+                name="Revenus (FCFA)"
               />
               <Line
                 yAxisId="left"
