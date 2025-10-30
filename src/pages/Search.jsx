@@ -110,7 +110,7 @@ export default function Search() {
               {/* Bouton filtres mobile */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <FiSliders className="w-4 h-4" />
                 Filtres
@@ -132,9 +132,9 @@ export default function Search() {
         </div>
 
         {/* Grille avec filtres */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar filtres */}
-          <div className={`md:col-span-1 ${showFilters ? 'block' : 'hidden md:block'}`}>
+          <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
             <FilterSidebar
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -143,7 +143,7 @@ export default function Search() {
           </div>
 
           {/* Grille de photos */}
-          <div className="md:col-span-3">
+          <div className="lg:col-span-3">
             <PhotoGrid photos={photos} loading={loading} />
           </div>
         </div>

@@ -162,7 +162,7 @@ export default function PhotoDetail() {
 
           {/* Sidebar info et achat */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
               <h1 className="text-2xl font-bold mb-4">{photo.title}</h1>
 
               {/* Photographe */}

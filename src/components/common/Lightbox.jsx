@@ -132,15 +132,15 @@ const Lightbox = ({
       onClick={handleClose}
     >
       {/* Header with controls */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-2 sm:p-4">
         <div className="container mx-auto flex items-center justify-between text-white">
           {/* Image info */}
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold truncate">
+          <div className="flex-1 min-w-0 mr-2">
+            <h3 className="text-sm sm:text-lg font-semibold truncate">
               {currentImage.title || `Image ${index + 1}`}
             </h3>
             {currentImage.photographer && (
-              <p className="text-sm text-gray-300">
+              <p className="text-xs sm:text-sm text-gray-300 truncate">
                 Par {currentImage.photographer}
               </p>
             )}
@@ -156,17 +156,17 @@ const Lightbox = ({
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
             aria-label="Fermer"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
       </div>
 
       {/* Main image container */}
       <div
-        className="relative w-full h-full flex items-center justify-center p-16"
+        className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 lg:p-16"
         onClick={(e) => e.stopPropagation()}
       >
         <img
@@ -190,10 +190,10 @@ const Lightbox = ({
               e.stopPropagation();
               handlePrevious();
             }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all"
             aria-label="Image précédente"
           >
-            <ChevronLeft className="w-8 h-8" />
+            <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
 
           <button
@@ -201,17 +201,17 @@ const Lightbox = ({
               e.stopPropagation();
               handleNext();
             }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/50 hover:bg-black/70 text-white rounded-full transition-all"
             aria-label="Image suivante"
           >
-            <ChevronRight className="w-8 h-8" />
+            <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
           </button>
         </>
       )}
 
       {/* Bottom toolbar */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4">
-        <div className="container mx-auto flex items-center justify-center gap-2">
+      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-4">
+        <div className="container mx-auto flex items-center justify-center gap-1 sm:gap-2">
           {/* Zoom controls */}
           <div className="flex items-center gap-1 bg-black/50 rounded-lg p-1">
             <button
@@ -220,13 +220,13 @@ const Lightbox = ({
                 handleZoomOut();
               }}
               disabled={zoom <= 0.5}
-              className="p-2 hover:bg-white/10 rounded disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-white/10 rounded disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
               aria-label="Dézoomer"
             >
-              <ZoomOut className="w-5 h-5" />
+              <ZoomOut className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            <span className="text-white text-sm px-3 min-w-[60px] text-center">
+            <span className="text-white text-xs sm:text-sm px-2 sm:px-3 min-w-[50px] sm:min-w-[60px] text-center">
               {Math.round(zoom * 100)}%
             </span>
 
@@ -236,10 +236,10 @@ const Lightbox = ({
                 handleZoomIn();
               }}
               disabled={zoom >= 3}
-              className="p-2 hover:bg-white/10 rounded disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-white/10 rounded disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors"
               aria-label="Zoomer"
             >
-              <ZoomIn className="w-5 h-5" />
+              <ZoomIn className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <button
@@ -247,10 +247,10 @@ const Lightbox = ({
                 e.stopPropagation();
                 handleResetZoom();
               }}
-              className="p-2 hover:bg-white/10 rounded text-white transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-white/10 rounded text-white transition-colors"
               aria-label="Réinitialiser le zoom"
             >
-              <Maximize2 className="w-5 h-5" />
+              <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
@@ -260,10 +260,10 @@ const Lightbox = ({
               e.stopPropagation();
               handleRotate();
             }}
-            className="p-2 bg-black/50 hover:bg-white/10 rounded-lg text-white transition-colors"
+            className="p-1.5 sm:p-2 bg-black/50 hover:bg-white/10 rounded-lg text-white transition-colors"
             aria-label="Pivoter"
           >
-            <RotateCw className="w-5 h-5" />
+            <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Download button */}
@@ -273,10 +273,10 @@ const Lightbox = ({
                 e.stopPropagation();
                 handleDownload();
               }}
-              className="p-2 bg-black/50 hover:bg-white/10 rounded-lg text-white transition-colors"
+              className="p-1.5 sm:p-2 bg-black/50 hover:bg-white/10 rounded-lg text-white transition-colors"
               aria-label="Télécharger"
             >
-              <Download className="w-5 h-5" />
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           )}
         </div>
