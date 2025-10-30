@@ -59,7 +59,7 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
             <div className="flex gap-2 sm:gap-3 pointer-events-auto">
               <button
                 onClick={handleAddToCart}
-                className="p-2 sm:p-3 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg"
+                className="p-2 sm:p-3 bg-white text-gray-900 rounded-full hover:bg-primary-600 hover:text-white transition-colors shadow-lg"
                 title="Ajouter au panier"
               >
                 <FiShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />

@@ -8,7 +8,10 @@
       "Bash(node -c:*)",
       "Bash(pnpm list:*)",
       "Bash(node -e:*)",
-      "Bash(node -p:*)"
+      "Bash(node -p:*)",
+      "Bash(pnpm run dev)",
+      "Bash(timeout:*)",
+      "Bash(del \"c:\\laragon\\www\\afrolens\\src\\pages\\ComponentsDemo.jsx\")"
     ],
     "deny": [],
     "ask": []

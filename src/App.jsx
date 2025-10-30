@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { ToastContainer } from './components/common/Toast';
 
 // Layouts
 import Navbar from './components/layout/Navbar';
@@ -61,6 +63,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <ScrollToTop />
+      <ToastContainer />
       <Navbar />
       <main className="flex-1">
         <Routes>
@@ -195,7 +198,9 @@ function App() {
     <Router>
       <AuthProvider>
         <CartProvider>
-          <AppContent />
+          <ToastProvider>
+            <AppContent />
+          </ToastProvider>
         </CartProvider>
       </AuthProvider>
     </Router>

@@ -327,7 +327,7 @@ export default function PhotoDetail() {
                   <Link
                     key={index}
                     to={`/search?q=${tag}`}
-                    className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary hover:text-white transition-colors"
+                    className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-primary-600 hover:text-white transition-colors"
                   >
                     #{tag}
                   </Link>

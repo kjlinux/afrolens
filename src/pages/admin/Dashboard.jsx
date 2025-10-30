@@ -324,7 +324,7 @@ export default function Dashboard() {
         <h2 className="text-xl font-semibold mb-6">Actions rapides</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link to="/admin/moderation">
-            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left">
+            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary-600 hover:bg-primary-600/5 transition-colors text-left">
               <Clock className="w-6 h-6 text-orange-600 mb-2" />
               <p className="font-semibold text-gray-900">Modérer les photos</p>
               <p className="text-sm text-gray-600">{stats.pendingPhotos} en attente</p>
@@ -332,7 +332,7 @@ export default function Dashboard() {
           </Link>
 
           <Link to="/admin/photographers-pending">
-            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left">
+            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary-600 hover:bg-primary-600/5 transition-colors text-left">
               <UserCheck className="w-6 h-6 text-indigo-600 mb-2" />
               <p className="font-semibold text-gray-900">Valider photographes</p>
               <p className="text-sm text-gray-600">Nouvelles demandes</p>
@@ -340,7 +340,7 @@ export default function Dashboard() {
           </Link>
 
           <Link to="/admin/users">
-            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left">
+            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary-600 hover:bg-primary-600/5 transition-colors text-left">
               <Users className="w-6 h-6 text-blue-600 mb-2" />
               <p className="font-semibold text-gray-900">Gérer utilisateurs</p>
               <p className="text-sm text-gray-600">{stats.totalUsers} utilisateurs</p>
@@ -348,7 +348,7 @@ export default function Dashboard() {
           </Link>
 
           <Link to="/admin/withdrawals">
-            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left">
+            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary-600 hover:bg-primary-600/5 transition-colors text-left">
               <DollarSign className="w-6 h-6 text-green-600 mb-2" />
               <p className="font-semibold text-gray-900">Retraits</p>
               <p className="text-sm text-gray-600">Demandes en attente</p>
