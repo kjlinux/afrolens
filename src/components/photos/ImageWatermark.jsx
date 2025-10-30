@@ -5,61 +5,52 @@ import React from 'react';
  * Ajoute un filigrane semi-transparent sur les images pour les protéger
  * @param {Object} props
  * @param {string} props.brandName - Nom de la marque à afficher (par défaut: "POUIRE")
- * @param {boolean} props.showPattern - Afficher le motif répété en arrière-plan (par défaut: false)
- * @param {string} props.position - Position du filigrane: 'bottom-right', 'center', 'bottom-left', 'top-right', 'top-left' (par défaut: 'bottom-right')
+ * @param {boolean} props.showPattern - Afficher le motif répété en arrière-plan (par défaut: true)
+ * @param {string} props.position - Position du filigrane principal: 'bottom-right', 'center', 'bottom-left', 'top-right', 'top-left' (par défaut: 'center')
  */
 export default function ImageWatermark({
   brandName = 'POUIRE',
-  showPattern = false,
-  position = 'bottom-right'
+  showPattern = true,
+  position = 'center'
 }) {
 
-  const positionClasses = {
-    'bottom-right': 'bottom-4 right-4',
-    'bottom-left': 'bottom-4 left-4',
-    'top-right': 'top-4 right-4',
-    'top-left': 'top-4 left-4',
-    'center': 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl'
-  };
+  // Générer un nombre suffisant de répétitions pour remplir l'image
+  // On crée une grille de filigranes en diagonale
+  const rows = 12; // Nombre de lignes augmenté
+  const cols = 12; // Nombre de colonnes augmenté
+  const totalWatermarks = rows * cols;
 
   return (
-    <div className="absolute inset-0 pointer-events-none select-none">
-      {/* Motif répété optionnel */}
-      {showPattern && (
+    <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+      {/* Motif répété remplissant toute l'image */}
+      <div className="absolute inset-0">
         <div
-          className="absolute inset-0 opacity-5 text-gray-900"
+          className="absolute flex flex-wrap content-center justify-center"
           style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 100px,
-              currentColor 100px,
-              currentColor 101px
-            )`
+            transform: 'rotate(-45deg) scale(1.5)',
+            transformOrigin: 'center center',
+            width: '300%',
+            height: '300%',
+            left: '-100%',
+            top: '-100%',
+            gap: '50px 70px'
           }}
         >
-          <div
-            className="absolute inset-0 flex flex-wrap items-center justify-center gap-24 p-8"
-            style={{
-              transform: 'rotate(-45deg)',
-              transformOrigin: 'center'
-            }}
-          >
-            {[...Array(20)].map((_, i) => (
-              <span
-                key={i}
-                className="text-2xl font-bold whitespace-nowrap opacity-10"
-              >
-                {brandName}
-              </span>
-            ))}
-          </div>
+          {[...Array(totalWatermarks)].map((_, i) => (
+            <span
+              key={i}
+              className="text-2xl md:text-3xl font-bold whitespace-nowrap text-white/15 select-none"
+              style={{
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            >
+              {brandName}
+            </span>
+          ))}
         </div>
-      )}
-
-      {/* Filigrane principal */}
-      <div className={`absolute ${positionClasses[position]} text-white/20 text-xl font-bold select-none`}>
-        © {brandName}
       </div>
     </div>
   );
