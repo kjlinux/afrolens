@@ -25,8 +25,21 @@ export const formatPrice = (price, currency = 'XOF') => {
  * @returns {string} - Date formatée
  */
 export const formatDate = (date, formatStr = 'dd/MM/yyyy') => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return format(dateObj, formatStr, { locale: fr });
+  if (!date) return 'N/A';
+
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+
+    // Vérifier si la date est valide
+    if (isNaN(dateObj.getTime())) {
+      return 'Date invalide';
+    }
+
+    return format(dateObj, formatStr, { locale: fr });
+  } catch (error) {
+    console.error('Erreur lors du formatage de la date:', error, date);
+    return 'Date invalide';
+  }
 };
 
 /**
@@ -35,8 +48,21 @@ export const formatDate = (date, formatStr = 'dd/MM/yyyy') => {
  * @returns {string} - Date relative
  */
 export const formatRelativeDate = (date) => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return formatDistanceToNow(dateObj, { addSuffix: true, locale: fr });
+  if (!date) return 'N/A';
+
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+
+    // Vérifier si la date est valide
+    if (isNaN(dateObj.getTime())) {
+      return 'Date invalide';
+    }
+
+    return formatDistanceToNow(dateObj, { addSuffix: true, locale: fr });
+  } catch (error) {
+    console.error('Erreur lors du formatage de la date relative:', error, date);
+    return 'Date invalide';
+  }
 };
 
 /**
@@ -294,8 +320,16 @@ export const randomColor = () => {
  * @returns {boolean} - True si dans le futur
  */
 export const isFutureDate = (date) => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return dateObj > new Date();
+  if (!date) return false;
+
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (isNaN(dateObj.getTime())) return false;
+    return dateObj > new Date();
+  } catch (error) {
+    console.error('Erreur lors de la vérification de la date:', error, date);
+    return false;
+  }
 };
 
 /**
@@ -304,8 +338,16 @@ export const isFutureDate = (date) => {
  * @returns {boolean} - True si passée
  */
 export const isPastDate = (date) => {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return dateObj < new Date();
+  if (!date) return false;
+
+  try {
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (isNaN(dateObj.getTime())) return false;
+    return dateObj < new Date();
+  } catch (error) {
+    console.error('Erreur lors de la vérification de la date:', error, date);
+    return false;
+  }
 };
 
 /**
@@ -315,11 +357,21 @@ export const isPastDate = (date) => {
  * @returns {number} - Nombre de jours
  */
 export const daysBetween = (date1, date2) => {
-  const d1 = typeof date1 === 'string' ? parseISO(date1) : date1;
-  const d2 = typeof date2 === 'string' ? parseISO(date2) : date2;
-  const diffTime = Math.abs(d2 - d1);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
+  if (!date1 || !date2) return 0;
+
+  try {
+    const d1 = typeof date1 === 'string' ? parseISO(date1) : date1;
+    const d2 = typeof date2 === 'string' ? parseISO(date2) : date2;
+
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+
+    const diffTime = Math.abs(d2 - d1);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  } catch (error) {
+    console.error('Erreur lors du calcul des jours entre les dates:', error, date1, date2);
+    return 0;
+  }
 };
 
 export default {

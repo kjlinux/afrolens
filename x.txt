@@ -74,8 +74,8 @@ Contrôle global de la plateforme
 Fonctionnalités de modération et de gestion des utilisateurs
 Outils de validation et de supervision
 Je vais structurer un plan détaillé et cohérent pour le développement.
-Parfait ! Merci pour ces clarifications. Je vais maintenant vous présenter un plan de développement complet et exhaustif pour le frontend de la plateforme AfroLens.
-📋 PLAN DE DÉVELOPPEMENT FRONTEND - AFROLENS
+Parfait ! Merci pour ces clarifications. Je vais maintenant vous présenter un plan de développement complet et exhaustif pour le frontend de la plateforme Pouire.
+📋 PLAN DE DÉVELOPPEMENT FRONTEND - Pouire
 Vue d'ensemble
 Je vais développer une plateforme complète de vente de photos avec React + Vite + TailwindCSS, incluant tous les modules (Utilisateur, Photographe, Admin) avec des données mockées et une simulation complète de l'authentification et du paiement.
 🎯 PHASE 1 : SETUP ET INFRASTRUCTURE (Base du projet)
@@ -609,7 +609,7 @@ Responsive design complet (mobile, tablet, desktop)
 Simulation paiement complète avec tunnel d'achat
 Documentation complète
 🗂️ STRUCTURE FINALE DU PROJET
-afrolens/
+Pouire/
 ├── frontend/
 │   ├── public/
 │   │   ├── index.html
@@ -685,7 +685,7 @@ Ce plan couvre 100% des fonctionnalités décrites dans la spécification. Êtes
 
 
 Claude’s Plan
-Plan de développement Frontend AfroLens
+Plan de développement Frontend Pouire
 Vue d'ensemble
 Développement complet d'une plateforme de vente de photos avec React + Vite + TailwindCSS, incluant tous les modules avec données mockées et simulation complète.
 Étapes principales

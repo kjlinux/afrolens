@@ -6,7 +6,9 @@
       "Bash(pnpm dev)",
       "Bash(pnpm add:*)",
       "Bash(node -c:*)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "Bash(node -e:*)",
+      "Bash(node -p:*)"
     ],
     "deny": [],
     "ask": []

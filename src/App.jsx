@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 // Layouts
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import ScrollToTop from './components/ScrollToTop';
 
 // Pages publiques
 import Home from './pages/Home';
@@ -59,6 +60,7 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <ScrollToTop />
       <Navbar />
       <main className="flex-1">
         <Routes>

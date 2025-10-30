@@ -1,4 +1,4 @@
-// Utilisateurs mockés pour AfroLens
+// Utilisateurs mockés pour Pouire
 // 3 comptes de test principaux + autres utilisateurs pour la démo
 
 export const users = [
@@ -352,8 +352,8 @@ export const getPhotographers = () => {
 export const getApprovedPhotographers = () => {
   return users.filter(
     user => user.account_type === 'photographer' &&
-    user.status === 'approved' &&
-    user.is_active
+      user.status === 'approved' &&
+      user.is_active
   );
 };
 

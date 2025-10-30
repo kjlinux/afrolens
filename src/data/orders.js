@@ -1,4 +1,4 @@
-// Commandes mockées pour AfroLens
+// Commandes mockées pour Pouire
 
 export const orders = [
   {

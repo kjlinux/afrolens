@@ -1,4 +1,4 @@
-// Métadonnées complètes pour les 69 photos d'AfroLens
+// Métadonnées complètes pour les 69 photos d'Pouire
 // Basées sur l'analyse réelle des images du dossier
 
 export const photos = [

@@ -11,12 +11,12 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 
 ### Statut des Sprints
 
-| Sprint | Module | Progression | Statut |
-|--------|--------|-------------|--------|
-| **Sprint 1** | Module Utilisateur | 100% | ✅ **TERMINÉ** |
-| **Sprint 2** | Module Photographe Core | 100% | ✅ **TERMINÉ** |
-| **Sprint 3** | Analytics + Admin | 100% | ✅ **TERMINÉ** |
-| **Sprint 4** | Pages Admin Secondaires | 0% | ⏳ **À FAIRE** |
+| Sprint       | Module                  | Progression | Statut         |
+| ------------ | ----------------------- | ----------- | -------------- |
+| **Sprint 1** | Module Utilisateur      | 100%        | ✅ **TERMINÉ** |
+| **Sprint 2** | Module Photographe Core | 100%        | ✅ **TERMINÉ** |
+| **Sprint 3** | Analytics + Admin       | 100%        | ✅ **TERMINÉ** |
+| **Sprint 4** | Pages Admin Secondaires | 0%          | ⏳ **À FAIRE** |
 
 ---
 
@@ -27,6 +27,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ### Pages Complétées
 
 #### 1. ✅ Page Orders ([src/pages/user/Orders.jsx](src/pages/user/Orders.jsx))
+
 - Liste complète des commandes avec filtres (Toutes, Payées, En attente)
 - Détails expansibles pour chaque commande
 - Affichage des items avec photos et métadonnées
@@ -37,6 +38,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Support multi-providers (Orange Money, Moov, Telecel, Carte bancaire)
 
 #### 2. ✅ Page Favorites ([src/pages/user/Favorites.jsx](src/pages/user/Favorites.jsx))
+
 - Gestion des favoris depuis localStorage
 - Grille de photos favorites avec preview
 - Bouton de suppression individuelle avec animation
@@ -47,6 +49,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Intégration avec le panier
 
 #### 3. ✅ Page Profile ([src/pages/user/Profile.jsx](src/pages/user/Profile.jsx))
+
 - Affichage du profil avec avatar
 - Upload et prévisualisation d'avatar (max 5MB)
 - Formulaire d'édition complet (Prénom, Nom, Email, Téléphone, Localisation, Site web, Bio)
@@ -66,6 +69,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ### Pages Complétées
 
 #### 1. ✅ Dashboard Photographe ([src/pages/photographer/Dashboard.jsx](src/pages/photographer/Dashboard.jsx))
+
 - 4 cartes de statistiques (Photos, Ventes, Revenus, Vues)
 - Graphiques Recharts :
   - AreaChart pour ventes et revenus
@@ -76,6 +80,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Filtres de période (7j, 30j, 90j, 1an)
 
 #### 2. ✅ Upload Photos ([src/pages/photographer/Upload.jsx](src/pages/photographer/Upload.jsx))
+
 - Drag & drop avec react-dropzone
 - Multi-upload avec preview
 - Formulaire complet de métadonnées :
@@ -90,6 +95,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Limite de taille par fichier
 
 #### 3. ✅ Gestion Photos - MyPhotos ([src/pages/photographer/MyPhotos.jsx](src/pages/photographer/MyPhotos.jsx))
+
 - Stats rapides (Total, Approuvées, En attente, Rejetées)
 - Filtres par statut et recherche
 - Tri (Récent, Ventes, Vues, Prix)
@@ -101,6 +107,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Actions individuelles (Voir, Modifier, Supprimer)
 
 #### 4. ✅ Revenus ([src/pages/photographer/Revenue.jsx](src/pages/photographer/Revenue.jsx))
+
 - 4 cartes de stats (Solde disponible, En attente, Revenus nets, Total retiré)
 - Graphique LineChart des revenus mensuels
 - Répartition détaillée (Ventes brutes, Commission 20%, Revenus nets)
@@ -119,6 +126,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ### Pages Complétées
 
 #### 1. ✅ Analytics Photographe ([src/pages/photographer/Analytics.jsx](src/pages/photographer/Analytics.jsx))
+
 - 4 cartes de stats (Vues totales, Téléchargements, Taux de conversion, Prix moyen) avec indicateurs de tendance
 - Filtres de période (7j, 30j, 90j, 1an, Tout)
 - **6 graphiques Recharts** :
@@ -135,6 +143,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Icônes lucide-react pour une UI moderne
 
 #### 2. ✅ Profil Public Photographe ([src/pages/photographer/PublicProfile.jsx](src/pages/photographer/PublicProfile.jsx))
+
 - Header avec cover gradient
 - Avatar du photographe (initiales)
 - Informations (Nom, Bio, Localisation, Date d'inscription, Nombre de photos)
@@ -148,6 +157,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Design responsive
 
 #### 3. ✅ Formulaire Devenir Photographe ([src/pages/BecomePhotographer.jsx](src/pages/BecomePhotographer.jsx))
+
 - **Processus en 3 étapes** avec indicateurs visuels
 - **Étape 1 - Informations** :
   - Formulaire complet (Nom, Email, Téléphone, Bio, Expérience, Motivation)
@@ -167,6 +177,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - États de soumission et validation à chaque étape
 
 #### 4. ✅ Dashboard Admin ([src/pages/admin/Dashboard.jsx](src/pages/admin/Dashboard.jsx))
+
 - **4 cartes de stats principales** (cliquables) :
   - Total Utilisateurs (avec détails acheteurs/photographes)
   - Total Photos (avec photos en attente)
@@ -183,6 +194,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Liens vers toutes les pages admin
 
 #### 5. ✅ Modération Photos ([src/pages/admin/Moderation.jsx](src/pages/admin/Moderation.jsx))
+
 - 3 cartes de statistiques (En attente, Approuvées, Rejetées)
 - Filtre par statut (pending, approved, rejected, all)
 - Grille de photos avec badges de statut
@@ -199,6 +211,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Gestion des états et chargement
 
 #### 6. ✅ Gestion Utilisateurs ([src/pages/admin/Users.jsx](src/pages/admin/Users.jsx))
+
 - **6 cartes de statistiques** (Total, Acheteurs, Photographes, Admins, Actifs, Bannis)
 - Barre de recherche (nom ou email)
 - 2 filtres (Rôle + Statut)
@@ -227,6 +240,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ### Pages à Développer
 
 #### 1. ⏳ Validation Demandes Photographes
+
 - Liste des demandes en attente
 - Modal de review détaillée
 - Galerie des photos échantillons
@@ -234,6 +248,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Historique des demandes
 
 #### 2. ⏳ Gestion Catégories (CRUD)
+
 - Liste des catégories existantes
 - Arbre hiérarchique (Catégories principales + Sous-catégories)
 - Formulaire d'ajout/édition
@@ -241,6 +256,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Suppression avec vérification
 
 #### 3. ⏳ Commandes Admin
+
 - Table de toutes les commandes
 - Filtres avancés (Statut, Période, Photographe, Montant)
 - Détails de commande
@@ -248,6 +264,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Recherche
 
 #### 4. ⏳ Validation Retraits
+
 - Liste des demandes de retrait
 - Filtres par statut (En attente, Approuvé, Rejeté, Complété)
 - Validation des retraits
@@ -255,6 +272,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Historique des transactions
 
 #### 5. ⏳ Paramètres Plateforme
+
 - Configuration de la commission (actuellement 20%)
 - Paramètres généraux
 - Configuration du watermark
@@ -262,6 +280,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - Paramètres de sécurité
 
 #### 6. ⏳ Rapports Admin
+
 - Générateur de rapports personnalisés
 - Graphiques et statistiques détaillées
 - Export simulé (PDF, CSV, Excel)
@@ -271,12 +290,14 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ### Composants UI Manquants
 
 #### 1. ⏳ Pagination Component
+
 - Navigation entre pages
 - Affichage du numéro de page
 - Sélecteur de nombre d'éléments par page
 - Réutilisable
 
 #### 2. ⏳ Toast Notifications System
+
 - Notifications temporaires
 - Types (Success, Error, Warning, Info)
 - Position configurable
@@ -284,6 +305,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - File de notifications
 
 #### 3. ⏳ Image Lightbox/Zoom Avancé
+
 - Zoom sur image en plein écran
 - Navigation entre images
 - Boutons de contrôle
@@ -293,24 +315,28 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ### Finitions
 
 #### 1. ⏳ Tests Manuels Exhaustifs
+
 - Test de toutes les fonctionnalités
 - Vérification des flux utilisateur
 - Test responsive sur différents écrans
 - Test de navigation
 
 #### 2. ⏳ Polissage UI/UX
+
 - Vérification de la cohérence visuelle
 - Amélioration des transitions
 - Optimisation des animations
 - Correction des bugs visuels
 
 #### 3. ⏳ Accessibilité (ARIA)
+
 - Ajout des labels ARIA
 - Navigation au clavier
 - Contraste des couleurs
 - Screen reader support
 
 #### 4. ⏳ Optimisations Performances
+
 - Lazy loading des images
 - Code splitting
 - Optimisation du bundle
@@ -321,12 +347,14 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ## 📈 MÉTRIQUES DU PROJET
 
 ### Code Produit
+
 - **~200+ fichiers** créés
 - **~15 000+ lignes de code** JavaScript/JSX
 - **69 images réelles** intégrées avec métadonnées complètes
 - **11+ composants UI** réutilisables
 
 ### Fonctionnalités Implémentées
+
 - ✅ **Système d'authentification** complet (3 rôles)
 - ✅ **Parcours d'achat** complet (Recherche → Détail → Panier → Checkout → Orders)
 - ✅ **Module Photographe** complet (Dashboard, Upload, Gestion, Revenus, Analytics)
@@ -340,6 +368,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - ✅ **Formulaire multi-étapes** (Devenir photographe)
 
 ### Technologies Utilisées
+
 - **Frontend :** React 19.2, Vite
 - **Styling :** TailwindCSS 4.1
 - **Routing :** React Router 7
@@ -353,11 +382,13 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ## 🎯 PROCHAINES ÉTAPES
 
 ### Priorité Immédiate
+
 1. **Développer les 6 pages admin restantes** (Sprint 4)
 2. **Créer les 3 composants UI manquants**
 3. **Tests et finitions**
 
 ### Estimation
+
 - **Temps restant :** ~12-15 heures
 - **Délai calendaire :** 4-5 jours (temps partiel)
 - **Progression finale attendue :** 100%
@@ -367,6 +398,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ## 🚀 POUR LA MISE EN PRODUCTION FUTURE
 
 ### Backend à Développer (selon PROJECT_SPECIFICATION.md)
+
 - 🔄 API FastAPI (Python)
 - 🔄 Base de données PostgreSQL
 - 🔄 Système de filigrane automatique (Sharp/Pillow)
@@ -379,6 +411,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - 🔄 CI/CD et déploiement
 
 ### Sécurité
+
 - ⚠️ Actuellement : Mots de passe en clair (OK pour démo, **PAS en production**)
 - ⚠️ Actuellement : localStorage pour auth (Remplacer par httpOnly cookies en prod)
 - ⚠️ Actuellement : Protection images basique CSS (Suffisant pour démo)
@@ -389,6 +422,7 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 ## 📝 NOTES IMPORTANTES
 
 ### Points Forts du Projet Actuel
+
 - ✅ Architecture solide et professionnelle
 - ✅ Code bien structuré et maintenable
 - ✅ Parcours d'achat complet fonctionnel
@@ -399,7 +433,9 @@ POUIRE est une plateforme de vente de photos professionnelles développée pour 
 - ✅ Expérience utilisateur fluide
 
 ### État du Projet
-Le projet AfroLens frontend est à **85% de complétion** avec :
+
+Le projet Pouire frontend est à **85% de complétion** avec :
+
 - Infrastructure solide et professionnelle ✅
 - Tous les parcours principaux complets ✅
 - Système d'administration opérationnel ✅
@@ -407,12 +443,14 @@ Le projet AfroLens frontend est à **85% de complétion** avec :
 - Code de qualité production-ready ✅
 
 ### Recommandation
+
 Le projet est dans un **excellent état** et proche de la complétion. Les 15% restants concernent principalement :
+
 1. Pages admin secondaires (gestion avancée)
 2. Composants UI supplémentaires
 3. Tests et finitions
 
-L'application est déjà **totalement fonctionnelle** pour une démonstration complète et professionnelle du concept AfroLens.
+L'application est déjà **totalement fonctionnelle** pour une démonstration complète et professionnelle du concept Pouire.
 
 ---
 
