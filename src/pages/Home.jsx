@@ -5,6 +5,7 @@ import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/helpers';
 import Lightbox from '../components/common/Lightbox';
+import ImageWatermark from '../components/photos/ImageWatermark';
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -58,6 +59,14 @@ export default function Home() {
             onDragStart={(e) => e.preventDefault()}
             draggable={false}
           />
+
+          {/* Filigrane Pouire */}
+          <ImageWatermark
+            brandName="Pouire"
+            showPattern={true}
+            position="center"
+          />
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
             <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
               <h3 className="font-semibold truncate">{photo.title}</h3>

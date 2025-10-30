@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw, Download, Maximize2 } from 'lucide-react';
+import ImageWatermark from '../photos/ImageWatermark';
 
 const Lightbox = ({
   isOpen,
@@ -169,17 +170,27 @@ const Lightbox = ({
         className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 lg:p-16"
         onClick={(e) => e.stopPropagation()}
       >
-        <img
-          src={currentImage.url || currentImage.src}
-          alt={currentImage.title || currentImage.alt || 'Image'}
-          className="max-w-full max-h-full object-contain transition-transform duration-300 select-none"
-          style={{
-            transform: `scale(${zoom}) rotate(${rotation}deg)`,
-            cursor: isZoomed ? 'zoom-out' : 'zoom-in',
-          }}
-          onClick={isZoomed ? handleResetZoom : handleZoomIn}
-          draggable={false}
-        />
+        <div className="relative max-w-full max-h-full">
+          <img
+            src={currentImage.url || currentImage.src}
+            alt={currentImage.title || currentImage.alt || 'Image'}
+            className="max-w-full max-h-full object-contain transition-transform duration-300 select-none"
+            style={{
+              transform: `scale(${zoom}) rotate(${rotation}deg)`,
+              cursor: isZoomed ? 'zoom-out' : 'zoom-in',
+            }}
+            onClick={isZoomed ? handleResetZoom : handleZoomIn}
+            draggable={false}
+            onContextMenu={(e) => e.preventDefault()}
+          />
+
+          {/* Filigrane Pouire */}
+          <ImageWatermark
+            brandName="Pouire"
+            showPattern={true}
+            position="center"
+          />
+        </div>
       </div>
 
       {/* Navigation buttons */}

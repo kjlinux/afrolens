@@ -11,7 +11,8 @@
       "Bash(node -p:*)",
       "Bash(pnpm run dev)",
       "Bash(timeout:*)",
-      "Bash(del \"c:\\laragon\\www\\afrolens\\src\\pages\\ComponentsDemo.jsx\")"
+      "Bash(del \"c:\\laragon\\www\\afrolens\\src\\pages\\ComponentsDemo.jsx\")",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

@@ -10,6 +10,7 @@ import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
 import Spinner from '../../components/common/Spinner';
+import ImageWatermark from '../../components/photos/ImageWatermark';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -356,11 +357,20 @@ export default function Checkout() {
               <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                 {cart.map((item) => (
                   <div key={item.id} className="flex gap-3">
-                    <img
-                      src={item.preview_url}
-                      alt={item.title}
-                      className="w-16 h-12 rounded object-cover"
-                    />
+                    <div className="relative w-16 h-12 flex-shrink-0">
+                      <img
+                        src={item.preview_url}
+                        alt={item.title}
+                        className="w-full h-full rounded object-cover"
+                        onContextMenu={(e) => e.preventDefault()}
+                        draggable={false}
+                      />
+                      <ImageWatermark
+                        brandName="Pouire"
+                        showPattern={false}
+                        position="center"
+                      />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.title}</p>
                       <p className="text-xs text-gray-600">

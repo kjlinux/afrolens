@@ -4,6 +4,7 @@ import { FiHeart, FiShoppingCart, FiEye } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import { formatPrice } from '../../utils/helpers';
 import { useCart } from '../../context/CartContext';
+import ImageWatermark from './ImageWatermark';
 
 /**
  * Composant PhotoCard pour afficher une photo dans une grille
@@ -51,6 +52,13 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
           onDragStart={(e) => e.preventDefault()}
           draggable={false}
           loading="lazy"
+        />
+
+        {/* Filigrane Pouire */}
+        <ImageWatermark
+          brandName="Pouire"
+          showPattern={true}
+          position="center"
         />
 
         {/* Overlay au hover - Desktop only */}

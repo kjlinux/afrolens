@@ -58,7 +58,7 @@ export default function ImageWatermark({
       )}
 
       {/* Filigrane principal */}
-      <div className={`absolute ${positionClasses[position]} text-white/20 text-xs font-bold select-none`}>
+      <div className={`absolute ${positionClasses[position]} text-white/20 text-xl font-bold select-none`}>
         © {brandName}
       </div>
     </div>

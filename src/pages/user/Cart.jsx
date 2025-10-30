@@ -6,6 +6,7 @@ import { FiTrash2, FiShoppingCart, FiArrowRight } from 'react-icons/fi';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
+import ImageWatermark from '../../components/photos/ImageWatermark';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -67,12 +68,19 @@ export default function Cart() {
                   {/* Image */}
                   <Link
                     to={`/photo/${item.id}`}
-                    className="flex-shrink-0 w-32 h-24 rounded-lg overflow-hidden bg-gray-200"
+                    className="flex-shrink-0 w-32 h-24 rounded-lg overflow-hidden bg-gray-200 relative"
                   >
                     <img
                       src={item.preview_url}
                       alt={item.title}
                       className="w-full h-full object-cover hover:scale-110 transition-transform"
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
+                    />
+                    <ImageWatermark
+                      brandName="Pouire"
+                      showPattern={false}
+                      position="center"
                     />
                   </Link>
 

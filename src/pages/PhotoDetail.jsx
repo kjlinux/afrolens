@@ -20,6 +20,7 @@ import Spinner from '../components/common/Spinner';
 import PhotoGrid from '../components/photos/PhotoGrid';
 import { allPhotos } from '../data/mockData';
 import useImageProtection from '../hooks/useImageProtection';
+import ImageWatermark from '../components/photos/ImageWatermark';
 
 export default function PhotoDetail() {
   // Activer la protection avancée des images
@@ -127,12 +128,12 @@ export default function PhotoDetail() {
                   draggable={false}
                 />
 
-                {/* Overlay watermark */}
-                <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-transparent to-black/5">
-                  <div className="absolute bottom-4 right-4 text-white/20 text-xs font-bold">
-                    © POUIRE
-                  </div>
-                </div>
+                {/* Filigrane Pouire */}
+                <ImageWatermark
+                  brandName="Pouire"
+                  showPattern={true}
+                  position="center"
+                />
 
                 {/* Badge Featured */}
                 {photo.featured && (

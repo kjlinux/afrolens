@@ -14,6 +14,7 @@ import {
   FiShoppingBag,
   FiDroplet
 } from 'react-icons/fi';
+import ImageWatermark from '../components/photos/ImageWatermark';
 
 export default function Categories() {
   const categories = [
@@ -161,8 +162,17 @@ export default function Categories() {
                     src={category.image}
                     alt={category.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    onContextMenu={(e) => e.preventDefault()}
+                    draggable={false}
                   />
                   <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-60 group-hover:opacity-70 transition-opacity`}></div>
+
+                  {/* Filigrane Pouire */}
+                  <ImageWatermark
+                    brandName="Pouire"
+                    showPattern={true}
+                    position="center"
+                  />
 
                   {/* Icon */}
                   <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm p-3 rounded-xl">

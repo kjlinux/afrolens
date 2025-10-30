@@ -8,6 +8,7 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Card from '../../components/common/Card';
 import Spinner from '../../components/common/Spinner';
+import ImageWatermark from '../../components/photos/ImageWatermark';
 
 export default function Orders() {
   const { user } = useAuth();
@@ -244,12 +245,19 @@ export default function Orders() {
                       >
                         <Link
                           to={`/photo/${item.photo_id}`}
-                          className="flex-shrink-0"
+                          className="flex-shrink-0 relative"
                         >
                           <img
                             src={item.photo_preview}
                             alt={item.photo_title}
                             className="w-24 h-24 object-cover rounded-lg"
+                            onContextMenu={(e) => e.preventDefault()}
+                            draggable={false}
+                          />
+                          <ImageWatermark
+                            brandName="Pouire"
+                            showPattern={false}
+                            position="center"
                           />
                         </Link>
                         <div className="flex-1 min-w-0">
