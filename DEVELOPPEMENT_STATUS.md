@@ -1,4 +1,4 @@
-# 📊 Status du Développement - AfroLens Frontend
+# 📊 Status du Développement - POUIRE Frontend
 
 **Date**: 29 Octobre 2024
 **Développé par**: Claude Code

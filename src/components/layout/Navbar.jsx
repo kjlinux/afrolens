@@ -21,7 +21,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <FiCamera className="w-8 h-8 text-primary-600" />
-            <span className="text-2xl font-bold text-gray-900">AfroLens</span>
+            <span className="text-2xl font-bold text-gray-900">POUIRE</span>
           </Link>
 
           {/* Search */}

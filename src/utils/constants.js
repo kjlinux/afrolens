@@ -1,4 +1,4 @@
-// Constantes globales de l'application AfroLens
+// Constantes globales de l'application POUIRE
 
 // Rôles utilisateurs
 export const USER_ROLES = {
@@ -88,11 +88,11 @@ export const NOTIFICATION_TYPES = {
 
 // Clés localStorage
 export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'afrolens_auth_token',
-  USER_DATA: 'afrolens_user_data',
-  CART: 'afrolens_cart',
-  FAVORITES: 'afrolens_favorites',
-  REMEMBER_ME: 'afrolens_remember_me',
+  AUTH_TOKEN: 'pouire_auth_token',
+  USER_DATA: 'pouire_user_data',
+  CART: 'pouire_cart',
+  FAVORITES: 'pouire_favorites',
+  REMEMBER_ME: 'pouire_remember_me',
 };
 
 // Configuration

@@ -43,10 +43,13 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
         <img
           src={photo.preview_url}
           alt={photo.title}
-          className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
+          className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 protected-image ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           onLoad={() => setImageLoaded(true)}
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+          draggable={false}
           loading="lazy"
         />
 

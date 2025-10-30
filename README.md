@@ -1,12 +1,12 @@
-# AfroLens - Plateforme de Vente de Photos Professionnelles
+# POUIRE - Plateforme de Vente de Photos Professionnelles
 
-![AfroLens](https://img.shields.io/badge/Status-En%20D%C3%A9veloppement-yellow)
+![POUIRE](https://img.shields.io/badge/Status-En%20D%C3%A9veloppement-yellow)
 ![React](https://img.shields.io/badge/React-19.2.0-blue)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1-06B6D4)
 
 ## 📋 Vue d'ensemble
 
-AfroLens est une plateforme web professionnelle de type banque d'images permettant aux photographes de stocker, exposer et vendre leurs photos, et aux utilisateurs d'acheter et télécharger des photos haute résolution.
+POUIRE est une plateforme web professionnelle de type banque d'images permettant aux photographes de stocker, exposer et vendre leurs photos, et aux utilisateurs d'acheter et télécharger des photos haute résolution.
 
 ### Caractéristiques principales
 
@@ -31,7 +31,7 @@ AfroLens est une plateforme web professionnelle de type banque d'images permetta
 
 ```bash
 # Cloner le projet
-cd afrolens/frontend
+cd pouire/frontend
 
 # Installer les dépendances
 pnpm install

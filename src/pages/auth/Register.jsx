@@ -48,7 +48,7 @@ export default function Register() {
         <div className="bg-white rounded-xl shadow-lg p-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Inscription</h2>
-            <p className="text-gray-600 mt-2">Créez votre compte AfroLens</p>
+            <p className="text-gray-600 mt-2">Créez votre compte POUIRE</p>
           </div>
 
           {error && (

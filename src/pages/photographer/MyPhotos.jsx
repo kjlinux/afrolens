@@ -286,7 +286,10 @@ export default function MyPhotos() {
                 <img
                   src={photo.preview_url}
                   alt={photo.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover protected-image"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                  draggable={false}
                 />
 
                 {/* Checkbox de sélection */}
@@ -405,7 +408,10 @@ export default function MyPhotos() {
                         <img
                           src={photo.preview_url}
                           alt={photo.title}
-                          className="w-16 h-16 object-cover rounded"
+                          className="w-16 h-16 object-cover rounded protected-image"
+                          onContextMenu={(e) => e.preventDefault()}
+                          onDragStart={(e) => e.preventDefault()}
+                          draggable={false}
                         />
                         <div>
                           <p className="font-medium text-gray-900">{photo.title}</p>
@@ -466,6 +472,25 @@ export default function MyPhotos() {
         </Card>
       )}
 
+      {/* Modal d'édition */}
+      {editingPhoto && (
+        <Modal
+          isOpen={!!editingPhoto}
+          onClose={() => setEditingPhoto(null)}
+          title="Modifier la photo"
+        >
+          <EditPhotoForm
+            photo={editingPhoto}
+            onSave={(updatedPhoto) => {
+              // En production, appeler l'API pour mettre à jour
+              setMyPhotos(prev => prev.map(p => p.id === updatedPhoto.id ? updatedPhoto : p));
+              setEditingPhoto(null);
+            }}
+            onCancel={() => setEditingPhoto(null)}
+          />
+        </Modal>
+      )}
+
       {/* Modal de suppression */}
       {showDeleteModal && photoToDelete && (
         <Modal
@@ -490,5 +515,195 @@ export default function MyPhotos() {
         </Modal>
       )}
     </div>
+  );
+}
+
+// Composant formulaire d'édition
+function EditPhotoForm({ photo, onSave, onCancel }) {
+  const [formData, setFormData] = useState({
+    title: photo.title,
+    description: photo.description || '',
+    category_id: photo.category_id,
+    tags: Array.isArray(photo.tags) ? photo.tags.join(', ') : photo.tags || '',
+    price_standard: photo.price_standard,
+    price_extended: photo.price_extended,
+    location: photo.location || '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const mainCategories = getMainCategories();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      // Simuler l'enregistrement
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const updatedPhoto = {
+        ...photo,
+        ...formData,
+        tags: formData.tags.split(',').map(t => t.trim()).filter(t => t.length > 0),
+        updated_at: new Date().toISOString(),
+      };
+
+      onSave(updatedPhoto);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="p-6">
+      {/* Image preview */}
+      <div className="mb-6">
+        <img
+          src={photo.preview_url}
+          alt={photo.title}
+          className="w-full rounded-lg max-h-48 object-cover protected-image"
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+          draggable={false}
+        />
+      </div>
+
+      {/* Titre */}
+      <Input
+        label="Titre"
+        name="title"
+        value={formData.title}
+        onChange={handleInputChange}
+        required
+        disabled={saving}
+        placeholder="Titre descriptif de la photo"
+      />
+
+      {/* Description */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Description
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          disabled={saving}
+          rows={3}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="Décrivez votre photo..."
+        />
+      </div>
+
+      {/* Catégorie */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Catégorie <span className="text-red-500">*</span>
+        </label>
+        <select
+          name="category_id"
+          value={formData.category_id}
+          onChange={handleInputChange}
+          required
+          disabled={saving}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="">Sélectionnez une catégorie</option>
+          {mainCategories.map(cat => (
+            <optgroup key={cat.id} label={cat.name}>
+              <option value={cat.id}>{cat.name}</option>
+              {getSubCategories(cat.id).map(subCat => (
+                <option key={subCat.id} value={subCat.id}>
+                  → {subCat.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
+      {/* Tags */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Tags <span className="text-red-500">*</span>
+        </label>
+        <Input
+          name="tags"
+          value={formData.tags}
+          onChange={handleInputChange}
+          required
+          disabled={saving}
+          placeholder="sport, football, équipe nationale"
+          helperText="Séparés par des virgules"
+        />
+      </div>
+
+      {/* Prix */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <Input
+          label="Prix Standard (FCFA)"
+          name="price_standard"
+          type="number"
+          value={formData.price_standard}
+          onChange={handleInputChange}
+          required
+          disabled={saving}
+          min="5"
+          step="5"
+        />
+        <Input
+          label="Prix Étendu (FCFA)"
+          name="price_extended"
+          type="number"
+          value={formData.price_extended}
+          onChange={handleInputChange}
+          required
+          disabled={saving}
+          min="20"
+          step="5"
+        />
+      </div>
+
+      {/* Localisation */}
+      <Input
+        label="Localisation"
+        name="location"
+        value={formData.location}
+        onChange={handleInputChange}
+        disabled={saving}
+        placeholder="Ouagadougou, Burkina Faso"
+      />
+
+      {/* Boutons d'action */}
+      <div className="flex gap-3 mt-6">
+        <Button
+          type="submit"
+          fullWidth
+          loading={saving}
+          disabled={saving}
+        >
+          {saving ? 'Enregistrement...' : 'Enregistrer'}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          fullWidth
+          onClick={onCancel}
+          disabled={saving}
+        >
+          Annuler
+        </Button>
+      </div>
+    </form>
   );
 }

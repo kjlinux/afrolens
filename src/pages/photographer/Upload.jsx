@@ -195,7 +195,7 @@ export default function Upload() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Uploader des Photos</h1>
         <p className="text-gray-600">
-          Ajoutez vos photos à la plateforme AfroLens
+          Ajoutez vos photos à la plateforme POUIRE
         </p>
       </div>
 

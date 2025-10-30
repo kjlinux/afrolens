@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <FiCamera className="w-8 h-8 text-primary-400" />
-              <span className="text-2xl font-bold">AfroLens</span>
+              <span className="text-2xl font-bold">POUIRE</span>
             </div>
             <p className="text-gray-400 text-sm">
               La première plateforme de vente de photos professionnelles africaines.
@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; 2024 AfroLens by TANGA GROUP. Tous droits réservés.</p>
+          <p>&copy; 2024 POUIRE by TANGA GROUP. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

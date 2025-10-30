@@ -19,8 +19,17 @@ import Badge from '../components/common/Badge';
 import Spinner from '../components/common/Spinner';
 import PhotoGrid from '../components/photos/PhotoGrid';
 import { allPhotos } from '../data/mockData';
+import useImageProtection from '../hooks/useImageProtection';
 
 export default function PhotoDetail() {
+  // Activer la protection avancée des images
+  useImageProtection({
+    blockKeyboardShortcuts: true,
+    blockRightClick: true,
+    blockPrintScreen: false,
+    showAlert: false
+  });
+
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -121,7 +130,7 @@ export default function PhotoDetail() {
                 {/* Overlay watermark */}
                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-transparent to-black/5">
                   <div className="absolute bottom-4 right-4 text-white/20 text-xs font-bold">
-                    © AfroLens
+                    © POUIRE
                   </div>
                 </div>
 
