@@ -35,6 +35,8 @@ import PhotographerAnalytics from './pages/photographer/Analytics';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
 import AdminModeration from './pages/admin/Moderation';
+import AdminPhotographersPending from './pages/admin/PhotographersPending';
+import AdminWithdrawals from './pages/admin/Withdrawals';
 
 // Component pour routes protégées
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -180,6 +182,22 @@ function AppContent() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminModeration />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/photographers-pending"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminPhotographersPending />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/withdrawals"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminWithdrawals />
               </ProtectedRoute>
             }
           />

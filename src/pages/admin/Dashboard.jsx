@@ -31,8 +31,8 @@ export default function Dashboard() {
     rejectedPhotos: photos.filter(p => p.status === PHOTO_STATUS.REJECTED).length,
 
     totalOrders: orders.length,
-    totalRevenue: orders.reduce((sum, o) => sum + o.total_price, 0),
-    commission: orders.reduce((sum, o) => sum + o.total_price * 0.20, 0),
+    totalRevenue: orders.reduce((sum, o) => sum + o.total, 0),
+    commission: orders.reduce((sum, o) => sum + o.total * 0.20, 0),
 
     // Stats ce mois
     newUsersThisMonth: 12,

@@ -75,38 +75,40 @@ export default function Navbar() {
                   </button>
 
                   {/* Dropdown */}
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block">
-                    <Link
-                      to="/profile"
-                      className="flex items-center px-4 py-2 hover:bg-gray-100"
-                    >
-                      <FiUser className="mr-2" /> Profil
-                    </Link>
-
-                    {user.account_type === 'photographer' && (
+                  <div className="absolute right-0 pt-2 w-48 hidden group-hover:block">
+                    <div className="bg-white rounded-lg shadow-lg py-2">
                       <Link
-                        to="/photographer/dashboard"
+                        to="/profile"
                         className="flex items-center px-4 py-2 hover:bg-gray-100"
                       >
-                        <FiCamera className="mr-2" /> Dashboard
+                        <FiUser className="mr-2" /> Profil
                       </Link>
-                    )}
 
-                    {user.account_type === 'admin' && (
-                      <Link
-                        to="/admin/dashboard"
-                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                      {user.account_type === 'photographer' && (
+                        <Link
+                          to="/photographer/dashboard"
+                          className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        >
+                          <FiCamera className="mr-2" /> Dashboard
+                        </Link>
+                      )}
+
+                      {user.account_type === 'admin' && (
+                        <Link
+                          to="/admin/dashboard"
+                          className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        >
+                          <FiSettings className="mr-2" /> Administration
+                        </Link>
+                      )}
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 hover:bg-gray-100 text-red-600"
                       >
-                        <FiSettings className="mr-2" /> Administration
-                      </Link>
-                    )}
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 hover:bg-gray-100 text-red-600"
-                    >
-                      <FiLogOut className="mr-2" /> Déconnexion
-                    </button>
+                        <FiLogOut className="mr-2" /> Déconnexion
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>

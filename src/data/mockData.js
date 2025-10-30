@@ -6,6 +6,7 @@ import { allPhotos, getPhotoById, getPhotosByCategory, getPhotosByPhotographer, 
 import { users, getUserById, getUserByEmail, getPhotographers, getApprovedPhotographers, getPendingPhotographers, getBuyers, authenticateUser } from './users';
 import { orders, getOrderById, getOrdersByUser, getOrdersByStatus, getCompletedOrders, getTotalRevenue } from './orders';
 import { notifications, getNotificationsByUser, getUnreadNotifications, getUnreadCount, markAsRead, markAllAsRead } from './notifications';
+import { withdrawals, getWithdrawalById, getWithdrawalsByPhotographer, getPendingWithdrawals, getWithdrawalsByStatus, getTotalWithdrawalAmount } from './withdrawals';
 
 // Re-export everything
 export { categories, getCategoryById, getCategoryBySlug, getMainCategories, getSubCategories };
@@ -13,6 +14,7 @@ export { allPhotos, allPhotos as photos, getPhotoById, getPhotosByCategory, getP
 export { users, getUserById, getUserByEmail, getPhotographers, getApprovedPhotographers, getPendingPhotographers, getBuyers, authenticateUser };
 export { orders, getOrderById, getOrdersByUser, getOrdersByStatus, getCompletedOrders, getTotalRevenue };
 export { notifications, getNotificationsByUser, getUnreadNotifications, getUnreadCount, markAsRead, markAllAsRead };
+export { withdrawals, getWithdrawalById, getWithdrawalsByPhotographer, getPendingWithdrawals, getWithdrawalsByStatus, getTotalWithdrawalAmount };
 
 // Export par défaut de toutes les données
 export default {
@@ -21,4 +23,5 @@ export default {
   users,
   orders,
   notifications,
+  withdrawals,
 };
