@@ -75,8 +75,8 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg mb-1">Téléphone</h3>
-                  <a href="tel:+243000000000" className="text-gray-600 hover:text-primary-600">
-                    +243 (0) 00 000 0000
+                  <a href="tel:+226000000000" className="text-gray-600 hover:text-primary-600">
+                    +226 (0) 00 000 0000
                   </a>
                   <p className="text-sm text-gray-500 mt-1">Lun-Ven: 9h-18h (GMT+1)</p>
                 </div>
@@ -90,7 +90,7 @@ export default function Contact() {
                   <h3 className="font-semibold text-lg mb-1">Adresse</h3>
                   <p className="text-gray-600">
                     TANGA GROUP<br />
-                    Kinshasa, République Démocratique du Congo
+                    Ouagadougou, Burkina Faso
                   </p>
                 </div>
               </div>
