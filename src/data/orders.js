@@ -3,7 +3,7 @@
 export const orders = [
   {
     id: 'order-001',
-    order_number: 'ORD-20241025-ABC123',
+    order_number: 'ORD-20251025-ABC123',
     user_id: 'user-buyer-1',
     items: [
       {
@@ -34,22 +34,22 @@ export const orders = [
     payment_method: 'mobile_money',
     payment_provider: 'orange_money',
     payment_status: 'completed',
-    payment_id: 'PAY-OM-20241025-123456',
-    paid_at: '2024-10-25T14:35:00Z',
-    invoice_url: '/invoices/ORD-20241025-ABC123.pdf',
+    payment_id: 'PAY-OM-20251025-123456',
+    paid_at: '2025-10-25T14:35:00Z',
+    invoice_url: '/invoices/ORD-20251025-ABC123.pdf',
     billing_email: 'buyer@test.com',
-    created_at: '2024-10-25T14:30:00Z',
-    updated_at: '2024-10-25T14:35:00Z',
+    created_at: '2025-10-25T14:30:00Z',
+    updated_at: '2025-10-25T14:35:00Z',
   },
   {
     id: 'order-002',
-    order_number: 'ORD-20241020-DEF456',
+    order_number: 'ORD-20251020-DEF456',
     user_id: 'user-buyer-1',
     items: [
       {
         id: 'item-003',
         photo_id: 'photo-010',
-        photo_title: 'Délégation Burkina Faso - Paris 2024',
+        photo_title: 'Délégation Burkina Faso - Paris 2025',
         photo_preview: '/images/pic_010.jpg',
         photographer_id: 'photographer-1',
         photographer_name: 'Pouire Service Photographie',
@@ -65,15 +65,15 @@ export const orders = [
     payment_provider: 'stripe',
     payment_status: 'completed',
     payment_id: 'PAY-STRIPE-789012',
-    paid_at: '2024-10-20T10:15:00Z',
-    invoice_url: '/invoices/ORD-20241020-DEF456.pdf',
+    paid_at: '2025-10-20T10:15:00Z',
+    invoice_url: '/invoices/ORD-20251020-DEF456.pdf',
     billing_email: 'buyer@test.com',
-    created_at: '2024-10-20T10:10:00Z',
-    updated_at: '2024-10-20T10:15:00Z',
+    created_at: '2025-10-20T10:10:00Z',
+    updated_at: '2025-10-20T10:15:00Z',
   },
   {
     id: 'order-003',
-    order_number: 'ORD-20241018-GHI789',
+    order_number: 'ORD-20251018-GHI789',
     user_id: 'user-buyer-2',
     items: [
       {
@@ -104,15 +104,15 @@ export const orders = [
     payment_method: 'mobile_money',
     payment_provider: 'moov_money',
     payment_status: 'completed',
-    paid_at: '2024-10-18T16:20:00Z',
-    invoice_url: '/invoices/ORD-20241018-GHI789.pdf',
+    paid_at: '2025-10-18T16:20:00Z',
+    invoice_url: '/invoices/ORD-20251018-GHI789.pdf',
     billing_email: 'marie.kone@email.com',
-    created_at: '2024-10-18T16:15:00Z',
-    updated_at: '2024-10-18T16:20:00Z',
+    created_at: '2025-10-18T16:15:00Z',
+    updated_at: '2025-10-18T16:20:00Z',
   },
   {
     id: 'order-004',
-    order_number: 'ORD-20241015-JKL012',
+    order_number: 'ORD-20251015-JKL012',
     user_id: 'user-buyer-3',
     items: [
       {
@@ -133,15 +133,15 @@ export const orders = [
     payment_method: 'mobile_money',
     payment_provider: 'orange_money',
     payment_status: 'completed',
-    paid_at: '2024-10-15T11:45:00Z',
-    invoice_url: '/invoices/ORD-20241015-JKL012.pdf',
+    paid_at: '2025-10-15T11:45:00Z',
+    invoice_url: '/invoices/ORD-20251015-JKL012.pdf',
     billing_email: 'samuel.traore@media.bf',
-    created_at: '2024-10-15T11:40:00Z',
-    updated_at: '2024-10-15T11:45:00Z',
+    created_at: '2025-10-15T11:40:00Z',
+    updated_at: '2025-10-15T11:45:00Z',
   },
   {
     id: 'order-005',
-    order_number: 'ORD-20241010-MNO345',
+    order_number: 'ORD-20251010-MNO345',
     user_id: 'user-buyer-4',
     items: [
       {
@@ -162,15 +162,15 @@ export const orders = [
     payment_method: 'card',
     payment_provider: 'stripe',
     payment_status: 'completed',
-    paid_at: '2024-10-10T14:25:00Z',
-    invoice_url: '/invoices/ORD-20241010-MNO345.pdf',
+    paid_at: '2025-10-10T14:25:00Z',
+    invoice_url: '/invoices/ORD-20251010-MNO345.pdf',
     billing_email: 'fatou.diallo@ong.org',
-    created_at: '2024-10-10T14:20:00Z',
-    updated_at: '2024-10-10T14:25:00Z',
+    created_at: '2025-10-10T14:20:00Z',
+    updated_at: '2025-10-10T14:25:00Z',
   },
   {
     id: 'order-006',
-    order_number: 'ORD-20241029-PQR678',
+    order_number: 'ORD-20251029-PQR678',
     user_id: 'user-buyer-5',
     items: [
       {
@@ -195,8 +195,8 @@ export const orders = [
     paid_at: null,
     invoice_url: null,
     billing_email: 'pierre.kabore@entreprise.bf',
-    created_at: '2024-10-29T09:00:00Z',
-    updated_at: '2024-10-29T09:00:00Z',
+    created_at: '2025-10-29T09:00:00Z',
+    updated_at: '2025-10-29T09:00:00Z',
   },
 ];
 

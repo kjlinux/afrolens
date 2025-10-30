@@ -1,23 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { Check, X, Eye, DollarSign, Clock, User, Calendar, CreditCard, Smartphone, Building2, AlertCircle, Filter } from 'lucide-react';
-import { withdrawals as allWithdrawals, getPendingWithdrawals, users, getUserById } from '../../data/mockData';
-import { formatPrice, formatDate } from '../../utils/helpers';
-import Card from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import Badge from '../../components/common/Badge';
-import Modal from '../../components/common/Modal';
+import React, { useState, useEffect } from "react";
+import {
+  Check,
+  X,
+  Eye,
+  DollarSign,
+  Clock,
+  User,
+  Calendar,
+  CreditCard,
+  Smartphone,
+  Building2,
+  AlertCircle,
+  Filter,
+} from "lucide-react";
+import {
+  withdrawals as allWithdrawals,
+  getPendingWithdrawals,
+  users,
+  getUserById,
+} from "../../data/mockData";
+import { formatPrice, formatDate } from "../../utils/helpers";
+import Card from "../../components/common/Card";
+import Button from "../../components/common/Button";
+import Badge from "../../components/common/Badge";
+import Modal from "../../components/common/Modal";
 
 export default function Withdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('pending');
+  const [filterStatus, setFilterStatus] = useState("pending");
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [withdrawalToProcess, setWithdrawalToProcess] = useState(null);
-  const [transactionId, setTransactionId] = useState('');
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [notes, setNotes] = useState('');
+  const [transactionId, setTransactionId] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     loadWithdrawals();
@@ -31,12 +49,16 @@ export default function Withdrawals() {
       let filteredWithdrawals = [...allWithdrawals];
 
       // Filtrer par statut
-      if (filterStatus !== 'all') {
-        filteredWithdrawals = filteredWithdrawals.filter(w => w.status === filterStatus);
+      if (filterStatus !== "all") {
+        filteredWithdrawals = filteredWithdrawals.filter(
+          (w) => w.status === filterStatus
+        );
       }
 
       // Trier par date (plus récent en premier)
-      filteredWithdrawals.sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+      filteredWithdrawals.sort(
+        (a, b) => new Date(b.requested_at) - new Date(a.requested_at)
+      );
 
       setWithdrawals(filteredWithdrawals);
       setLoading(false);
@@ -45,40 +67,45 @@ export default function Withdrawals() {
 
   // Calculer les stats
   const stats = {
-    pending: allWithdrawals.filter(w => w.status === 'pending').length,
+    pending: allWithdrawals.filter((w) => w.status === "pending").length,
     pendingAmount: allWithdrawals
-      .filter(w => w.status === 'pending')
+      .filter((w) => w.status === "pending")
       .reduce((sum, w) => sum + w.amount, 0),
-    completed: allWithdrawals.filter(w => w.status === 'completed').length,
-    rejected: allWithdrawals.filter(w => w.status === 'rejected').length,
+    completed: allWithdrawals.filter((w) => w.status === "completed").length,
+    rejected: allWithdrawals.filter((w) => w.status === "rejected").length,
   };
 
   const handleApproveClick = (withdrawal) => {
     setWithdrawalToProcess(withdrawal);
-    setTransactionId('');
-    setNotes('');
+    setTransactionId("");
+    setNotes("");
     setShowApproveModal(true);
   };
 
   const confirmApprove = () => {
     if (!transactionId.trim()) {
-      alert('Veuillez fournir un ID de transaction');
+      alert("Veuillez fournir un ID de transaction");
       return;
     }
 
     // En production, appeler l'API
-    console.log('Approuver le retrait:', withdrawalToProcess.id, 'Transaction:', transactionId);
+    console.log(
+      "Approuver le retrait:",
+      withdrawalToProcess.id,
+      "Transaction:",
+      transactionId
+    );
 
     // Mettre à jour localement
-    const updatedWithdrawals = withdrawals.map(w =>
+    const updatedWithdrawals = withdrawals.map((w) =>
       w.id === withdrawalToProcess.id
         ? {
             ...w,
-            status: 'completed',
+            status: "completed",
             processed_at: new Date().toISOString(),
-            processed_by: 'admin-1',
+            processed_by: "admin-1",
             transaction_id: transactionId,
-            notes: notes || 'Paiement effectué avec succès',
+            notes: notes || "Paiement effectué avec succès",
           }
         : w
     );
@@ -86,11 +113,11 @@ export default function Withdrawals() {
     setSelectedWithdrawal(null);
     setShowApproveModal(false);
     setWithdrawalToProcess(null);
-    setTransactionId('');
-    setNotes('');
+    setTransactionId("");
+    setNotes("");
 
     // Afficher un message de succès
-    alert('Demande de retrait approuvée et paiement effectué !');
+    alert("Demande de retrait approuvée et paiement effectué !");
 
     // Recharger
     loadWithdrawals();
@@ -98,27 +125,32 @@ export default function Withdrawals() {
 
   const handleRejectClick = (withdrawal) => {
     setWithdrawalToProcess(withdrawal);
-    setRejectionReason('');
+    setRejectionReason("");
     setShowRejectModal(true);
   };
 
   const confirmReject = () => {
     if (!rejectionReason.trim()) {
-      alert('Veuillez fournir une raison pour le rejet');
+      alert("Veuillez fournir une raison pour le rejet");
       return;
     }
 
     // En production, appeler l'API
-    console.log('Rejeter le retrait:', withdrawalToProcess.id, 'Raison:', rejectionReason);
+    console.log(
+      "Rejeter le retrait:",
+      withdrawalToProcess.id,
+      "Raison:",
+      rejectionReason
+    );
 
     // Mettre à jour localement
-    const updatedWithdrawals = withdrawals.map(w =>
+    const updatedWithdrawals = withdrawals.map((w) =>
       w.id === withdrawalToProcess.id
         ? {
             ...w,
-            status: 'rejected',
+            status: "rejected",
             processed_at: new Date().toISOString(),
-            processed_by: 'admin-1',
+            processed_by: "admin-1",
             notes: rejectionReason,
           }
         : w
@@ -127,10 +159,10 @@ export default function Withdrawals() {
     setSelectedWithdrawal(null);
     setShowRejectModal(false);
     setWithdrawalToProcess(null);
-    setRejectionReason('');
+    setRejectionReason("");
 
     // Afficher un message de succès
-    alert('Demande de retrait rejetée');
+    alert("Demande de retrait rejetée");
 
     // Recharger
     loadWithdrawals();
@@ -138,10 +170,10 @@ export default function Withdrawals() {
 
   const getStatusBadge = (status) => {
     const configs = {
-      pending: { variant: 'warning', label: 'En attente' },
-      completed: { variant: 'success', label: 'Complété' },
-      rejected: { variant: 'danger', label: 'Rejeté' },
-      approved: { variant: 'info', label: 'Approuvé' },
+      pending: { variant: "warning", label: "En attente" },
+      completed: { variant: "success", label: "Complété" },
+      rejected: { variant: "danger", label: "Rejeté" },
+      approved: { variant: "info", label: "Approuvé" },
     };
 
     const config = configs[status] || configs.pending;
@@ -150,11 +182,11 @@ export default function Withdrawals() {
 
   const getPaymentMethodIcon = (method) => {
     switch (method) {
-      case 'mobile_money':
+      case "mobile_money":
         return <Smartphone className="w-5 h-5" />;
-      case 'bank_transfer':
+      case "bank_transfer":
         return <Building2 className="w-5 h-5" />;
-      case 'card':
+      case "card":
         return <CreditCard className="w-5 h-5" />;
       default:
         return <DollarSign className="w-5 h-5" />;
@@ -163,12 +195,12 @@ export default function Withdrawals() {
 
   const getPaymentMethodLabel = (method) => {
     switch (method) {
-      case 'mobile_money':
-        return 'Mobile Money';
-      case 'bank_transfer':
-        return 'Virement bancaire';
-      case 'card':
-        return 'Carte bancaire';
+      case "mobile_money":
+        return "Mobile Money";
+      case "bank_transfer":
+        return "Virement bancaire";
+      case "card":
+        return "Carte bancaire";
       default:
         return method;
     }
@@ -180,7 +212,12 @@ export default function Withdrawals() {
     const photographer = getUserById(withdrawal.photographer_id);
 
     return (
-      <Modal isOpen={!!withdrawal} onClose={onClose} title="Détails de la demande" size="large">
+      <Modal
+        isOpen={!!withdrawal}
+        onClose={onClose}
+        title="Détails de la demande"
+        size="large"
+      >
         <div className="p-6">
           {/* Informations photographe */}
           <div className="mb-6 pb-6 border-b">
@@ -195,7 +232,9 @@ export default function Withdrawals() {
                 <p className="font-medium text-gray-900">
                   {photographer?.first_name} {photographer?.last_name}
                 </p>
-                <p className="text-sm text-gray-600">{photographer?.display_name}</p>
+                <p className="text-sm text-gray-600">
+                  {photographer?.display_name}
+                </p>
               </div>
             </div>
           </div>
@@ -204,7 +243,9 @@ export default function Withdrawals() {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
               <p className="text-sm text-gray-600 mb-1">Montant demandé</p>
-              <p className="text-2xl font-bold text-primary-600">{formatPrice(withdrawal.amount)}</p>
+              <p className="text-2xl font-bold text-primary-600">
+                {formatPrice(withdrawal.amount)}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-1">Statut</p>
@@ -218,7 +259,9 @@ export default function Withdrawals() {
               <p className="text-sm text-gray-600 mb-1">Date de demande</p>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="font-medium">{formatDate(withdrawal.requested_at, 'dd MMMM yyyy HH:mm')}</span>
+                <span className="font-medium">
+                  {formatDate(withdrawal.requested_at, "dd MMMM yyyy HH:mm")}
+                </span>
               </div>
             </div>
             {withdrawal.processed_at && (
@@ -226,7 +269,9 @@ export default function Withdrawals() {
                 <p className="text-sm text-gray-600 mb-1">Date de traitement</p>
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="font-medium">{formatDate(withdrawal.processed_at, 'dd MMMM yyyy HH:mm')}</span>
+                  <span className="font-medium">
+                    {formatDate(withdrawal.processed_at, "dd MMMM yyyy HH:mm")}
+                  </span>
                 </div>
               </div>
             )}
@@ -236,46 +281,60 @@ export default function Withdrawals() {
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-2 mb-3">
               {getPaymentMethodIcon(withdrawal.payment_method)}
-              <h4 className="font-semibold text-gray-900">{getPaymentMethodLabel(withdrawal.payment_method)}</h4>
+              <h4 className="font-semibold text-gray-900">
+                {getPaymentMethodLabel(withdrawal.payment_method)}
+              </h4>
             </div>
 
-            {withdrawal.payment_method === 'mobile_money' && (
+            {withdrawal.payment_method === "mobile_money" && (
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-gray-600">Opérateur:</span>
                   <span className="ml-2 font-medium capitalize">
-                    {withdrawal.payment_details.provider.replace('_', ' ')}
+                    {withdrawal.payment_details.provider.replace("_", " ")}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Numéro:</span>
-                  <span className="ml-2 font-medium">{withdrawal.payment_details.phone}</span>
+                  <span className="ml-2 font-medium">
+                    {withdrawal.payment_details.phone}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Nom:</span>
-                  <span className="ml-2 font-medium">{withdrawal.payment_details.name}</span>
+                  <span className="ml-2 font-medium">
+                    {withdrawal.payment_details.name}
+                  </span>
                 </div>
               </div>
             )}
 
-            {withdrawal.payment_method === 'bank_transfer' && (
+            {withdrawal.payment_method === "bank_transfer" && (
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-gray-600">Banque:</span>
-                  <span className="ml-2 font-medium">{withdrawal.payment_details.bank_name}</span>
+                  <span className="ml-2 font-medium">
+                    {withdrawal.payment_details.bank_name}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Numéro de compte:</span>
-                  <span className="ml-2 font-medium">{withdrawal.payment_details.account_number}</span>
+                  <span className="ml-2 font-medium">
+                    {withdrawal.payment_details.account_number}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Titulaire:</span>
-                  <span className="ml-2 font-medium">{withdrawal.payment_details.account_name}</span>
+                  <span className="ml-2 font-medium">
+                    {withdrawal.payment_details.account_name}
+                  </span>
                 </div>
                 {withdrawal.payment_details.iban && (
                   <div>
                     <span className="text-gray-600">IBAN:</span>
-                    <span className="ml-2 font-medium">{withdrawal.payment_details.iban}</span>
+                    <span className="ml-2 font-medium">
+                      {withdrawal.payment_details.iban}
+                    </span>
                   </div>
                 )}
               </div>
@@ -286,28 +345,48 @@ export default function Withdrawals() {
           {withdrawal.transaction_id && (
             <div className="mb-6">
               <p className="text-sm text-gray-600 mb-1">ID de transaction</p>
-              <p className="font-mono text-sm bg-gray-100 px-3 py-2 rounded">{withdrawal.transaction_id}</p>
+              <p className="font-mono text-sm bg-gray-100 px-3 py-2 rounded">
+                {withdrawal.transaction_id}
+              </p>
             </div>
           )}
 
           {/* Notes */}
           {withdrawal.notes && (
-            <div className={`mb-6 p-4 rounded-lg ${
-              withdrawal.status === 'rejected' ? 'bg-red-50 border border-red-200' : 'bg-blue-50 border border-blue-200'
-            }`}>
+            <div
+              className={`mb-6 p-4 rounded-lg ${
+                withdrawal.status === "rejected"
+                  ? "bg-red-50 border border-red-200"
+                  : "bg-blue-50 border border-blue-200"
+              }`}
+            >
               <div className="flex items-start gap-2">
-                <AlertCircle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                  withdrawal.status === 'rejected' ? 'text-red-600' : 'text-blue-600'
-                }`} />
+                <AlertCircle
+                  className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                    withdrawal.status === "rejected"
+                      ? "text-red-600"
+                      : "text-blue-600"
+                  }`}
+                />
                 <div>
-                  <p className={`text-sm font-medium ${
-                    withdrawal.status === 'rejected' ? 'text-red-900' : 'text-blue-900'
-                  }`}>
-                    {withdrawal.status === 'rejected' ? 'Raison du rejet' : 'Notes'}
+                  <p
+                    className={`text-sm font-medium ${
+                      withdrawal.status === "rejected"
+                        ? "text-red-900"
+                        : "text-blue-900"
+                    }`}
+                  >
+                    {withdrawal.status === "rejected"
+                      ? "Raison du rejet"
+                      : "Notes"}
                   </p>
-                  <p className={`text-sm mt-1 ${
-                    withdrawal.status === 'rejected' ? 'text-red-700' : 'text-blue-700'
-                  }`}>
+                  <p
+                    className={`text-sm mt-1 ${
+                      withdrawal.status === "rejected"
+                        ? "text-red-700"
+                        : "text-blue-700"
+                    }`}
+                  >
                     {withdrawal.notes}
                   </p>
                 </div>
@@ -316,7 +395,7 @@ export default function Withdrawals() {
           )}
 
           {/* Actions */}
-          {withdrawal.status === 'pending' && (
+          {withdrawal.status === "pending" && (
             <div className="flex gap-3">
               <Button
                 onClick={() => {
@@ -351,8 +430,12 @@ export default function Withdrawals() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Demandes de retrait</h1>
-        <p className="text-gray-600 mt-2">Gérer les demandes de retrait des photographes</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Demandes de retrait
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Gérer les demandes de retrait des photographes
+        </p>
       </div>
 
       {/* Statistiques */}
@@ -365,7 +448,9 @@ export default function Withdrawals() {
             <h3 className="font-semibold text-gray-900">En attente</h3>
           </div>
           <p className="text-4xl font-bold text-yellow-600">{stats.pending}</p>
-          <p className="text-sm text-gray-600 mt-1">{formatPrice(stats.pendingAmount)}</p>
+          <p className="text-sm text-gray-600 mt-1">
+            {formatPrice(stats.pendingAmount)}
+          </p>
         </Card>
 
         <Card className="p-6">
@@ -395,7 +480,9 @@ export default function Withdrawals() {
             </div>
             <h3 className="font-semibold text-gray-900">Total</h3>
           </div>
-          <p className="text-4xl font-bold text-blue-600">{allWithdrawals.length}</p>
+          <p className="text-4xl font-bold text-blue-600">
+            {allWithdrawals.length}
+          </p>
         </Card>
       </div>
 
@@ -403,7 +490,9 @@ export default function Withdrawals() {
       <Card className="p-4 mb-6">
         <div className="flex items-center gap-3">
           <Filter className="text-gray-400 w-5 h-5" />
-          <label className="text-sm font-medium text-gray-700">Filtrer par statut:</label>
+          <label className="text-sm font-medium text-gray-700">
+            Filtrer par statut:
+          </label>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
@@ -415,7 +504,7 @@ export default function Withdrawals() {
             <option value="all">Tous</option>
           </select>
           <span className="text-sm text-gray-600 ml-auto">
-            {withdrawals.length} demande{withdrawals.length > 1 ? 's' : ''}
+            {withdrawals.length} demande{withdrawals.length > 1 ? "s" : ""}
           </span>
         </div>
       </Card>
@@ -429,11 +518,19 @@ export default function Withdrawals() {
         ) : withdrawals.length === 0 ? (
           <div className="text-center py-12">
             <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune demande</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Aucune demande
+            </h3>
             <p className="text-gray-500">
-              {filterStatus === 'pending'
-                ? 'Aucune demande de retrait en attente'
-                : `Aucune demande ${filterStatus === 'completed' ? 'complétée' : filterStatus === 'rejected' ? 'rejetée' : ''}`}
+              {filterStatus === "pending"
+                ? "Aucune demande de retrait en attente"
+                : `Aucune demande ${
+                    filterStatus === "completed"
+                      ? "complétée"
+                      : filterStatus === "rejected"
+                      ? "rejetée"
+                      : ""
+                  }`}
             </p>
           </div>
         ) : (
@@ -461,10 +558,14 @@ export default function Withdrawals() {
                           <h3 className="text-lg font-semibold text-gray-900">
                             {photographer?.first_name} {photographer?.last_name}
                           </h3>
-                          <p className="text-gray-600">{photographer?.display_name}</p>
+                          <p className="text-gray-600">
+                            {photographer?.display_name}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-primary-600">{formatPrice(withdrawal.amount)}</p>
+                          <p className="text-2xl font-bold text-primary-600">
+                            {formatPrice(withdrawal.amount)}
+                          </p>
                           {getStatusBadge(withdrawal.status)}
                         </div>
                       </div>
@@ -472,13 +573,20 @@ export default function Withdrawals() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm mb-4">
                         <div className="flex items-center gap-2 text-gray-600">
                           {getPaymentMethodIcon(withdrawal.payment_method)}
-                          <span>{getPaymentMethodLabel(withdrawal.payment_method)}</span>
+                          <span>
+                            {getPaymentMethodLabel(withdrawal.payment_method)}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 text-gray-600">
                           <Calendar className="w-4 h-4" />
-                          <span>{formatDate(withdrawal.requested_at, 'dd/MM/yyyy HH:mm')}</span>
+                          <span>
+                            {formatDate(
+                              withdrawal.requested_at,
+                              "dd/MM/yyyy HH:mm"
+                            )}
+                          </span>
                         </div>
-                        {withdrawal.payment_method === 'mobile_money' && (
+                        {withdrawal.payment_method === "mobile_money" && (
                           <div className="flex items-center gap-2 text-gray-600">
                             <Smartphone className="w-4 h-4" />
                             <span>{withdrawal.payment_details.phone}</span>
@@ -488,11 +596,15 @@ export default function Withdrawals() {
 
                       {/* Actions */}
                       <div className="flex gap-2">
-                        <Button onClick={() => setSelectedWithdrawal(withdrawal)} variant="ghost" size="sm">
+                        <Button
+                          onClick={() => setSelectedWithdrawal(withdrawal)}
+                          variant="ghost"
+                          size="sm"
+                        >
                           <Eye className="w-4 h-4 mr-1" />
                           Voir détails
                         </Button>
-                        {withdrawal.status === 'pending' && (
+                        {withdrawal.status === "pending" && (
                           <>
                             <Button
                               onClick={() => handleApproveClick(withdrawal)}
@@ -523,7 +635,10 @@ export default function Withdrawals() {
       </Card>
 
       {/* Modal Détails */}
-      <WithdrawalDetailModal withdrawal={selectedWithdrawal} onClose={() => setSelectedWithdrawal(null)} />
+      <WithdrawalDetailModal
+        withdrawal={selectedWithdrawal}
+        onClose={() => setSelectedWithdrawal(null)}
+      />
 
       {/* Modal Approbation */}
       {showApproveModal && withdrawalToProcess && (
@@ -532,17 +647,17 @@ export default function Withdrawals() {
           onClose={() => {
             setShowApproveModal(false);
             setWithdrawalToProcess(null);
-            setTransactionId('');
-            setNotes('');
+            setTransactionId("");
+            setNotes("");
           }}
           title="Approuver et effectuer le paiement"
         >
           <div className="p-6">
             <p className="text-gray-600 mb-4">
-              Vous êtes sur le point d'approuver et d'effectuer le paiement de{' '}
-              <strong>{formatPrice(withdrawalToProcess.amount)}</strong> pour{' '}
+              Vous êtes sur le point d'approuver et d'effectuer le paiement de{" "}
+              <strong>{formatPrice(withdrawalToProcess.amount)}</strong> pour{" "}
               <strong>
-                {getUserById(withdrawalToProcess.photographer_id)?.first_name}{' '}
+                {getUserById(withdrawalToProcess.photographer_id)?.first_name}{" "}
                 {getUserById(withdrawalToProcess.photographer_id)?.last_name}
               </strong>
               .
@@ -557,12 +672,14 @@ export default function Withdrawals() {
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Ex: OM-TRX-20241030-123456"
+                placeholder="Ex: OM-TRX-20251030-123456"
               />
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Notes (optionnel)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notes (optionnel)
+              </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -573,7 +690,12 @@ export default function Withdrawals() {
             </div>
 
             <div className="flex gap-3">
-              <Button onClick={confirmApprove} variant="success" fullWidth disabled={!transactionId.trim()}>
+              <Button
+                onClick={confirmApprove}
+                variant="success"
+                fullWidth
+                disabled={!transactionId.trim()}
+              >
                 <Check className="w-5 h-5 mr-2" />
                 Confirmer le paiement
               </Button>
@@ -581,8 +703,8 @@ export default function Withdrawals() {
                 onClick={() => {
                   setShowApproveModal(false);
                   setWithdrawalToProcess(null);
-                  setTransactionId('');
-                  setNotes('');
+                  setTransactionId("");
+                  setNotes("");
                 }}
                 variant="ghost"
                 fullWidth
@@ -601,16 +723,16 @@ export default function Withdrawals() {
           onClose={() => {
             setShowRejectModal(false);
             setWithdrawalToProcess(null);
-            setRejectionReason('');
+            setRejectionReason("");
           }}
           title="Rejeter la demande"
         >
           <div className="p-6">
             <p className="text-gray-600 mb-4">
-              Vous êtes sur le point de rejeter la demande de retrait de{' '}
-              <strong>{formatPrice(withdrawalToProcess.amount)}</strong> pour{' '}
+              Vous êtes sur le point de rejeter la demande de retrait de{" "}
+              <strong>{formatPrice(withdrawalToProcess.amount)}</strong> pour{" "}
               <strong>
-                {getUserById(withdrawalToProcess.photographer_id)?.first_name}{' '}
+                {getUserById(withdrawalToProcess.photographer_id)?.first_name}{" "}
                 {getUserById(withdrawalToProcess.photographer_id)?.last_name}
               </strong>
               . Veuillez fournir une raison.
@@ -643,7 +765,7 @@ export default function Withdrawals() {
                 onClick={() => {
                   setShowRejectModal(false);
                   setWithdrawalToProcess(null);
-                  setRejectionReason('');
+                  setRejectionReason("");
                 }}
                 variant="ghost"
                 fullWidth

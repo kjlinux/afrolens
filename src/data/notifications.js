@@ -7,13 +7,13 @@ export const notifications = [
     user_id: 'user-buyer-1',
     type: 'order_completed',
     title: 'Commande confirmée',
-    message: 'Votre commande ORD-20241025-ABC123 a été confirmée. Vous pouvez télécharger vos photos.',
+    message: 'Votre commande ORD-20251025-ABC123 a été confirmée. Vous pouvez télécharger vos photos.',
     data: {
       order_id: 'order-001',
-      order_number: 'ORD-20241025-ABC123',
+      order_number: 'ORD-20251025-ABC123',
     },
     is_read: false,
-    created_at: '2024-10-25T14:35:00Z',
+    created_at: '2025-10-25T14:35:00Z',
   },
   {
     id: 'notif-002',
@@ -27,7 +27,7 @@ export const notifications = [
       photos_count: 5,
     },
     is_read: true,
-    created_at: '2024-10-24T10:00:00Z',
+    created_at: '2025-10-24T10:00:00Z',
   },
   {
     id: 'notif-003',
@@ -40,7 +40,7 @@ export const notifications = [
       discount: 20,
     },
     is_read: true,
-    created_at: '2024-10-22T08:00:00Z',
+    created_at: '2025-10-22T08:00:00Z',
   },
 
   // NOTIFICATIONS PHOTOGRAPHER
@@ -58,7 +58,7 @@ export const notifications = [
       net_amount: 40.00,
     },
     is_read: false,
-    created_at: '2024-10-25T14:35:00Z',
+    created_at: '2025-10-25T14:35:00Z',
   },
   {
     id: 'notif-005',
@@ -71,7 +71,7 @@ export const notifications = [
       follower_name: 'Jean Ouedraogo',
     },
     is_read: false,
-    created_at: '2024-10-26T11:00:00Z',
+    created_at: '2025-10-26T11:00:00Z',
   },
   {
     id: 'notif-006',
@@ -84,7 +84,7 @@ export const notifications = [
       photo_title: 'Cycliste sprint final',
     },
     is_read: true,
-    created_at: '2024-10-23T09:00:00Z',
+    created_at: '2025-10-23T09:00:00Z',
   },
   {
     id: 'notif-007',
@@ -97,7 +97,7 @@ export const notifications = [
       amount: 500.00,
     },
     is_read: true,
-    created_at: '2024-10-20T14:00:00Z',
+    created_at: '2025-10-20T14:00:00Z',
   },
   {
     id: 'notif-008',
@@ -110,7 +110,7 @@ export const notifications = [
       value: 500,
     },
     is_read: true,
-    created_at: '2024-10-18T16:00:00Z',
+    created_at: '2025-10-18T16:00:00Z',
   },
 
   // NOTIFICATIONS ADMIN
@@ -125,7 +125,7 @@ export const notifications = [
       photographer_name: 'Karim Ouattara',
     },
     is_read: false,
-    created_at: '2024-10-20T10:05:00Z',
+    created_at: '2025-10-20T10:05:00Z',
   },
   {
     id: 'notif-010',
@@ -137,7 +137,7 @@ export const notifications = [
       pending_count: 5,
     },
     is_read: false,
-    created_at: '2024-10-29T08:00:00Z',
+    created_at: '2025-10-29T08:00:00Z',
   },
   {
     id: 'notif-011',
@@ -151,7 +151,7 @@ export const notifications = [
       amount: 250.00,
     },
     is_read: false,
-    created_at: '2024-10-28T15:00:00Z',
+    created_at: '2025-10-28T15:00:00Z',
   },
   {
     id: 'notif-012',
@@ -164,7 +164,7 @@ export const notifications = [
       activity_type: 'multiple_failed_logins',
     },
     is_read: true,
-    created_at: '2024-08-10T09:30:00Z',
+    created_at: '2025-08-10T09:30:00Z',
   },
 
   // NOTIFICATIONS PHOTOGRAPHE 2
@@ -179,7 +179,7 @@ export const notifications = [
       amount: 35.00,
     },
     is_read: false,
-    created_at: '2024-10-27T13:00:00Z',
+    created_at: '2025-10-27T13:00:00Z',
   },
 
   // NOTIFICATIONS PHOTOGRAPHE PENDING
@@ -190,10 +190,10 @@ export const notifications = [
     title: 'Demande de compte photographe soumise',
     message: 'Votre demande de compte photographe a été soumise avec succès. Elle sera examinée sous 48h.',
     data: {
-      application_date: '2024-10-20T10:00:00Z',
+      application_date: '2025-10-20T10:00:00Z',
     },
     is_read: true,
-    created_at: '2024-10-20T10:05:00Z',
+    created_at: '2025-10-20T10:05:00Z',
   },
 ];
 
