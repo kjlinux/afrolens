@@ -63,19 +63,19 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-24">
           <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
               Découvrez l'Afrique en Images
             </h1>
-            <p className="text-xl mb-8 text-primary-100">
+            <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-primary-100 max-w-2xl mx-auto px-4">
               La première banque d'images professionnelles africaines
             </p>
-            <div className="flex justify-center gap-4">
-              <Link to="/search" className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
+              <Link to="/search" className="bg-white text-primary-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-center">
                 Explorer les photos
               </Link>
-              <Link to="/register" className="border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-white/10">
+              <Link to="/register" className="border-2 border-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white/10 transition-colors text-center">
                 Devenir photographe
               </Link>
             </div>
@@ -84,10 +84,10 @@ export default function Home() {
       </section>
 
       {/* Featured */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold">Photos à la une</h2>
-          <Link to="/search" className="text-primary-600 hover:underline">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-2 sm:gap-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold">Photos à la une</h2>
+          <Link to="/search" className="text-primary-600 hover:underline text-sm sm:text-base whitespace-nowrap">
             Voir tout →
           </Link>
         </div>
@@ -99,9 +99,9 @@ export default function Home() {
       </section>
 
       {/* Recent */}
-      <section className="bg-gray-100 py-16">
+      <section className="bg-gray-100 py-8 sm:py-12 lg:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold mb-8">Nouveautés</h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8">Nouveautés</h2>
           <div className="masonry-grid">
             {recent.map(photo => (
               <PhotoCard key={photo.id} photo={photo} />
@@ -111,19 +111,19 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-          <div>
-            <div className="text-4xl font-bold text-primary-600">69+</div>
-            <div className="text-gray-600 mt-2">Photos professionnelles</div>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-600">69+</div>
+            <div className="text-gray-600 mt-2 text-sm sm:text-base">Photos professionnelles</div>
           </div>
-          <div>
-            <div className="text-4xl font-bold text-primary-600">10+</div>
-            <div className="text-gray-600 mt-2">Photographes talentueux</div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-600">10+</div>
+            <div className="text-gray-600 mt-2 text-sm sm:text-base">Photographes talentueux</div>
           </div>
-          <div>
-            <div className="text-4xl font-bold text-primary-600">500+</div>
-            <div className="text-gray-600 mt-2">Clients satisfaits</div>
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-600">500+</div>
+            <div className="text-gray-600 mt-2 text-sm sm:text-base">Clients satisfaits</div>
           </div>
         </div>
       </section>

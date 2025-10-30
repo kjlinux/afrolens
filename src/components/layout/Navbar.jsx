@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings, FiMenu, FiX, FiSearch } from 'react-icons/fi';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { getItemCount } = useCart();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
+    setMobileMenuOpen(false);
     navigate('/');
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -19,13 +26,13 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <FiCamera className="w-8 h-8 text-primary-600" />
-            <span className="text-2xl font-bold text-gray-900">POUIRE</span>
+          <Link to="/" className="flex items-center space-x-2 shrink-0" onClick={closeMobileMenu}>
+            <FiCamera className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
+            <span className="text-xl sm:text-2xl font-bold text-gray-900">POUIRE</span>
           </Link>
 
-          {/* Search */}
-          <div className="flex-1 max-w-2xl mx-8">
+          {/* Search - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-2xl mx-8">
             <input
               type="search"
               placeholder="Rechercher des photos..."
@@ -34,8 +41,16 @@ export default function Navbar() {
             />
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
+          {/* Search Icon - Mobile/Tablet */}
+          <button
+            onClick={() => setSearchOpen(!searchOpen)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+          >
+            <FiSearch className="w-6 h-6" />
+          </button>
+
+          {/* Actions - Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
                 {/* Cart */}
@@ -56,7 +71,7 @@ export default function Navbar() {
                       alt={user.first_name}
                       className="w-8 h-8 rounded-full"
                     />
-                    <span className="hidden md:block">{user.first_name}</span>
+                    <span className="hidden lg:block">{user.first_name}</span>
                   </button>
 
                   {/* Dropdown */}
@@ -97,17 +112,146 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" className="btn btn-ghost">
+                <Link to="/login" className="btn btn-ghost text-sm lg:text-base">
                   Connexion
                 </Link>
-                <Link to="/register" className="btn btn-primary">
+                <Link to="/register" className="btn btn-primary text-sm lg:text-base">
+                  Inscription
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
+          >
+            {mobileMenuOpen ? (
+              <FiX className="w-6 h-6" />
+            ) : (
+              <FiMenu className="w-6 h-6" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Search Bar */}
+        {searchOpen && (
+          <div className="md:hidden py-4 border-t">
+            <input
+              type="search"
+              placeholder="Rechercher des photos..."
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              onFocus={() => {
+                navigate('/search');
+                setSearchOpen(false);
+              }}
+              autoFocus
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t bg-white">
+          <div className="px-4 py-4 space-y-3">
+            {isAuthenticated ? (
+              <>
+                {/* User Info */}
+                <div className="flex items-center space-x-3 pb-3 border-b">
+                  <img
+                    src={user.avatar_url}
+                    alt={user.first_name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div>
+                    <p className="font-medium">{user.first_name} {user.last_name}</p>
+                    <p className="text-sm text-gray-500">{user.email}</p>
+                  </div>
+                </div>
+
+                {/* Cart */}
+                <Link
+                  to="/cart"
+                  className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg"
+                  onClick={closeMobileMenu}
+                >
+                  <span className="flex items-center">
+                    <FiShoppingCart className="w-5 h-5 mr-3" />
+                    Panier
+                  </span>
+                  {getItemCount() > 0 && (
+                    <span className="bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                      {getItemCount()}
+                    </span>
+                  )}
+                </Link>
+
+                {/* Profile */}
+                <Link
+                  to="/profile"
+                  className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
+                  onClick={closeMobileMenu}
+                >
+                  <FiUser className="w-5 h-5 mr-3" />
+                  Profil
+                </Link>
+
+                {/* Photographer Dashboard */}
+                {user.account_type === 'photographer' && (
+                  <Link
+                    to="/photographer/dashboard"
+                    className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
+                    onClick={closeMobileMenu}
+                  >
+                    <FiCamera className="w-5 h-5 mr-3" />
+                    Dashboard Photographe
+                  </Link>
+                )}
+
+                {/* Admin Dashboard */}
+                {user.account_type === 'admin' && (
+                  <Link
+                    to="/admin/dashboard"
+                    className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
+                    onClick={closeMobileMenu}
+                  >
+                    <FiSettings className="w-5 h-5 mr-3" />
+                    Administration
+                  </Link>
+                )}
+
+                {/* Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full py-2 px-3 hover:bg-red-50 rounded-lg text-red-600"
+                >
+                  <FiLogOut className="w-5 h-5 mr-3" />
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="block w-full py-2 px-4 text-center border border-gray-300 rounded-lg hover:bg-gray-50"
+                  onClick={closeMobileMenu}
+                >
+                  Connexion
+                </Link>
+                <Link
+                  to="/register"
+                  className="block w-full py-2 px-4 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  onClick={closeMobileMenu}
+                >
                   Inscription
                 </Link>
               </>
             )}
           </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }

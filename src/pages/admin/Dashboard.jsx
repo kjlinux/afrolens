@@ -123,21 +123,21 @@ export default function Dashboard() {
 
   const StatCard = ({ icon: Icon, title, value, subtitle, change, color, link }) => {
     const content = (
-      <Card className="p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-lg ${color}`}>
-            <Icon className="w-6 h-6 text-white" />
+      <Card className="p-4 sm:p-6 hover:shadow-lg transition-shadow">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className={`p-2 sm:p-3 rounded-lg ${color}`}>
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           {change !== undefined && (
-            <span className={`text-sm font-medium flex items-center gap-1 ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              <TrendingUp className={`w-4 h-4 ${change < 0 ? 'rotate-180' : ''}`} />
+            <span className={`text-xs sm:text-sm font-medium flex items-center gap-1 ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <TrendingUp className={`w-3 h-3 sm:w-4 sm:h-4 ${change < 0 ? 'rotate-180' : ''}`} />
               {change >= 0 ? '+' : ''}{change}%
             </span>
           )}
         </div>
-        <h3 className="text-sm text-gray-600">{title}</h3>
-        <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+        <h3 className="text-xs sm:text-sm text-gray-600">{title}</h3>
+        <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{value}</p>
+        {subtitle && <p className="text-xs sm:text-sm text-gray-500 mt-1">{subtitle}</p>}
       </Card>
     );
 
@@ -146,24 +146,24 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
-        <p className="text-gray-600 mt-2">Vue d'ensemble de la plateforme POUIRE</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Dashboard Admin</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">Vue d'ensemble de la plateforme POUIRE</p>
       </div>
 
       {/* Statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <StatCard
           icon={Users}
           title="Total Utilisateurs"
@@ -202,10 +202,10 @@ export default function Dashboard() {
       </div>
 
       {/* Graphiques - Revenus et Commandes */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="p-6 lg:col-span-2">
-          <h2 className="text-xl font-semibold mb-6">Évolution des revenus</h2>
-          <ResponsiveContainer width="100%" height={300}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <Card className="p-4 sm:p-6 lg:col-span-2">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Évolution des revenus</h2>
+          <ResponsiveContainer width="100%" height={250} className="sm:!h-[300px]">
             <LineChart data={revenueData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />

@@ -190,11 +190,11 @@ export default function Upload() {
   const currentFile = files[currentFileIndex];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Uploader des Photos</h1>
-        <p className="text-gray-600">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Uploader des Photos</h1>
+        <p className="text-sm sm:text-base text-gray-600">
           Ajoutez vos photos à la plateforme POUIRE
         </p>
       </div>
@@ -233,15 +233,15 @@ export default function Upload() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Zone de drop */}
         <div className="lg:col-span-2">
-          <Card className="p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4">Sélectionner les photos</h3>
+          <Card className="p-4 sm:p-6 mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Sélectionner les photos</h3>
 
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-6 sm:p-8 lg:p-12 text-center cursor-pointer transition-colors ${
                 isDragActive
                   ? 'border-primary bg-primary/5'
                   : 'border-gray-300 hover:border-primary'
@@ -250,7 +250,7 @@ export default function Upload() {
               <input {...getInputProps()} />
 
               <svg
-                className={`mx-auto h-16 w-16 mb-4 ${
+                className={`mx-auto h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 mb-3 sm:mb-4 ${
                   isDragActive ? 'text-primary' : 'text-gray-400'
                 }`}
                 fill="none"
@@ -266,21 +266,21 @@ export default function Upload() {
               </svg>
 
               {isDragActive ? (
-                <p className="text-lg text-primary font-medium mb-2">
+                <p className="text-base sm:text-lg text-primary font-medium mb-2">
                   Déposez les photos ici...
                 </p>
               ) : (
                 <>
-                  <p className="text-lg text-gray-900 font-medium mb-2">
+                  <p className="text-base sm:text-lg text-gray-900 font-medium mb-2">
                     Glissez-déposez vos photos ici
                   </p>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
                     ou cliquez pour sélectionner des fichiers
                   </p>
                 </>
               )}
 
-              <p className="text-sm text-gray-500">
+              <p className="text-xs sm:text-sm text-gray-500">
                 JPG, JPEG, PNG jusqu'à {formatFileSize(CONFIG.MAX_FILE_SIZE)}
               </p>
             </div>
@@ -288,9 +288,9 @@ export default function Upload() {
 
           {/* Liste des fichiers sélectionnés */}
           {files.length > 0 && (
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
+            <Card className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2">
+                <h3 className="text-base sm:text-lg font-semibold">
                   Photos sélectionnées ({files.length})
                 </h3>
                 <Button
@@ -307,7 +307,7 @@ export default function Upload() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {files.map((fileObj, index) => (
                   <div
                     key={index}
@@ -362,13 +362,13 @@ export default function Upload() {
 
         {/* Formulaire de métadonnées */}
         <div className="lg:col-span-1">
-          <Card className="p-6 sticky top-4">
-            <h3 className="text-lg font-semibold mb-4">Informations de la photo</h3>
+          <Card className="p-4 sm:p-6 lg:sticky lg:top-4">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Informations de la photo</h3>
 
             {files.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-6 sm:py-8 text-gray-500">
                 <svg
-                  className="mx-auto h-12 w-12 mb-3"
+                  className="mx-auto h-10 w-10 sm:h-12 sm:w-12 mb-2 sm:mb-3"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -380,7 +380,7 @@ export default function Upload() {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <p>Ajoutez des photos pour commencer</p>
+                <p className="text-sm sm:text-base">Ajoutez des photos pour commencer</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
@@ -544,8 +544,8 @@ export default function Upload() {
                 </div>
 
                 {/* Informations */}
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-2">
+                <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg">
+                  <h4 className="text-xs sm:text-sm font-semibold text-blue-900 mb-2">
                     À savoir
                   </h4>
                   <ul className="text-xs text-blue-800 space-y-1">

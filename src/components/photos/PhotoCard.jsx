@@ -37,7 +37,7 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
       <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-6 h-6 sm:w-8 sm:h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         <img
@@ -53,48 +53,70 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
           loading="lazy"
         />
 
-        {/* Overlay au hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 pointer-events-none">
+        {/* Overlay au hover - Desktop only */}
+        <div className="hidden sm:block absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 pointer-events-none">
           <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="flex gap-3 pointer-events-auto">
+            <div className="flex gap-2 sm:gap-3 pointer-events-auto">
               <button
                 onClick={handleAddToCart}
-                className="p-3 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg"
+                className="p-2 sm:p-3 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors shadow-lg"
                 title="Ajouter au panier"
               >
-                <FiShoppingCart className="w-5 h-5" />
+                <FiShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <button
                 onClick={handleFavoriteClick}
-                className="p-3 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors shadow-lg"
+                className="p-2 sm:p-3 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors shadow-lg"
                 title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               >
                 {isFavorite ? (
-                  <FaHeart className="w-5 h-5 text-red-500" />
+                  <FaHeart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
                 ) : (
-                  <FiHeart className="w-5 h-5" />
+                  <FiHeart className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
           </div>
         </div>
 
+        {/* Mobile Action Buttons - Always visible on mobile */}
+        <div className="sm:hidden absolute bottom-2 right-2 flex gap-2">
+          <button
+            onClick={handleAddToCart}
+            className="p-2 bg-white/90 backdrop-blur-sm text-gray-900 rounded-full shadow-lg active:scale-95 transition-transform"
+            title="Ajouter au panier"
+          >
+            <FiShoppingCart className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleFavoriteClick}
+            className="p-2 bg-white/90 backdrop-blur-sm text-gray-900 rounded-full shadow-lg active:scale-95 transition-transform"
+            title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          >
+            {isFavorite ? (
+              <FaHeart className="w-4 h-4 text-red-500" />
+            ) : (
+              <FiHeart className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
         {/* Badge Featured */}
         {photo.featured && (
-          <div className="absolute top-3 left-3 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-yellow-500 text-white text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">
             À la une
           </div>
         )}
       </div>
 
       {/* Infos */}
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+      <div className="p-3 sm:p-4">
+        <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 sm:mb-2 line-clamp-2 group-hover:text-primary transition-colors">
           {photo.title}
         </h3>
 
         {showPhotographer && (
-          <p className="text-sm text-gray-600 mb-3">
+          <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 truncate">
             Par{' '}
             <span className="font-medium text-gray-900">
               {photo.photographer_name || 'Photographe'}
@@ -103,17 +125,17 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
         )}
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
             <span className="flex items-center gap-1">
-              <FiEye className="w-4 h-4" />
-              {photo.views_count || 0}
+              <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">{photo.views_count || 0}</span>
             </span>
             <span className="flex items-center gap-1">
-              <FiHeart className="w-4 h-4" />
-              {photo.favorites_count || 0}
+              <FiHeart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">{photo.favorites_count || 0}</span>
             </span>
           </div>
-          <p className="text-base font-bold text-primary">
+          <p className="text-sm sm:text-base font-bold text-primary">
             {formatPrice(photo.price_standard)}
           </p>
         </div>

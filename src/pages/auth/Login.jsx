@@ -40,63 +40,63 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-8 sm:py-12 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Connexion</h2>
-            <p className="text-gray-600 mt-2">Bienvenue sur POUIRE</p>
+        <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Connexion</h2>
+            <p className="text-sm sm:text-base text-gray-600 mt-2">Bienvenue sur POUIRE</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 flex items-center">
-              <FiAlertCircle className="mr-2" />
-              {error}
+            <div className="bg-red-50 text-red-600 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 flex items-start sm:items-center text-sm">
+              <FiAlertCircle className="mr-2 mt-0.5 sm:mt-0 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           {/* Comptes de test */}
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <p className="text-sm font-semibold text-blue-900 mb-2">
+          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
+            <p className="text-xs sm:text-sm font-semibold text-blue-900 mb-2">
               Comptes de test :
             </p>
             <div className="space-y-1 text-xs text-blue-800">
               <button
                 type="button"
                 onClick={() => quickLogin('buyer@test.com', 'password123')}
-                className="block hover:underline"
+                className="block hover:underline text-left w-full"
               >
                 • Acheteur: buyer@test.com / password123
               </button>
               <button
                 type="button"
                 onClick={() => quickLogin('photographer@test.com', 'password123')}
-                className="block hover:underline"
+                className="block hover:underline text-left w-full"
               >
                 • Photographe: photographer@test.com / password123
               </button>
               <button
                 type="button"
                 onClick={() => quickLogin('admin@test.com', 'password123')}
-                className="block hover:underline"
+                className="block hover:underline text-left w-full"
               >
                 • Admin: admin@test.com / password123
               </button>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Email
               </label>
               <div className="relative">
-                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="input pl-10"
+                  className="input pl-9 sm:pl-10 text-sm sm:text-base"
                   placeholder="votre@email.com"
                   required
                 />
@@ -104,33 +104,33 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                 Mot de passe
               </label>
               <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input pl-10"
+                  className="input pl-9 sm:pl-10 text-sm sm:text-base"
                   placeholder="••••••••"
                   required
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
               <label className="flex items-center">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="mr-2"
+                  className="mr-2 w-4 h-4"
                 />
-                <span className="text-sm text-gray-600">Se souvenir de moi</span>
+                <span className="text-xs sm:text-sm text-gray-600">Se souvenir de moi</span>
               </label>
-              <Link to="/forgot-password" className="text-sm text-primary-600 hover:underline">
+              <Link to="/forgot-password" className="text-xs sm:text-sm text-primary-600 hover:underline">
                 Mot de passe oublié ?
               </Link>
             </div>
@@ -144,8 +144,8 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="mt-4 sm:mt-6 text-center">
+            <p className="text-xs sm:text-sm text-gray-600">
               Pas encore de compte ?{' '}
               <Link to="/register" className="text-primary-600 font-semibold hover:underline">
                 S'inscrire
