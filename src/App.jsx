@@ -16,6 +16,11 @@ import Search from './pages/Search';
 import PhotoDetail from './pages/PhotoDetail';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Terms from './pages/Terms';
+import Photographers from './pages/Photographers';
+import Categories from './pages/Categories';
 
 // Pages utilisateur
 import Profile from './pages/user/Profile';
@@ -30,6 +35,7 @@ import PhotographerPhotos from './pages/photographer/MyPhotos';
 import PhotographerUpload from './pages/photographer/Upload';
 import PhotographerRevenue from './pages/photographer/Revenue';
 import PhotographerAnalytics from './pages/photographer/Analytics';
+import PublicProfile from './pages/photographer/PublicProfile';
 
 // Pages admin
 import AdminDashboard from './pages/admin/Dashboard';
@@ -75,6 +81,12 @@ function AppContent() {
           <Route path="/photo/:id" element={<PhotoDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/photographers" element={<Photographers />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/photographer/:photographerId" element={<PublicProfile />} />
 
           {/* Routes utilisateur (buyer/photographer) */}
           <Route

@@ -4,12 +4,16 @@ import * as photoService from '../services/photoService';
 import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/helpers';
+import Lightbox from '../components/common/Lightbox';
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     loadPhotos();
@@ -30,25 +34,52 @@ export default function Home() {
     }
   };
 
-  const PhotoCard = ({ photo }) => (
-    <Link to={`/photo/${photo.id}`} className="group card card-hover">
-      <div className="relative overflow-hidden aspect-[4/3]">
-        <img
-          src={photo.preview_url}
-          alt={photo.title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 protected-image"
-          onContextMenu={(e) => e.preventDefault()}
-          onDragStart={(e) => e.preventDefault()}
-          draggable={false}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-            <h3 className="font-semibold truncate">{photo.title}</h3>
-            <p className="text-sm text-gray-300">{formatPrice(photo.price_standard)}</p>
+  const handleOpenLightbox = (photos, index) => {
+    const images = photos.map(photo => ({
+      url: photo.preview_url,
+      title: photo.title,
+      photographer: photo.photographer?.name || 'Photographe',
+      alt: photo.title
+    }));
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const PhotoCard = ({ photo, photos, index }) => (
+    <div className="group card card-hover relative">
+      <Link to={`/photo/${photo.id}`}>
+        <div className="relative overflow-hidden aspect-[4/3]">
+          <img
+            src={photo.preview_url}
+            alt={photo.title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 protected-image"
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+            draggable={false}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+              <h3 className="font-semibold truncate">{photo.title}</h3>
+              <p className="text-sm text-gray-300">{formatPrice(photo.price_standard)}</p>
+            </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+      {/* Bouton de prévisualisation en plein écran */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          handleOpenLightbox(photos, index);
+        }}
+        className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-white rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        title="Voir en plein écran"
+      >
+        <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+        </svg>
+      </button>
+    </div>
   );
 
   if (loading) {
@@ -92,8 +123,8 @@ export default function Home() {
           </Link>
         </div>
         <div className="masonry-grid">
-          {featured.map(photo => (
-            <PhotoCard key={photo.id} photo={photo} />
+          {featured.map((photo, index) => (
+            <PhotoCard key={photo.id} photo={photo} photos={featured} index={index} />
           ))}
         </div>
       </section>
@@ -103,8 +134,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8">Nouveautés</h2>
           <div className="masonry-grid">
-            {recent.map(photo => (
-              <PhotoCard key={photo.id} photo={photo} />
+            {recent.map((photo, index) => (
+              <PhotoCard key={photo.id} photo={photo} photos={recent} index={index} />
             ))}
           </div>
         </div>
@@ -127,6 +158,17 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Lightbox pour prévisualiser les images */}
+      <Lightbox
+        isOpen={lightboxOpen}
+        images={lightboxImages}
+        currentIndex={lightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={setLightboxIndex}
+        showDownload={false}
+        showNavigation={true}
+      />
     </div>
   );
 }
