@@ -69,9 +69,10 @@
 - **Commission plateforme** : 20% sur chaque vente
 - **Revenu photographe** : 80% du prix de vente
 - **Période de sécurité** : 30 jours avant qu'un revenu soit disponible pour retrait
-- **Retrait minimum** : 50 FCFA
-- **Prix minimum photo** : 5 FCFA
+- **Retrait minimum** : 5000 FCFA (5000 XOF)
+- **Prix minimum photo** : 500 FCFA (500 XOF)
 - **Prix extended minimum** : 2x le prix standard
+- **Devise** : Franc CFA (XOF) - montants en **integer** (pas de décimales)
 
 ---
 
@@ -130,9 +131,7 @@
 
 - **AWS S3** : Stockage images
 - **AWS CloudFront** (optionnel) : CDN
-- **Stripe** : Paiements carte bancaire
-- **Orange Money API** : Paiements Mobile Money
-- **Moov Money API** : Paiements Mobile Money
+- **CinetPay** : Paiements (Mobile Money, Carte bancaire, etc.)
 - **SendGrid ou Mailgun** : Envoi emails
 - **Sentry** : Monitoring erreurs
 
@@ -439,9 +438,9 @@ EXIF:
 - taken_at: timestamp (nullable)
 - location: string (nullable)
 
-Prix:
-- price_standard: decimal(10,2)
-- price_extended: decimal(10,2)
+Prix (en Franc CFA - XOF):
+- price_standard: unsignedBigInteger (en FCFA)
+- price_extended: unsignedBigInteger (en FCFA)
 
 Stats:
 - views_count: integer [default: 0]
@@ -492,17 +491,18 @@ Champs:
 - order_number: string (unique, ex: ORD-20251113-ABC123)
 - user_id: UUID (FK → users)
 
-Montants:
-- subtotal: decimal(10,2)
-- tax: decimal(10,2) [default: 0]
-- discount: decimal(10,2) [default: 0]
-- total: decimal(10,2)
+Montants (en Franc CFA - XOF):
+- subtotal: unsignedBigInteger
+- tax: unsignedBigInteger [default: 0]
+- discount: unsignedBigInteger [default: 0]
+- total: unsignedBigInteger
 
-Paiement:
-- payment_method: enum ('mobile_money', 'card', 'paypal')
-- payment_provider: enum ('orange_money', 'moov_money', 'telecel_money', 'stripe', 'paypal')
+Paiement (via CinetPay):
+- payment_method: enum ('mobile_money', 'card') (via CinetPay)
+- payment_provider: string (nullable) ('ORANGE', 'MTN', 'MOOV', 'WAVE', 'CARD', etc.)
 - payment_status: enum ('pending', 'completed', 'failed', 'refunded')
-- payment_id: string (nullable) (ID transaction externe)
+- payment_id: string (nullable) (ID transaction CinetPay)
+- cinetpay_transaction_id: string (nullable)
 - paid_at: timestamp (nullable)
 
 Facturation:
@@ -536,12 +536,12 @@ Snapshots:
 
 Licence:
 - license_type: enum ('standard', 'extended')
-- price: decimal(10,2)
+- price: unsignedBigInteger (en FCFA)
 
 Commission:
 - commission_rate: decimal(5,4)
-- commission_amount: decimal(10,2)
-- photographer_amount: decimal(10,2)
+- commission_amount: unsignedBigInteger (en FCFA)
+- photographer_amount: unsignedBigInteger (en FCFA)
 
 Download:
 - download_url: string (nullable) (URL signée)
@@ -561,18 +561,18 @@ Champs:
 - id: UUID (PK)
 - photographer_id: UUID (FK → users)
 
-Montant:
-- amount: decimal(10,2)
+Montant (en Franc CFA - XOF):
+- amount: unsignedBigInteger
 
 Statut:
 - status: enum ('pending', 'approved', 'rejected', 'completed')
 
-Méthode:
+Méthode (via CinetPay):
 - payment_method: enum ('mobile_money', 'bank_transfer')
 - payment_details: json
   /*
-  Mobile Money: {
-    "provider": "orange_money"|"moov_money"|"telecel_money",
+  Mobile Money (via CinetPay): {
+    "provider": "ORANGE"|"MTN"|"MOOV"|"WAVE",
     "phone": "+226 XX XX XX XX",
     "name": "Nom du titulaire"
   }
@@ -652,15 +652,15 @@ Champs:
 - photographer_id: UUID (FK → users)
 - month: date (YYYY-MM-01)
 
-Montants:
-- total_sales: decimal(12,2)
-- commission: decimal(12,2)
-- net_revenue: decimal(12,2)
+Montants (en Franc CFA - XOF):
+- total_sales: unsignedBigInteger
+- commission: unsignedBigInteger
+- net_revenue: unsignedBigInteger
 
-Soldes:
-- available_balance: decimal(12,2)
-- pending_balance: decimal(12,2)
-- withdrawn: decimal(12,2)
+Soldes (en Franc CFA - XOF):
+- available_balance: unsignedBigInteger
+- pending_balance: unsignedBigInteger
+- withdrawn: unsignedBigInteger
 
 Stats:
 - sales_count: integer
@@ -851,9 +851,9 @@ return new class extends Migration
             $table->timestamp('taken_at')->nullable();
             $table->string('location')->nullable();
 
-            // Prix
-            $table->decimal('price_standard', 10, 2);
-            $table->decimal('price_extended', 10, 2);
+            // Prix (en Franc CFA - XOF)
+            $table->unsignedBigInteger('price_standard');
+            $table->unsignedBigInteger('price_extended');
 
             // Stats
             $table->unsignedInteger('views_count')->default(0);
@@ -913,17 +913,18 @@ return new class extends Migration
             $table->string('order_number')->unique();
             $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
 
-            // Montants
-            $table->decimal('subtotal', 10, 2);
-            $table->decimal('tax', 10, 2)->default(0);
-            $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('total', 10, 2);
+            // Montants (en Franc CFA - XOF)
+            $table->unsignedBigInteger('subtotal');
+            $table->unsignedBigInteger('tax')->default(0);
+            $table->unsignedBigInteger('discount')->default(0);
+            $table->unsignedBigInteger('total');
 
-            // Paiement
-            $table->enum('payment_method', ['mobile_money', 'card', 'paypal']);
-            $table->enum('payment_provider', ['orange_money', 'moov_money', 'telecel_money', 'stripe', 'paypal'])->nullable();
+            // Paiement (via CinetPay)
+            $table->enum('payment_method', ['mobile_money', 'card']);
+            $table->string('payment_provider')->nullable(); // ORANGE, MTN, MOOV, WAVE, CARD
             $table->enum('payment_status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
-            $table->string('payment_id')->nullable();
+            $table->string('payment_id')->nullable(); // ID transaction CinetPay
+            $table->string('cinetpay_transaction_id')->nullable();
             $table->timestamp('paid_at')->nullable();
 
             // Facturation
@@ -978,12 +979,12 @@ return new class extends Migration
 
             // Licence
             $table->enum('license_type', ['standard', 'extended']);
-            $table->decimal('price', 10, 2);
+            $table->unsignedBigInteger('price'); // en FCFA
 
             // Commission
             $table->decimal('commission_rate', 5, 4);
-            $table->decimal('commission_amount', 10, 2);
-            $table->decimal('photographer_amount', 10, 2);
+            $table->unsignedBigInteger('commission_amount'); // en FCFA
+            $table->unsignedBigInteger('photographer_amount'); // en FCFA
 
             // Download
             $table->string('download_url')->nullable();
@@ -1023,8 +1024,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('photographer_id')->constrained('users')->onDelete('cascade');
 
-            // Montant
-            $table->decimal('amount', 10, 2);
+            // Montant (en Franc CFA - XOF)
+            $table->unsignedBigInteger('amount');
 
             // Statut
             $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
@@ -1181,15 +1182,15 @@ return new class extends Migration
             $table->foreignUuid('photographer_id')->constrained('users')->onDelete('cascade');
             $table->date('month'); // Format: YYYY-MM-01
 
-            // Montants
-            $table->decimal('total_sales', 12, 2)->default(0);
-            $table->decimal('commission', 12, 2)->default(0);
-            $table->decimal('net_revenue', 12, 2)->default(0);
+            // Montants (en Franc CFA - XOF)
+            $table->unsignedBigInteger('total_sales')->default(0);
+            $table->unsignedBigInteger('commission')->default(0);
+            $table->unsignedBigInteger('net_revenue')->default(0);
 
-            // Soldes
-            $table->decimal('available_balance', 12, 2)->default(0);
-            $table->decimal('pending_balance', 12, 2)->default(0);
-            $table->decimal('withdrawn', 12, 2)->default(0);
+            // Soldes (en Franc CFA - XOF)
+            $table->unsignedBigInteger('available_balance')->default(0);
+            $table->unsignedBigInteger('pending_balance')->default(0);
+            $table->unsignedBigInteger('withdrawn')->default(0);
 
             // Stats
             $table->unsignedInteger('sales_count')->default(0);
@@ -1563,8 +1564,8 @@ class Photo extends Model
     protected $casts = [
         'tags' => 'array',
         'color_palette' => 'array',
-        'price_standard' => 'decimal:2',
-        'price_extended' => 'decimal:2',
+        'price_standard' => 'integer', // en FCFA
+        'price_extended' => 'integer', // en FCFA
         'is_public' => 'boolean',
         'featured' => 'boolean',
         'taken_at' => 'datetime',
@@ -1886,10 +1887,10 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'subtotal' => 'decimal:2',
-        'tax' => 'decimal:2',
-        'discount' => 'decimal:2',
-        'total' => 'decimal:2',
+        'subtotal' => 'integer', // en FCFA
+        'tax' => 'integer', // en FCFA
+        'discount' => 'integer', // en FCFA
+        'total' => 'integer', // en FCFA
         'paid_at' => 'datetime',
     ];
 
@@ -2006,10 +2007,10 @@ class OrderItem extends Model
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
+        'price' => 'integer', // en FCFA
         'commission_rate' => 'decimal:4',
-        'commission_amount' => 'decimal:2',
-        'photographer_amount' => 'decimal:2',
+        'commission_amount' => 'integer', // en FCFA
+        'photographer_amount' => 'integer', // en FCFA
         'created_at' => 'datetime',
         'download_expires_at' => 'datetime',
     ];
@@ -2094,7 +2095,7 @@ class Withdrawal extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'amount' => 'integer', // en FCFA
         'payment_details' => 'array',
         'requested_at' => 'datetime',
         'processed_at' => 'datetime',
@@ -2290,12 +2291,12 @@ class Revenue extends Model
 
     protected $casts = [
         'month' => 'date',
-        'total_sales' => 'decimal:2',
-        'commission' => 'decimal:2',
-        'net_revenue' => 'decimal:2',
-        'available_balance' => 'decimal:2',
-        'pending_balance' => 'decimal:2',
-        'withdrawn' => 'decimal:2',
+        'total_sales' => 'integer', // en FCFA
+        'commission' => 'integer', // en FCFA
+        'net_revenue' => 'integer', // en FCFA
+        'available_balance' => 'integer', // en FCFA
+        'pending_balance' => 'integer', // en FCFA
+        'withdrawn' => 'integer', // en FCFA
         'updated_at' => 'datetime',
     ];
 

@@ -129,8 +129,8 @@ class StorePhotoRequest extends FormRequest
                     $fail('Vous ne pouvez pas fournir plus de 20 tags');
                 }
             }],
-            'price_standard' => ['required', 'numeric', 'min:5'],
-            'price_extended' => ['required', 'numeric', 'gte:price_standard', function ($attribute, $value, $fail) {
+            'price_standard' => ['required', 'integer', 'min:500'], // en FCFA
+            'price_extended' => ['required', 'integer', 'gte:price_standard', function ($attribute, $value, $fail) {
                 $priceStandard = $this->input('price_standard');
                 if ($value < ($priceStandard * 2)) {
                     $fail('Le prix extended doit être au moins le double du prix standard');
@@ -155,7 +155,7 @@ class StorePhotoRequest extends FormRequest
             'category_id.exists' => 'Cette catégorie n\'existe pas',
             'tags.required' => 'Les tags sont requis',
             'price_standard.required' => 'Le prix standard est requis',
-            'price_standard.min' => 'Le prix standard minimum est de 5 FCFA',
+            'price_standard.min' => 'Le prix standard minimum est de 500 FCFA',
             'price_extended.required' => 'Le prix extended est requis',
             'price_extended.gte' => 'Le prix extended doit être supérieur ou égal au prix standard',
         ];
@@ -196,8 +196,8 @@ class UpdatePhotoRequest extends FormRequest
                     $fail('Vous ne pouvez pas fournir plus de 20 tags');
                 }
             }],
-            'price_standard' => ['sometimes', 'numeric', 'min:5'],
-            'price_extended' => ['sometimes', 'numeric', 'gte:price_standard', function ($attribute, $value, $fail) {
+            'price_standard' => ['sometimes', 'integer', 'min:500'], // en FCFA
+            'price_extended' => ['sometimes', 'integer', 'gte:price_standard', function ($attribute, $value, $fail) {
                 $priceStandard = $this->input('price_standard', $this->route('photo')->price_standard);
                 if ($value < ($priceStandard * 2)) {
                     $fail('Le prix extended doit être au moins le double du prix standard');
@@ -234,8 +234,8 @@ class SearchPhotoRequest extends FormRequest
             'categories' => ['nullable', 'array'],
             'categories.*' => ['exists:categories,id'],
             'photographer_id' => ['nullable', 'exists:users,id'],
-            'min_price' => ['nullable', 'numeric', 'min:0'],
-            'max_price' => ['nullable', 'numeric', 'gte:min_price'],
+            'min_price' => ['nullable', 'integer', 'min:0'], // en FCFA
+            'max_price' => ['nullable', 'integer', 'gte:min_price'], // en FCFA
             'orientation' => ['nullable', 'in:landscape,portrait,square'],
             'sort_by' => ['nullable', 'in:popularity,date,price_asc,price_desc'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
@@ -268,11 +268,11 @@ class CreateOrderRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.photo_id' => ['required', 'exists:photos,id'],
             'items.*.license_type' => ['required', 'in:standard,extended'],
-            'subtotal' => ['required', 'numeric', 'min:0'],
-            'tax' => ['nullable', 'numeric', 'min:0'],
-            'discount' => ['nullable', 'numeric', 'min:0'],
-            'total' => ['required', 'numeric', 'min:0'],
-            'payment_method' => ['required', 'in:mobile_money,card,paypal'],
+            'subtotal' => ['required', 'integer', 'min:0'], // en FCFA
+            'tax' => ['nullable', 'integer', 'min:0'], // en FCFA
+            'discount' => ['nullable', 'integer', 'min:0'], // en FCFA
+            'total' => ['required', 'integer', 'min:0'], // en FCFA
+            'payment_method' => ['required', 'in:mobile_money,card'],
             'billing_email' => ['required', 'email'],
             'billing_first_name' => ['required', 'string'],
             'billing_last_name' => ['required', 'string'],
@@ -315,19 +315,16 @@ class PayOrderRequest extends FormRequest
 
     public function rules(): array
     {
+        // CinetPay gère le paiement côté serveur
+        // Pas besoin de détails de carte côté client
         $rules = [
             'payment_method' => ['required', 'in:mobile_money,card'],
-            'payment_details' => ['required', 'array'],
         ];
 
+        // Pour Mobile Money, on peut demander le provider et le numéro
         if ($this->input('payment_method') === 'mobile_money') {
-            $rules['payment_details.provider'] = ['required', 'in:orange_money,moov_money,telecel_money'];
-            $rules['payment_details.phone'] = ['required', 'string', 'regex:/^\+226\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}$/'];
-        } elseif ($this->input('payment_method') === 'card') {
-            $rules['payment_details.card_number'] = ['required', 'string'];
-            $rules['payment_details.card_expiry'] = ['required', 'string', 'regex:/^\d{2}\/\d{2}$/'];
-            $rules['payment_details.card_cvv'] = ['required', 'string', 'regex:/^\d{3,4}$/'];
-            $rules['payment_details.card_name'] = ['required', 'string'];
+            $rules['payment_provider'] = ['nullable', 'string', 'in:ORANGE,MTN,MOOV,WAVE'];
+            $rules['phone'] = ['nullable', 'string', 'regex:/^\+226\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}$/'];
         }
 
         return $rules;
@@ -337,14 +334,8 @@ class PayOrderRequest extends FormRequest
     {
         return [
             'payment_method.required' => 'La méthode de paiement est requise',
-            'payment_details.provider.required' => 'Le fournisseur Mobile Money est requis',
-            'payment_details.phone.required' => 'Le numéro de téléphone est requis',
-            'payment_details.phone.regex' => 'Le format du téléphone est invalide',
-            'payment_details.card_number.required' => 'Le numéro de carte est requis',
-            'payment_details.card_expiry.required' => 'La date d\'expiration est requise',
-            'payment_details.card_expiry.regex' => 'Format invalide (MM/AA)',
-            'payment_details.card_cvv.required' => 'Le CVV est requis',
-            'payment_details.card_cvv.regex' => 'Le CVV doit contenir 3 ou 4 chiffres',
+            'payment_provider.in' => 'Le fournisseur Mobile Money n\'est pas supporté',
+            'phone.regex' => 'Le format du téléphone est invalide (ex: +226 70 12 34 56)',
         ];
     }
 }
@@ -374,8 +365,8 @@ class CreateWithdrawalRequest extends FormRequest
         $rules = [
             'amount' => [
                 'required',
-                'numeric',
-                'min:50', // Montant minimum
+                'integer',
+                'min:5000', // Montant minimum 5000 FCFA
                 function ($attribute, $value, $fail) {
                     $revenueService = app(RevenueService::class);
                     $availableBalance = $revenueService->getAvailableBalance($this->user()->id);
@@ -390,7 +381,7 @@ class CreateWithdrawalRequest extends FormRequest
         ];
 
         if ($this->input('payment_method') === 'mobile_money') {
-            $rules['payment_details.provider'] = ['required', 'in:orange_money,moov_money,telecel_money'];
+            $rules['payment_details.provider'] = ['required', 'in:ORANGE,MTN,MOOV,WAVE'];
             $rules['payment_details.phone'] = ['required', 'string', 'regex:/^\+226\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}$/'];
             $rules['payment_details.name'] = ['required', 'string'];
         } elseif ($this->input('payment_method') === 'bank_transfer') {
@@ -407,7 +398,7 @@ class CreateWithdrawalRequest extends FormRequest
     {
         return [
             'amount.required' => 'Le montant est requis',
-            'amount.min' => 'Le montant minimum est de 50 FCFA',
+            'amount.min' => 'Le montant minimum est de 5000 FCFA',
             'payment_method.required' => 'La méthode de paiement est requise',
             'payment_details.provider.required' => 'Le fournisseur Mobile Money est requis',
             'payment_details.phone.required' => 'Le numéro de téléphone est requis',
@@ -724,35 +715,46 @@ class PaymentService
         private RevenueService $revenueService
     ) {}
 
-    public function processPayment(Order $order, string $paymentMethod, array $paymentDetails): array
+    public function processPayment(Order $order, string $paymentMethod, ?string $paymentProvider = null, ?string $phone = null): array
     {
-        return match ($paymentMethod) {
-            'mobile_money' => $this->processMobileMoneyPayment($order, $paymentDetails),
-            'card' => $this->processCardPayment($order, $paymentDetails),
-            default => throw new \InvalidArgumentException('Méthode de paiement non supportée'),
-        };
-    }
-
-    private function processMobileMoneyPayment(Order $order, array $details): array
-    {
-        $provider = $details['provider'];
-        $phone = $details['phone'];
-
         try {
-            $result = match ($provider) {
-                'orange_money' => $this->processOrangeMoney($order, $phone),
-                'moov_money' => $this->processMoovMoney($order, $phone),
-                'telecel_money' => $this->processTelecelMoney($order, $phone),
-                default => throw new \InvalidArgumentException('Fournisseur non supporté'),
-            };
+            // Initialiser le paiement via CinetPay
+            $cinetpayData = [
+                'apikey' => config('services.cinetpay.api_key'),
+                'site_id' => config('services.cinetpay.site_id'),
+                'transaction_id' => $order->order_number,
+                'amount' => $order->total, // en FCFA (integer)
+                'currency' => 'XOF',
+                'description' => 'Achat photos AfroLens - Commande ' . $order->order_number,
+                'notify_url' => route('webhooks.cinetpay'),
+                'return_url' => config('app.frontend_url') . '/orders/' . $order->id,
+                'channels' => $this->getCinetPayChannels($paymentMethod, $paymentProvider),
+                'metadata' => [
+                    'order_id' => $order->id,
+                    'user_id' => $order->user_id,
+                ],
+            ];
 
-            if ($result['success']) {
-                $this->completeOrder($order, $result['transaction_id']);
+            // Ajouter le numéro de téléphone si fourni (pour Mobile Money)
+            if ($phone) {
+                $cinetpayData['customer_phone_number'] = $phone;
+            }
+
+            $response = Http::post(config('services.cinetpay.api_url') . '/payment', $cinetpayData);
+
+            if ($response->successful() && $response->json('code') === '201') {
+                $data = $response->json('data');
+
+                // Mettre à jour la commande avec l'ID de transaction CinetPay
+                $order->update([
+                    'cinetpay_transaction_id' => $data['payment_token'],
+                ]);
 
                 return [
                     'success' => true,
-                    'message' => 'Paiement effectué avec succès',
-                    'transaction_id' => $result['transaction_id'],
+                    'message' => 'Paiement initialisé avec succès',
+                    'payment_url' => $data['payment_url'],
+                    'payment_token' => $data['payment_token'],
                 ];
             }
 
@@ -760,7 +762,7 @@ class PaymentService
 
             return [
                 'success' => false,
-                'message' => $result['message'] ?? 'Échec du paiement',
+                'message' => $response->json('message', 'Échec de l\'initialisation du paiement'),
             ];
 
         } catch (\Exception $e) {
@@ -773,92 +775,58 @@ class PaymentService
         }
     }
 
-    private function processOrangeMoney(Order $order, string $phone): array
+    private function getCinetPayChannels(string $paymentMethod, ?string $provider = null): string
     {
-        // Intégration Orange Money API
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.orange_money.token'),
-            'Content-Type' => 'application/json',
-        ])->post(config('services.orange_money.api_url') . '/payments', [
-            'amount' => $order->total,
-            'currency' => 'XOF',
-            'phone' => $phone,
-            'order_id' => $order->order_number,
-            'description' => 'Achat photos AfroLens',
-        ]);
-
-        if ($response->successful()) {
-            return [
-                'success' => true,
-                'transaction_id' => $response->json('transaction_id'),
-            ];
+        // Déterminer les canaux CinetPay selon la méthode de paiement
+        if ($paymentMethod === 'mobile_money') {
+            // Si un provider spécifique est demandé
+            if ($provider) {
+                return match ($provider) {
+                    'ORANGE' => 'ORANGE_MONEY_BF',
+                    'MTN' => 'MTN_MONEY_BF',
+                    'MOOV' => 'MOOV_MONEY_BF',
+                    'WAVE' => 'WAVE_BF',
+                    default => 'ALL', // Tous les Mobile Money si non reconnu
+                };
+            }
+            return 'ALL'; // Tous les Mobile Money
         }
 
-        return [
-            'success' => false,
-            'message' => $response->json('message', 'Échec du paiement Orange Money'),
-        ];
+        if ($paymentMethod === 'card') {
+            return 'CARD'; // Paiement par carte
+        }
+
+        return 'ALL'; // Par défaut, tous les moyens de paiement
     }
 
-    private function processMoovMoney(Order $order, string $phone): array
+    public function checkPaymentStatus(Order $order): array
     {
-        // Intégration Moov Money API
-        // TODO: Implémenter selon documentation Moov Money
-
-        return [
-            'success' => true,
-            'transaction_id' => 'MOOV-' . uniqid(),
-        ];
-    }
-
-    private function processTelecelMoney(Order $order, string $phone): array
-    {
-        // Intégration Telecel Money API
-        // TODO: Implémenter selon documentation Telecel Money
-
-        return [
-            'success' => true,
-            'transaction_id' => 'TELECEL-' . uniqid(),
-        ];
-    }
-
-    private function processCardPayment(Order $order, array $details): array
-    {
-        Stripe::setApiKey(config('services.stripe.secret'));
-
         try {
-            $paymentIntent = PaymentIntent::create([
-                'amount' => $order->total * 100, // En centimes
-                'currency' => 'xof',
-                'payment_method_types' => ['card'],
-                'description' => 'Commande ' . $order->order_number,
-                'metadata' => [
-                    'order_id' => $order->id,
-                    'order_number' => $order->order_number,
-                ],
+            $response = Http::post(config('services.cinetpay.api_url') . '/check', [
+                'apikey' => config('services.cinetpay.api_key'),
+                'site_id' => config('services.cinetpay.site_id'),
+                'transaction_id' => $order->order_number,
             ]);
 
-            if ($paymentIntent->status === 'succeeded') {
-                $this->completeOrder($order, $paymentIntent->id);
+            if ($response->successful()) {
+                $data = $response->json('data');
 
                 return [
                     'success' => true,
-                    'message' => 'Paiement effectué avec succès',
-                    'transaction_id' => $paymentIntent->id,
+                    'status' => $data['status'],
+                    'data' => $data,
                 ];
             }
 
             return [
                 'success' => false,
-                'message' => 'Le paiement n\'a pas pu être traité',
+                'message' => 'Impossible de vérifier le statut du paiement',
             ];
 
         } catch (\Exception $e) {
-            $order->markAsFailed();
-
             return [
                 'success' => false,
-                'message' => 'Erreur Stripe: ' . $e->getMessage(),
+                'message' => 'Erreur: ' . $e->getMessage(),
             ];
         }
     }
@@ -953,7 +921,7 @@ class RevenueService
         }
     }
 
-    private function updateRevenue(string $photographerId, Carbon $month, float $saleAmount, float $photographerAmount): void
+    private function updateRevenue(string $photographerId, Carbon $month, int $saleAmount, int $photographerAmount): void
     {
         $revenue = Revenue::firstOrCreate(
             [
@@ -972,7 +940,8 @@ class RevenueService
             ]
         );
 
-        $commission = $saleAmount * self::COMMISSION_RATE;
+        // Commission: 20% du montant de vente (en FCFA)
+        $commission = (int) round($saleAmount * self::COMMISSION_RATE);
 
         $revenue->increment('total_sales', $saleAmount);
         $revenue->increment('commission', $commission);
@@ -983,36 +952,36 @@ class RevenueService
         $revenue->touch('updated_at');
     }
 
-    public function calculateAvailableBalance(string $photographerId): float
+    public function calculateAvailableBalance(string $photographerId): int
     {
         $securityDate = Carbon::now()->subDays(self::SECURITY_PERIOD_DAYS);
 
-        return Revenue::where('photographer_id', $photographerId)
+        return (int) Revenue::where('photographer_id', $photographerId)
             ->where('month', '<=', $securityDate->startOfMonth())
             ->sum('pending_balance');
     }
 
-    public function getAvailableBalance(string $photographerId): float
+    public function getAvailableBalance(string $photographerId): int
     {
         return $this->calculateAvailableBalance($photographerId);
     }
 
-    public function getPendingBalance(string $photographerId): float
+    public function getPendingBalance(string $photographerId): int
     {
         $securityDate = Carbon::now()->subDays(self::SECURITY_PERIOD_DAYS);
 
-        return Revenue::where('photographer_id', $photographerId)
+        return (int) Revenue::where('photographer_id', $photographerId)
             ->where('month', '>', $securityDate->startOfMonth())
             ->sum('pending_balance');
     }
 
-    public function getTotalWithdrawn(string $photographerId): float
+    public function getTotalWithdrawn(string $photographerId): int
     {
-        return Revenue::where('photographer_id', $photographerId)
+        return (int) Revenue::where('photographer_id', $photographerId)
             ->sum('withdrawn');
     }
 
-    public function processWithdrawal(string $photographerId, float $amount): void
+    public function processWithdrawal(string $photographerId, int $amount): void
     {
         $securityDate = Carbon::now()->subDays(self::SECURITY_PERIOD_DAYS);
 
@@ -1669,33 +1638,13 @@ class WithdrawalApprovedNotification extends Notification implements ShouldQueue
 **Fichier**: `config/services.php`
 
 ```php
-'stripe' => [
-    'model' => App\Models\User::class,
-    'key' => env('STRIPE_KEY'),
-    'secret' => env('STRIPE_SECRET'),
-    'webhook' => [
-        'secret' => env('STRIPE_WEBHOOK_SECRET'),
-        'tolerance' => env('STRIPE_WEBHOOK_TOLERANCE', 300),
-    ],
-],
-
-'orange_money' => [
-    'api_url' => env('ORANGE_MONEY_API_URL'),
-    'merchant_id' => env('ORANGE_MONEY_MERCHANT_ID'),
-    'api_key' => env('ORANGE_MONEY_API_KEY'),
-    'token' => env('ORANGE_MONEY_TOKEN'),
-],
-
-'moov_money' => [
-    'api_url' => env('MOOV_MONEY_API_URL'),
-    'merchant_id' => env('MOOV_MONEY_MERCHANT_ID'),
-    'api_key' => env('MOOV_MONEY_API_KEY'),
-],
-
-'telecel_money' => [
-    'api_url' => env('TELECEL_MONEY_API_URL'),
-    'merchant_id' => env('TELECEL_MONEY_MERCHANT_ID'),
-    'api_key' => env('TELECEL_MONEY_API_KEY'),
+'cinetpay' => [
+    'api_url' => env('CINETPAY_API_URL', 'https://api-checkout.cinetpay.com/v2'),
+    'site_id' => env('CINETPAY_SITE_ID'),
+    'api_key' => env('CINETPAY_API_KEY'),
+    'secret_key' => env('CINETPAY_SECRET_KEY'),
+    'notify_url' => env('CINETPAY_NOTIFY_URL'),
+    'return_url' => env('CINETPAY_RETURN_URL'),
 ],
 ```
 
@@ -1715,53 +1664,86 @@ use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
 {
-    public function handleStripeWebhook(Request $request)
+    public function handleCinetPayWebhook(Request $request)
     {
-        $payload = $request->getContent();
-        $sig = $request->header('Stripe-Signature');
-        $secret = config('services.stripe.webhook.secret');
+        Log::info('CinetPay Webhook', $request->all());
 
-        try {
-            $event = \Stripe\Webhook::constructEvent($payload, $sig, $secret);
-        } catch (\Exception $e) {
+        // Vérifier la signature du webhook pour sécurité
+        $token = $request->input('cpm_trans_id');
+        $transactionId = $request->input('cpm_custom');
+        $amount = $request->input('cpm_amount');
+        $status = $request->input('cpm_result');
+
+        // Vérifier la signature
+        $signature = $request->input('signature');
+        $apiKey = config('services.cinetpay.api_key');
+        $siteId = config('services.cinetpay.site_id');
+
+        // Calculer la signature attendue
+        $expectedSignature = hash('sha256', $siteId . $transactionId . $apiKey);
+
+        if ($signature !== $expectedSignature) {
+            Log::warning('CinetPay webhook signature mismatch', [
+                'expected' => $expectedSignature,
+                'received' => $signature,
+            ]);
             return response()->json(['error' => 'Invalid signature'], 400);
         }
 
-        if ($event->type === 'payment_intent.succeeded') {
-            $paymentIntent = $event->data->object;
-            $orderId = $paymentIntent->metadata->order_id;
+        // Trouver la commande
+        $order = Order::where('order_number', $transactionId)->first();
 
-            $order = Order::find($orderId);
-            if ($order && $order->isPending()) {
-                $order->markAsCompleted($paymentIntent->id);
-                // Dispatch jobs de post-paiement
-            }
+        if (!$order) {
+            Log::error('CinetPay webhook: Order not found', ['transaction_id' => $transactionId]);
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        // Traiter selon le statut
+        if ($status === '00' && $order->isPending()) {
+            // Paiement réussi
+            $order->update([
+                'payment_status' => 'completed',
+                'payment_id' => $token,
+                'cinetpay_transaction_id' => $token,
+                'payment_provider' => $request->input('payment_method'),
+                'paid_at' => now(),
+            ]);
+
+            // Dispatcher les jobs de post-paiement
+            app(PaymentService::class)->completeOrder($order, $token);
+
+            Log::info('CinetPay payment completed', [
+                'order_id' => $order->id,
+                'transaction_id' => $token,
+            ]);
+
+        } elseif ($status !== '00') {
+            // Paiement échoué
+            $order->markAsFailed();
+
+            Log::warning('CinetPay payment failed', [
+                'order_id' => $order->id,
+                'status' => $status,
+            ]);
         }
 
         return response()->json(['status' => 'success']);
     }
 
-    public function handleOrangeMoneyWebhook(Request $request)
+    public function handleCinetPayReturn(Request $request, string $orderId)
     {
-        Log::info('Orange Money Webhook', $request->all());
+        // Page de retour après paiement
+        $order = Order::findOrFail($orderId);
 
-        $transactionId = $request->input('transaction_id');
-        $status = $request->input('status');
-        $orderNumber = $request->input('order_id');
+        // Vérifier le statut du paiement auprès de CinetPay
+        $paymentService = app(PaymentService::class);
+        $result = $paymentService->checkPaymentStatus($order);
 
-        $order = Order::where('order_number', $orderNumber)->first();
-
-        if (!$order) {
-            return response()->json(['error' => 'Order not found'], 404);
+        if ($result['success'] && $result['status'] === 'ACCEPTED') {
+            return redirect()->away(config('app.frontend_url') . '/orders/' . $order->id . '/success');
         }
 
-        if ($status === 'SUCCESS' && $order->isPending()) {
-            $order->markAsCompleted($transactionId);
-        } elseif ($status === 'FAILED') {
-            $order->markAsFailed();
-        }
-
-        return response()->json(['status' => 'success']);
+        return redirect()->away(config('app.frontend_url') . '/orders/' . $order->id . '/failed');
     }
 }
 ```
@@ -2283,20 +2265,13 @@ MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@afrolens.com
 MAIL_FROM_NAME="${APP_NAME}"
 
-# Stripe
-STRIPE_KEY=your-stripe-publishable-key
-STRIPE_SECRET=your-stripe-secret-key
-STRIPE_WEBHOOK_SECRET=your-webhook-secret
-
-# Orange Money
-ORANGE_MONEY_API_URL=https://api.orange.com
-ORANGE_MONEY_MERCHANT_ID=your-merchant-id
-ORANGE_MONEY_API_KEY=your-api-key
-
-# Moov Money
-MOOV_MONEY_API_URL=https://api.moov-money.com
-MOOV_MONEY_MERCHANT_ID=your-merchant-id
-MOOV_MONEY_API_KEY=your-api-key
+# CinetPay
+CINETPAY_API_URL=https://api-checkout.cinetpay.com/v2
+CINETPAY_SITE_ID=your-site-id
+CINETPAY_API_KEY=your-api-key
+CINETPAY_SECRET_KEY=your-secret-key
+CINETPAY_NOTIFY_URL=https://api.afrolens.com/webhooks/cinetpay
+CINETPAY_RETURN_URL=https://afrolens.com/payment/return
 
 # Sentry (monitoring)
 SENTRY_LARAVEL_DSN=your-sentry-dsn
@@ -2523,14 +2498,25 @@ Ce document complet spécifie tout ce qui est nécessaire pour développer le ba
 2. **Authentification JWT** complète avec tymon/jwt-auth
 3. **Stockage AWS S3** pour toutes les images
 4. **Traitement d'images** avec watermarks automatiques
-5. **Paiements** Mobile Money (Orange, Moov, Telecel) + Stripe
-6. **Système de revenus** avec période de sécurité et retraits
+5. **Paiements via CinetPay** - Mobile Money (Orange, MTN, Moov, Wave) + Carte bancaire
+6. **Système de revenus** avec période de sécurité et retraits (montants en FCFA - integer)
 7. **Notifications** in-app et email
 8. **Jobs asynchrones** pour performance
 9. **API REST complète** avec ~70 endpoints
 10. **Tests automatisés** unitaires et feature
 11. **Configuration Docker** prête pour production
 12. **Documentation** complète de chaque composant
+
+### 💰 Spécificités Paiement & Devise
+
+- **Devise**: Franc CFA (XOF) uniquement
+- **Format prix**: Integer (pas de décimales)
+- **Prix minimum photo**: 500 FCFA
+- **Retrait minimum**: 5000 FCFA
+- **Passerelle de paiement**: CinetPay (API unifiée pour tous les moyens de paiement)
+- **Moyens de paiement supportés**:
+  - Mobile Money: Orange Money, MTN Money, Moov Money, Wave
+  - Carte bancaire (Visa, Mastercard via CinetPay)
 
 ### 📂 Prochaines étapes
 
