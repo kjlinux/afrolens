@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getPhoto } from '../services/photoService';
+import { getPhoto, getSimilar } from '../services/photoService';
 import { useCart } from '../context/CartContext';
 import { formatPrice, formatDate, formatFileSize } from '../utils/helpers';
 import {
@@ -18,7 +18,6 @@ import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import Spinner from '../components/common/Spinner';
 import PhotoGrid from '../components/photos/PhotoGrid';
-import { allPhotos } from '../data/mockData';
 import useImageProtection from '../hooks/useImageProtection';
 import ImageWatermark from '../components/photos/ImageWatermark';
 
@@ -50,10 +49,8 @@ export default function PhotoDetail() {
       const data = await getPhoto(id);
       setPhoto(data);
 
-      // Charger photos similaires (même catégorie)
-      const similar = allPhotos
-        .filter(p => p.category_id === data.category_id && p.id !== data.id)
-        .slice(0, 4);
+      // Charger photos similaires via API
+      const similar = await getSimilar(id, 4);
       setSimilarPhotos(similar);
     } catch (error) {
       console.error('Erreur:', error);

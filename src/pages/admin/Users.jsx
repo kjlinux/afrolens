@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, Ban, Trash2, UserCheck, Camera, ShoppingCart, Eye, Mail, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
-import { users as allUsers, photos } from '../../data/mockData';
+import { getUsers, deleteUser, toggleUserBan } from '../../services/adminService';
 import { formatDate, formatNumber } from '../../utils/helpers';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -10,6 +10,7 @@ import Modal from '../../components/common/Modal';
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -17,40 +18,31 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, perPage: 20, total: 0 });
 
   useEffect(() => {
     loadUsers();
-  }, [searchTerm, filterRole, filterStatus]);
+  }, [searchTerm, filterRole, filterStatus, pagination.page]);
 
-  const loadUsers = () => {
-    setLoading(true);
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    setTimeout(() => {
-      let filteredUsers = [...allUsers];
+      const filters = {};
+      if (filterRole !== 'all') filters.role = filterRole;
+      if (filterStatus !== 'all') filters.status = filterStatus;
+      if (searchTerm) filters.search = searchTerm;
 
-      // Filtrer par recherche
-      if (searchTerm) {
-        filteredUsers = filteredUsers.filter(u =>
-          `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          u.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-
-      // Filtrer par rôle
-      if (filterRole !== 'all') {
-        filteredUsers = filteredUsers.filter(u => u.role === filterRole);
-      }
-
-      // Filtrer par statut
-      if (filterStatus !== 'all') {
-        filteredUsers = filteredUsers.filter(u =>
-          filterStatus === 'active' ? u.is_active !== false : u.is_active === false
-        );
-      }
-
-      setUsers(filteredUsers);
+      const data = await getUsers(pagination.page, pagination.perPage, filters);
+      setUsers(data.data || data);
+      if (data.pagination) setPagination(prev => ({ ...prev, ...data.pagination }));
+    } catch (err) {
+      console.error('Erreur chargement utilisateurs:', err);
+      setError(err.message || 'Impossible de charger les utilisateurs');
+    } finally {
       setLoading(false);
-    }, 300);
+    }
   };
 
   const stats = {

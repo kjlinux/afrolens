@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getDashboardStats } from '../../services/photographerService';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
@@ -14,23 +15,8 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('30d'); // 7d, 30d, 90d, 1y
-
-  // Données mockées - en production, cela viendrait de l'API
-  const stats = {
-    totalPhotos: 69,
-    publishedPhotos: 65,
-    pendingPhotos: 4,
-    totalSales: 487,
-    totalRevenue: 18650.00,
-    netRevenue: 14920.00, // Après commission 20%
-    availableBalance: 8450.00,
-    pendingBalance: 6470.00,
-    totalViews: 125430,
-    totalDownloads: 487,
-    totalLikes: 3240,
-    followers: 342,
-    averageRating: 4.7,
-  };
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
 
   // Données des ventes par jour (30 derniers jours)
   const salesData = [
@@ -79,9 +65,22 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
-    // Simuler le chargement des données
-    setTimeout(() => setLoading(false), 500);
+    loadDashboardData();
   }, [timeRange]);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getDashboardStats();
+      setStats(data);
+    } catch (err) {
+      console.error('Erreur lors du chargement du dashboard:', err);
+      setError(err.message || 'Impossible de charger les statistiques');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -91,6 +90,21 @@ export default function Dashboard() {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <Card className="p-8 text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={loadDashboardData}>Réessayer</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return null;
   }
 
   return (

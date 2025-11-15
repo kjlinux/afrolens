@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { createOrder, processPayment } from '../../services/orderService';
+import { createOrderAndPay } from '../../services/orderService';
 import { formatPrice } from '../../utils/helpers';
 import { FiCreditCard, FiSmartphone, FiCheck } from 'react-icons/fi';
 import Button from '../../components/common/Button';
@@ -71,28 +71,43 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
-      // Créer la commande
-      const order = await createOrder({
-        items: cart,
-        total: getTotal(),
-        billing: billingInfo,
-      });
+      // Préparer les données de commande
+      const orderData = {
+        items: cart.map(item => ({
+          photo_id: item.id,
+          license_type: item.license_type || 'standard',
+          price: item.license_type === 'extended' ? item.price_extended : item.price_standard,
+        })),
+        billing_first_name: billingInfo.firstName,
+        billing_last_name: billingInfo.lastName,
+        billing_email: billingInfo.email,
+        billing_phone: billingInfo.phone,
+      };
 
-      // Simuler le paiement
-      const payment = await processPayment({
-        orderId: order.id,
-        method: paymentMethod,
-        details: paymentDetails,
-      });
+      // Préparer les données de paiement CinetPay
+      const paymentData = {
+        payment_method: paymentMethod === 'mobile_money' ? 'MOBILE_MONEY' : 'CREDIT_CARD',
+        payment_provider: paymentMethod === 'mobile_money'
+          ? paymentDetails.mobileProvider.toUpperCase() + '_MONEY'
+          : 'CREDIT_CARD',
+        phone_number: paymentMethod === 'mobile_money' ? paymentDetails.mobileNumber : null,
+      };
 
-      if (payment.success) {
-        setOrderId(order.order_number);
+      // Créer la commande et initier le paiement avec CinetPay
+      const response = await createOrderAndPay(orderData, paymentData);
+
+      if (response.payment_url) {
+        // Rediriger vers la page de paiement CinetPay
+        window.location.href = response.payment_url;
+      } else if (response.order) {
+        // Paiement réussi (cas où il n'y a pas de redirection)
+        setOrderId(response.order.order_number);
         setPaymentSuccess(true);
         clearCart();
       }
     } catch (error) {
       console.error('Erreur paiement:', error);
-      alert('Une erreur est survenue. Veuillez réessayer.');
+      alert(error.message || 'Une erreur est survenue. Veuillez réessayer.');
       setShowPaymentModal(false);
     } finally {
       setProcessing(false);

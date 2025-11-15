@@ -2,47 +2,60 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Image, DollarSign, Clock, TrendingUp, AlertCircle, ShoppingCart, UserCheck } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { users, photos, orders } from '../../data/mockData';
+import { getDashboardStats } from '../../services/adminService';
 import { formatPrice, formatNumber, formatDate } from '../../utils/helpers';
-import { PHOTO_STATUS } from '../../utils/constants';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
+  const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
-    // Simuler le chargement
-    setTimeout(() => setLoading(false), 500);
-  }, []);
+    loadDashboard();
+  }, [timeRange]);
 
-  // Calculer les statistiques réelles depuis les données mockées
-  const stats = {
-    totalUsers: users.length,
-    buyers: users.filter(u => u.role === 'buyer').length,
-    photographers: users.filter(u => u.role === 'photographer').length,
-    admins: users.filter(u => u.role === 'admin').length,
-
-    totalPhotos: photos.length,
-    approvedPhotos: photos.filter(p => p.status === PHOTO_STATUS.APPROVED).length,
-    pendingPhotos: photos.filter(p => p.status === PHOTO_STATUS.PENDING).length,
-    rejectedPhotos: photos.filter(p => p.status === PHOTO_STATUS.REJECTED).length,
-
-    totalOrders: orders.length,
-    totalRevenue: orders.reduce((sum, o) => sum + o.total, 0),
-    commission: orders.reduce((sum, o) => sum + o.total * 0.20, 0),
-
-    // Stats ce mois
-    newUsersThisMonth: 12,
-    newPhotosThisMonth: 24,
-    ordersThisMonth: orders.filter(o => {
-      const orderDate = new Date(o.created_at);
-      const now = new Date();
-      return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
-    }).length,
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getDashboardStats();
+      setDashboardData(data);
+    } catch (err) {
+      console.error('Erreur chargement dashboard admin:', err);
+      setError(err.message || 'Impossible de charger le dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <Card className="p-8 text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={loadDashboard}>Réessayer</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!dashboardData) return null;
+
+  const stats = dashboardData;
 
   // Données pour les graphiques
   const revenueData = [
@@ -144,15 +157,11 @@ export default function Dashboard() {
     return link ? <Link to={link}>{content}</Link> : content;
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  const photoStatusData = [
+    { name: 'Approuvées', value: stats.approvedPhotos || 0, color: '#22c55e' },
+    { name: 'En attente', value: stats.pendingPhotos || 0, color: '#f59e0b' },
+    { name: 'Rejetées', value: stats.rejectedPhotos || 0, color: '#ef4444' },
+  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">

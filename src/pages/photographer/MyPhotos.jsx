@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { photos, getPhotosByPhotographer, getMainCategories, getSubCategories } from '../../data/mockData';
+import { getPhotographerPhotos, deletePhoto, updatePhoto, getPhotoStats } from '../../services/photographerService';
 import { formatPrice, formatDate, formatNumber } from '../../utils/helpers';
 import { PHOTO_STATUS } from '../../utils/constants';
 import Button from '../../components/common/Button';
@@ -15,6 +15,7 @@ export default function MyPhotos() {
   const { user } = useAuth();
   const [myPhotos, setMyPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const [filterStatus, setFilterStatus] = useState('all'); // all, approved, pending, rejected
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,11 +34,12 @@ export default function MyPhotos() {
   const loadPhotos = async () => {
     try {
       setLoading(true);
-      // En production, appeler l'API
-      const data = getPhotosByPhotographer(user.id);
+      setError(null);
+      const data = await getPhotographerPhotos();
       setMyPhotos(data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des photos:', error);
+    } catch (err) {
+      console.error('Erreur lors du chargement des photos:', err);
+      setError(err.message || 'Impossible de charger les photos');
     } finally {
       setLoading(false);
     }
@@ -102,17 +104,28 @@ export default function MyPhotos() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    // En production, appeler l'API pour supprimer
-    setMyPhotos(prev => prev.filter(p => p.id !== photoToDelete.id));
-    setShowDeleteModal(false);
-    setPhotoToDelete(null);
+  const confirmDelete = async () => {
+    try {
+      await deletePhoto(photoToDelete.id);
+      setMyPhotos(prev => prev.filter(p => p.id !== photoToDelete.id));
+      setShowDeleteModal(false);
+      setPhotoToDelete(null);
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err);
+      alert(err.message || 'Impossible de supprimer la photo');
+    }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (window.confirm(`Supprimer ${selectedPhotos.length} photo(s) ?`)) {
-      setMyPhotos(prev => prev.filter(p => !selectedPhotos.includes(p.id)));
-      setSelectedPhotos([]);
+      try {
+        await Promise.all(selectedPhotos.map(photoId => deletePhoto(photoId)));
+        setMyPhotos(prev => prev.filter(p => !selectedPhotos.includes(p.id)));
+        setSelectedPhotos([]);
+      } catch (err) {
+        console.error('Erreur lors de la suppression:', err);
+        alert(err.message || 'Impossible de supprimer les photos');
+      }
     }
   };
 

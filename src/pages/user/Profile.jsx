@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { getUserProfile, updateUserProfile, updateAvatar, changePassword } from '../../services/userService';
 import { generateAvatarUrl } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -10,22 +11,60 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [message, setMessage] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    bio: user?.bio || '',
-    location: user?.location || '',
-    website: user?.website || '',
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    bio: '',
+    location: '',
+    website: '',
   });
 
-  const [avatarPreview, setAvatarPreview] = useState(
-    user?.avatar_url || generateAvatarUrl(user?.first_name + ' ' + user?.last_name)
-  );
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
+  // Charger le profil depuis l'API
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setProfileLoading(true);
+      const profile = await getUserProfile();
+
+      // Mettre à jour formData avec les données du profil
+      setFormData({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        bio: profile.bio || '',
+        location: profile.location || '',
+        website: profile.website || '',
+      });
+
+      // Mettre à jour l'avatar
+      setAvatarPreview(
+        profile.avatar_url || generateAvatarUrl(profile.first_name + ' ' + profile.last_name)
+      );
+
+      // Mettre à jour le contexte d'authentification si nécessaire
+      if (user && JSON.stringify(user) !== JSON.stringify(profile)) {
+        updateUser(profile);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+      setMessage({ type: 'error', text: error.message || 'Impossible de charger le profil' });
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,6 +93,9 @@ export default function Profile() {
         return;
       }
 
+      // Stocker le fichier pour l'upload
+      setAvatarFile(file);
+
       // Créer une prévisualisation
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -69,23 +111,29 @@ export default function Profile() {
     setMessage(null);
 
     try {
-      // Simuler un délai d'API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Mettre à jour l'avatar si changé
+      if (avatarFile) {
+        await updateAvatar(avatarFile);
+      }
+
+      // Mettre à jour le profil
+      const updatedProfile = await updateUserProfile({
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        bio: formData.bio,
+        location: formData.location,
+        website: formData.website,
+      });
 
       // Mettre à jour l'utilisateur dans le contexte
-      const updatedUser = {
-        ...user,
-        ...formData,
-        avatar_url: avatarPreview,
-      };
-
-      // En production, cela devrait appeler l'API
-      updateUser(updatedUser);
+      updateUser(updatedProfile);
 
       setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
       setIsEditing(false);
+      setAvatarFile(null);
     } catch (error) {
-      setMessage({ type: 'error', text: 'Erreur lors de la mise à jour du profil' });
+      setMessage({ type: 'error', text: error.message || 'Erreur lors de la mise à jour du profil' });
       console.error(error);
     } finally {
       setLoading(false);
@@ -93,20 +141,11 @@ export default function Profile() {
   };
 
   const handleCancel = () => {
-    setFormData({
-      first_name: user?.first_name || '',
-      last_name: user?.last_name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      bio: user?.bio || '',
-      location: user?.location || '',
-      website: user?.website || '',
-    });
-    setAvatarPreview(
-      user?.avatar_url || generateAvatarUrl(user?.first_name + ' ' + user?.last_name)
-    );
+    // Recharger le profil pour annuler les modifications
+    loadProfile();
     setIsEditing(false);
     setMessage(null);
+    setAvatarFile(null);
   };
 
   const getRoleBadge = (role) => {
@@ -118,6 +157,19 @@ export default function Profile() {
     const config = configs[role] || configs.buyer;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
+
+  if (profileLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+            <p className="text-gray-600">Chargement du profil...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

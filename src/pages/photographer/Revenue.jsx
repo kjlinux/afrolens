@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
+  getRevenueSummary,
+  getRevenueHistory,
+  getSalesHistory,
+  getWithdrawals,
+  createWithdrawal,
+} from "../../services/photographerService";
+import {
   LineChart,
   Line,
   XAxis,
@@ -26,87 +33,92 @@ import Modal from "../../components/common/Modal";
 export default function Revenue() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
   const [withdrawalMethod, setWithdrawalMethod] = useState("orange_money");
   const [withdrawalDetails, setWithdrawalDetails] = useState("");
+  const [withdrawalProcessing, setWithdrawalProcessing] = useState(false);
 
-  // Données mockées
-  const revenueData = {
-    totalSales: 18650.0,
-    commission: 3730.0, // 20%
-    netRevenue: 14920.0,
-    availableBalance: 8450.0,
-    pendingBalance: 6470.0,
-    totalWithdrawn: 12500.0,
-    nextPayoutDate: "2025-11-15",
+  const [revenueData, setRevenueData] = useState(null);
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [withdrawalHistory, setWithdrawalHistory] = useState([]);
+
+  useEffect(() => {
+    loadRevenueData();
+  }, []);
+
+  const loadRevenueData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [summary, history, sales, withdrawals] = await Promise.all([
+        getRevenueSummary(),
+        getRevenueHistory(),
+        getSalesHistory(),
+        getWithdrawals(),
+      ]);
+
+      setRevenueData(summary);
+      setMonthlyRevenue(history);
+      setRecentTransactions(sales);
+      setWithdrawalHistory(withdrawals);
+    } catch (err) {
+      console.error('Erreur lors du chargement des revenus:', err);
+      setError(err.message || 'Impossible de charger les données de revenus');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Historique des revenus mensuels
-  const monthlyRevenue = [
-    { month: "Jan", sales: 1200, net: 960 },
-    { month: "Fév", sales: 1450, net: 1160 },
-    { month: "Mar", sales: 1680, net: 1344 },
-    { month: "Avr", sales: 1520, net: 1216 },
-    { month: "Mai", sales: 1890, net: 1512 },
-    { month: "Juin", sales: 2100, net: 1680 },
-    { month: "Juil", sales: 1750, net: 1400 },
-    { month: "Août", sales: 2300, net: 1840 },
-    { month: "Sep", sales: 1980, net: 1584 },
-    { month: "Oct", sales: 2780, net: 2224 },
-  ];
+  const handleWithdrawal = async (e) => {
+    e.preventDefault();
 
-  // Transactions récentes
-  const recentTransactions = [
-    {
-      id: 1,
-      type: "sale",
-      description: "Vente de 3 photos",
-      amount: 120.0,
-      net: 96.0,
-      date: "2025-10-28T14:30:00Z",
-      status: "completed",
-    },
-    {
-      id: 2,
-      type: "sale",
-      description: "Vente de 2 photos",
-      amount: 85.0,
-      net: 68.0,
-      date: "2025-10-27T10:15:00Z",
-      status: "completed",
-    },
-    {
-      id: 3,
-      type: "withdrawal",
-      description: "Retrait Orange Money",
-      amount: -2500.0,
-      net: -2500.0,
-      date: "2025-10-25T09:00:00Z",
-      status: "completed",
-    },
-    {
-      id: 4,
-      type: "sale",
-      description: "Vente de 1 photo",
-      amount: 45.0,
-      net: 36.0,
-      date: "2025-10-24T16:45:00Z",
-      status: "completed",
-    },
-    {
-      id: 5,
-      type: "sale",
-      description: "Vente de 5 photos",
-      amount: 225.0,
-      net: 180.0,
-      date: "2025-10-23T11:20:00Z",
-      status: "pending",
-    },
-  ];
+    const amount = parseFloat(withdrawalAmount);
 
-  // Historique des retraits
-  const withdrawalHistory = [
+    if (isNaN(amount) || amount <= 0) {
+      alert('Veuillez entrer un montant valide');
+      return;
+    }
+
+    if (amount > revenueData.availableBalance) {
+      alert('Le montant demandé dépasse votre solde disponible');
+      return;
+    }
+
+    if (amount < CONFIG.MIN_WITHDRAWAL_AMOUNT) {
+      alert(`Le montant minimum de retrait est de ${formatPrice(CONFIG.MIN_WITHDRAWAL_AMOUNT)}`);
+      return;
+    }
+
+    try {
+      setWithdrawalProcessing(true);
+
+      await createWithdrawal({
+        amount,
+        payment_method: withdrawalMethod,
+        payment_details: withdrawalDetails,
+      });
+
+      // Recharger les données
+      await loadRevenueData();
+
+      // Fermer le modal et réinitialiser
+      setShowWithdrawalModal(false);
+      setWithdrawalAmount('');
+      setWithdrawalDetails('');
+      alert('Demande de retrait envoyée avec succès');
+    } catch (err) {
+      console.error('Erreur lors de la demande de retrait:', err);
+      alert(err.message || 'Impossible de créer la demande de retrait');
+    } finally {
+      setWithdrawalProcessing(false);
+    }
+  };
+
+  const withdrawalHistory2 = [
     {
       id: 1,
       amount: 2500.0,

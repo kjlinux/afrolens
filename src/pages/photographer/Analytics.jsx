@@ -56,6 +56,7 @@ const CATEGORY_COLORS = ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', 
 const Analytics = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [period, setPeriod] = useState('30d');
   const [analytics, setAnalytics] = useState(null);
 
@@ -65,12 +66,21 @@ const Analytics = () => {
 
   const loadAnalytics = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const data = await photographerService.getAnalytics(period);
+      setAnalytics(data);
+    } catch (err) {
+      console.error('Erreur lors du chargement des analytics:', err);
+      setError(err.message || 'Impossible de charger les statistiques');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // Mock analytics data
-      const mockAnalytics = {
+  // Mock analytics data pour fallback
+  const getMockAnalytics = () => {
+    return {
         overview: {
           totalViews: 45234,
           viewsChange: 12.5,

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { uploadPhoto } from '../../services/photographerService';
 import { categories, getMainCategories, getSubCategories } from '../../data/mockData';
 import { CONFIG, LICENSE_TYPES } from '../../utils/constants';
 import { formatFileSize } from '../../utils/helpers';
@@ -145,17 +146,26 @@ export default function Upload() {
     setMessage(null);
 
     try {
-      // Simuler l'upload avec progression
-      for (let i = 0; i <= 100; i += 10) {
-        setUploadProgress(i);
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
+      // Upload chaque fichier
+      const uploadPromises = files.map(async (fileData, index) => {
+        const photoData = {
+          file: fileData.file,
+          title: fileData.metadata.title || formData.title,
+          description: fileData.metadata.description || formData.description,
+          category_id: fileData.metadata.category_id || formData.category_id,
+          tags: (fileData.metadata.tags || formData.tags).split(',').map(t => t.trim()).filter(t => t.length > 0),
+          price_standard: parseFloat(fileData.metadata.price_standard || formData.price_standard),
+          price_extended: parseFloat(fileData.metadata.price_extended || formData.price_extended),
+          location: fileData.metadata.location || formData.location,
+        };
 
-      // En production, cela devrait:
-      // 1. Uploader les fichiers vers le serveur/storage
-      // 2. Créer les entrées en base de données
-      // 3. Générer les watermarks
-      // 4. Créer les différentes tailles d'image
+        // Mettre à jour la progression
+        setUploadProgress(Math.round(((index + 1) / files.length) * 100));
+
+        return await uploadPhoto(photoData);
+      });
+
+      const results = await Promise.all(uploadPromises);
 
       setMessage({
         type: 'success',

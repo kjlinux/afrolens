@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getPhotoById } from '../../data/mockData';
-import { STORAGE_KEYS } from '../../utils/constants';
+import { getFavorites, removeFromFavorites } from '../../services/favoritesService';
 import PhotoGrid from '../../components/photos/PhotoGrid';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
@@ -12,65 +11,48 @@ export default function Favorites() {
   const { user } = useAuth();
   const [favoritePhotos, setFavoritePhotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('recent'); // recent, price_asc, price_desc, popular
 
   useEffect(() => {
     loadFavorites();
   }, [user]);
 
-  const loadFavorites = () => {
+  const loadFavorites = async () => {
     try {
       setLoading(true);
-
-      // Récupérer les IDs des favoris depuis localStorage
-      const favoritesKey = `${STORAGE_KEYS.FAVORITES}_${user.id}`;
-      const storedFavorites = localStorage.getItem(favoritesKey);
-      const favoriteIds = storedFavorites ? JSON.parse(storedFavorites) : [];
-
-      // Charger les photos complètes à partir des IDs
-      const photos = favoriteIds
-        .map(id => getPhotoById(id))
-        .filter(photo => photo !== undefined); // Filtrer les photos non trouvées
-
-      // Ajouter un timestamp pour le tri (simulé)
-      const photosWithTimestamp = photos.map((photo, index) => ({
-        ...photo,
-        addedToFavoritesAt: Date.now() - (favoriteIds.length - index) * 86400000, // Simule des ajouts sur plusieurs jours
-      }));
-
-      setFavoritePhotos(photosWithTimestamp);
-    } catch (error) {
-      console.error('Erreur lors du chargement des favoris:', error);
+      setError(null);
+      const favorites = await getFavorites();
+      setFavoritePhotos(favorites);
+    } catch (err) {
+      console.error('Erreur lors du chargement des favoris:', err);
+      setError(err.message || 'Impossible de charger les favoris');
       setFavoritePhotos([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const removeFavorite = (photoId) => {
+  const removeFavorite = async (photoId) => {
     try {
-      // Supprimer du localStorage
-      const favoritesKey = `${STORAGE_KEYS.FAVORITES}_${user.id}`;
-      const storedFavorites = localStorage.getItem(favoritesKey);
-      const favoriteIds = storedFavorites ? JSON.parse(storedFavorites) : [];
-      const updatedIds = favoriteIds.filter(id => id !== photoId);
-      localStorage.setItem(favoritesKey, JSON.stringify(updatedIds));
-
+      await removeFromFavorites(photoId);
       // Mettre à jour l'état local
       setFavoritePhotos(prev => prev.filter(photo => photo.id !== photoId));
-    } catch (error) {
-      console.error('Erreur lors de la suppression du favori:', error);
+    } catch (err) {
+      console.error('Erreur lors de la suppression du favori:', err);
+      alert(err.message || 'Impossible de retirer des favoris');
     }
   };
 
-  const clearAllFavorites = () => {
+  const clearAllFavorites = async () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer tous vos favoris ?')) {
       try {
-        const favoritesKey = `${STORAGE_KEYS.FAVORITES}_${user.id}`;
-        localStorage.removeItem(favoritesKey);
+        // Supprimer tous les favoris un par un
+        await Promise.all(favoritePhotos.map(photo => removeFromFavorites(photo.id)));
         setFavoritePhotos([]);
-      } catch (error) {
-        console.error('Erreur lors de la suppression des favoris:', error);
+      } catch (err) {
+        console.error('Erreur lors de la suppression des favoris:', err);
+        alert(err.message || 'Impossible de supprimer tous les favoris');
       }
     }
   };

@@ -11,6 +11,8 @@ export * as cartService from './cartService';
 export * as orderService from './orderService';
 export * as userService from './userService';
 export * as photographerService from './photographerService';
+export * as favoritesService from './favoritesService';
+export * as adminService from './adminService';
 
 // Exports par défaut pour compatibilité
 export { default as auth } from './authService';
