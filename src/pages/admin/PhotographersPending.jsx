@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Eye, User, Calendar, Mail, Phone, Globe, Instagram, Briefcase, MapPin, ExternalLink } from 'lucide-react';
-import { users as allUsers, getPendingPhotographers } from '../../data/mockData';
+import { getPendingPhotographers, approvePhotographer, rejectPhotographer } from '../../services/adminService';
 import { formatDate } from '../../utils/helpers';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -10,6 +10,7 @@ import Modal from '../../components/common/Modal';
 export default function PhotographersPending() {
   const [photographers, setPhotographers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedPhotographer, setSelectedPhotographer] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [photographerToReject, setPhotographerToReject] = useState(null);
@@ -19,31 +20,34 @@ export default function PhotographersPending() {
     loadPhotographers();
   }, []);
 
-  const loadPhotographers = () => {
-    setLoading(true);
+  const loadPhotographers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Simuler le chargement
-    setTimeout(() => {
-      const pending = getPendingPhotographers();
-      setPhotographers(pending);
+      const data = await getPendingPhotographers();
+      setPhotographers(data);
+    } catch (err) {
+      console.error('Erreur chargement photographes:', err);
+      setError(err.message || 'Impossible de charger les photographes en attente');
+    } finally {
       setLoading(false);
-    }, 300);
+    }
   };
 
-  const handleApprove = (photographerId) => {
-    // En production, appeler l'API
-    console.log('Approuver le photographe:', photographerId);
+  const handleApprove = async (photographerId) => {
+    try {
+      await approvePhotographer(photographerId);
 
-    // Mettre à jour localement
-    const updatedPhotographers = photographers.filter(p => p.id !== photographerId);
-    setPhotographers(updatedPhotographers);
-    setSelectedPhotographer(null);
+      // Retirer de la liste locale
+      setPhotographers(prev => prev.filter(p => p.id !== photographerId));
+      setSelectedPhotographer(null);
 
-    // Afficher un message de succès
-    alert('Photographe approuvé avec succès ! Le photographe peut maintenant commencer à vendre ses photos.');
-
-    // Recharger
-    loadPhotographers();
+      // Afficher un message de succès
+      alert('Photographe approuvé avec succès ! Le photographe peut maintenant commencer à vendre ses photos.');
+    } catch (err) {
+      alert(err.message || 'Erreur lors de l\'approbation');
+    }
   };
 
   const handleRejectClick = (photographer) => {
@@ -52,28 +56,27 @@ export default function PhotographersPending() {
     setShowRejectModal(true);
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!rejectionReason.trim()) {
       alert('Veuillez fournir une raison pour le rejet');
       return;
     }
 
-    // En production, appeler l'API
-    console.log('Rejeter le photographe:', photographerToReject.id, 'Raison:', rejectionReason);
+    try {
+      await rejectPhotographer(photographerToReject.id, rejectionReason);
 
-    // Mettre à jour localement
-    const updatedPhotographers = photographers.filter(p => p.id !== photographerToReject.id);
-    setPhotographers(updatedPhotographers);
-    setSelectedPhotographer(null);
-    setShowRejectModal(false);
-    setPhotographerToReject(null);
-    setRejectionReason('');
+      // Retirer de la liste locale
+      setPhotographers(prev => prev.filter(p => p.id !== photographerToReject.id));
+      setSelectedPhotographer(null);
+      setShowRejectModal(false);
+      setPhotographerToReject(null);
+      setRejectionReason('');
 
-    // Afficher un message de succès
-    alert('Demande de photographe rejetée');
-
-    // Recharger
-    loadPhotographers();
+      // Afficher un message de succès
+      alert('Demande de photographe rejetée');
+    } catch (err) {
+      alert(err.message || 'Erreur lors du rejet');
+    }
   };
 
   const PhotographerDetailModal = ({ photographer, onClose }) => {
@@ -258,39 +261,15 @@ export default function PhotographersPending() {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
         <Card className="p-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-yellow-100 rounded-lg">
               <User className="w-6 h-6 text-yellow-600" />
             </div>
-            <h3 className="font-semibold text-gray-900">En attente</h3>
+            <h3 className="font-semibold text-gray-900">Demandes en attente d'approbation</h3>
           </div>
           <p className="text-4xl font-bold text-yellow-600">{photographers.length}</p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-green-100 rounded-lg">
-              <Check className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Approuvés</h3>
-          </div>
-          <p className="text-4xl font-bold text-green-600">
-            {allUsers.filter(u => u.account_type === 'photographer' && u.status === 'approved').length}
-          </p>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <User className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="font-semibold text-gray-900">Total</h3>
-          </div>
-          <p className="text-4xl font-bold text-blue-600">
-            {allUsers.filter(u => u.account_type === 'photographer').length}
-          </p>
         </Card>
       </div>
 

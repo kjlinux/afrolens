@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Eye, User, Calendar, Tag, AlertCircle, Filter, Clock, MapPin } from 'lucide-react';
-import { photos as allPhotos, users, categories } from '../../data/mockData';
+import { getPendingPhotos, approvePhoto, rejectPhoto, deletePhoto } from '../../services/adminService';
 import { formatDate, formatPrice } from '../../utils/helpers';
 import { PHOTO_STATUS } from '../../utils/constants';
 import Card from '../../components/common/Card';
@@ -11,56 +11,65 @@ import Modal from '../../components/common/Modal';
 export default function Moderation() {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [filterStatus, setFilterStatus] = useState('pending');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [photoToReject, setPhotoToReject] = useState(null);
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 });
 
   useEffect(() => {
     loadPhotos();
   }, [filterStatus]);
 
-  const loadPhotos = () => {
-    setLoading(true);
+  const loadPhotos = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Simuler le chargement
-    setTimeout(() => {
-      let filteredPhotos = [...allPhotos];
+      // Charger toutes les photos en attente (on peut paginer si besoin)
+      const data = await getPendingPhotos(1, 100);
+      const allPhotos = data.data || data;
 
-      // Filtrer par statut
-      if (filterStatus !== 'all') {
-        filteredPhotos = filteredPhotos.filter(p => p.status === filterStatus);
+      // Filtrer par statut si nécessaire
+      let filteredPhotos = allPhotos;
+      if (filterStatus !== 'all' && filterStatus !== 'pending') {
+        filteredPhotos = allPhotos.filter(p => p.status === filterStatus);
       }
 
       setPhotos(filteredPhotos);
+
+      // Calculer les stats
+      setStats({
+        pending: allPhotos.filter(p => p.status === PHOTO_STATUS.PENDING).length,
+        approved: allPhotos.filter(p => p.status === PHOTO_STATUS.APPROVED).length,
+        rejected: allPhotos.filter(p => p.status === PHOTO_STATUS.REJECTED).length,
+      });
+    } catch (err) {
+      console.error('Erreur chargement photos:', err);
+      setError(err.message || 'Impossible de charger les photos');
+    } finally {
       setLoading(false);
-    }, 300);
+    }
   };
 
-  // Calculer les stats
-  const stats = {
-    pending: allPhotos.filter(p => p.status === PHOTO_STATUS.PENDING).length,
-    approved: allPhotos.filter(p => p.status === PHOTO_STATUS.APPROVED).length,
-    rejected: allPhotos.filter(p => p.status === PHOTO_STATUS.REJECTED).length,
-  };
+  const handleApprove = async (photoId) => {
+    try {
+      await approvePhoto(photoId);
 
-  const handleApprove = (photoId) => {
-    // En production, appeler l'API
-    console.log('Approuver la photo:', photoId);
+      // Retirer de la liste locale
+      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      setSelectedPhoto(null);
 
-    // Mettre à jour le statut localement
-    const updatedPhotos = photos.map(p =>
-      p.id === photoId ? { ...p, status: PHOTO_STATUS.APPROVED } : p
-    );
-    setPhotos(updatedPhotos);
-    setSelectedPhoto(null);
+      // Afficher un message de succès
+      alert('Photo approuvée avec succès !');
 
-    // Afficher un message de succès
-    alert('Photo approuvée avec succès !');
-
-    // Recharger pour mettre à jour les stats
-    loadPhotos();
+      // Recharger pour mettre à jour les stats
+      loadPhotos();
+    } catch (err) {
+      alert(err.message || 'Erreur lors de l\'approbation');
+    }
   };
 
   const handleRejectClick = (photo) => {
@@ -69,32 +78,30 @@ export default function Moderation() {
     setShowRejectModal(true);
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!rejectionReason.trim()) {
       alert('Veuillez fournir une raison pour le rejet');
       return;
     }
 
-    // En production, appeler l'API
-    console.log('Rejeter la photo:', photoToReject.id, 'Raison:', rejectionReason);
+    try {
+      await rejectPhoto(photoToReject.id, rejectionReason);
 
-    // Mettre à jour le statut localement
-    const updatedPhotos = photos.map(p =>
-      p.id === photoToReject.id
-        ? { ...p, status: PHOTO_STATUS.REJECTED, rejection_reason: rejectionReason }
-        : p
-    );
-    setPhotos(updatedPhotos);
-    setSelectedPhoto(null);
-    setShowRejectModal(false);
-    setPhotoToReject(null);
-    setRejectionReason('');
+      // Retirer de la liste locale
+      setPhotos(prev => prev.filter(p => p.id !== photoToReject.id));
+      setSelectedPhoto(null);
+      setShowRejectModal(false);
+      setPhotoToReject(null);
+      setRejectionReason('');
 
-    // Afficher un message de succès
-    alert('Photo rejetée avec succès');
+      // Afficher un message de succès
+      alert('Photo rejetée avec succès');
 
-    // Recharger pour mettre à jour les stats
-    loadPhotos();
+      // Recharger pour mettre à jour les stats
+      loadPhotos();
+    } catch (err) {
+      alert(err.message || 'Erreur lors du rejet');
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -108,19 +115,12 @@ export default function Moderation() {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const getPhotographerInfo = (photographerId) => {
-    return users.find(u => u.id === photographerId);
-  };
-
-  const getCategoryInfo = (categoryId) => {
-    return categories.find(c => c.id === categoryId);
-  };
-
   const PhotoDetailModal = ({ photo, onClose }) => {
     if (!photo) return null;
 
-    const photographer = getPhotographerInfo(photo.photographer_id);
-    const category = getCategoryInfo(photo.category_id);
+    // Les infos photographe et catégorie sont incluses dans l'objet photo
+    const photographer = photo.photographer;
+    const category = photo.category;
 
     return (
       <Modal isOpen={!!photo} onClose={onClose} title="Détails de la photo" size="large">
@@ -373,7 +373,7 @@ export default function Moderation() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {photos.map((photo) => {
-              const photographer = getPhotographerInfo(photo.photographer_id);
+              const photographer = photo.photographer;
 
               return (
                 <div key={photo.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">

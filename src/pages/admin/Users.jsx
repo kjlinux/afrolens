@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, Ban, Trash2, UserCheck, Camera, ShoppingCart, Eye, Mail, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
-import { getUsers, deleteUser, toggleUserBan } from '../../services/adminService';
+import { getUsers, deleteUser, toggleUserBan, updateUser } from '../../services/adminService';
 import { formatDate, formatNumber } from '../../utils/helpers';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -45,29 +45,35 @@ export default function Users() {
     }
   };
 
+  // Calcul des statistiques basé sur les utilisateurs chargés
   const stats = {
-    total: allUsers.length,
-    buyers: allUsers.filter(u => u.role === 'buyer').length,
-    photographers: allUsers.filter(u => u.role === 'photographer').length,
-    admins: allUsers.filter(u => u.role === 'admin').length,
-    active: allUsers.filter(u => u.is_active !== false).length,
-    banned: allUsers.filter(u => u.is_active === false).length,
+    total: pagination.total || users.length,
+    buyers: users.filter(u => u.role === 'buyer').length,
+    photographers: users.filter(u => u.role === 'photographer').length,
+    admins: users.filter(u => u.role === 'admin').length,
+    active: users.filter(u => u.is_active !== false).length,
+    banned: users.filter(u => u.is_active === false).length,
   };
 
-  const handleBanUser = (user) => {
+  const handleBanUser = async (user) => {
     if (!window.confirm(`Êtes-vous sûr de vouloir ${user.is_active !== false ? 'bannir' : 'débannir'} ${user.first_name} ${user.last_name} ?`)) {
       return;
     }
 
-    // En production, appeler l'API
-    console.log('Bannir/Débannir utilisateur:', user.id);
+    try {
+      const newStatus = !(user.is_active !== false);
+      await toggleUserBan(user.id, !newStatus);
 
-    const updatedUsers = users.map(u =>
-      u.id === user.id ? { ...u, is_active: !(u.is_active !== false) } : u
-    );
-    setUsers(updatedUsers);
-    setShowMenu(null);
-    alert(`Utilisateur ${user.is_active !== false ? 'banni' : 'débanni'} avec succès`);
+      // Mise à jour locale optimiste
+      const updatedUsers = users.map(u =>
+        u.id === user.id ? { ...u, is_active: newStatus } : u
+      );
+      setUsers(updatedUsers);
+      setShowMenu(null);
+      alert(`Utilisateur ${user.is_active !== false ? 'banni' : 'débanni'} avec succès`);
+    } catch (err) {
+      alert(err.message || 'Erreur lors du changement de statut');
+    }
   };
 
   const handleDeleteClick = (user) => {
@@ -76,31 +82,37 @@ export default function Users() {
     setShowMenu(null);
   };
 
-  const confirmDelete = () => {
-    // En production, appeler l'API
-    console.log('Supprimer utilisateur:', userToDelete.id);
+  const confirmDelete = async () => {
+    try {
+      await deleteUser(userToDelete.id);
 
-    const updatedUsers = users.filter(u => u.id !== userToDelete.id);
-    setUsers(updatedUsers);
-    setShowDeleteModal(false);
-    setUserToDelete(null);
-    alert('Utilisateur supprimé avec succès');
+      const updatedUsers = users.filter(u => u.id !== userToDelete.id);
+      setUsers(updatedUsers);
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+      alert('Utilisateur supprimé avec succès');
+    } catch (err) {
+      alert(err.message || 'Erreur lors de la suppression');
+    }
   };
 
-  const handleChangeRole = (user, newRole) => {
+  const handleChangeRole = async (user, newRole) => {
     if (!window.confirm(`Changer le rôle de ${user.first_name} ${user.last_name} en "${newRole}" ?`)) {
       return;
     }
 
-    // En production, appeler l'API
-    console.log('Changer rôle:', user.id, 'vers', newRole);
+    try {
+      await updateUser(user.id, { role: newRole });
 
-    const updatedUsers = users.map(u =>
-      u.id === user.id ? { ...u, role: newRole } : u
-    );
-    setUsers(updatedUsers);
-    setShowMenu(null);
-    alert('Rôle modifié avec succès');
+      const updatedUsers = users.map(u =>
+        u.id === user.id ? { ...u, role: newRole } : u
+      );
+      setUsers(updatedUsers);
+      setShowMenu(null);
+      alert('Rôle modifié avec succès');
+    } catch (err) {
+      alert(err.message || 'Erreur lors du changement de rôle');
+    }
   };
 
   const getRoleBadge = (role) => {
@@ -129,19 +141,15 @@ export default function Users() {
     );
   };
 
-  const getUserPhotos = (userId) => {
-    return photos.filter(p => p.photographer_id === userId);
-  };
-
   const UserDetailModal = ({ user, onClose }) => {
     if (!user) return null;
 
-    const userPhotos = getUserPhotos(user.id);
+    // Stats photographe (si disponibles dans l'objet user)
     const userStats = {
-      photos: userPhotos.length,
-      approvedPhotos: userPhotos.filter(p => p.status === 'approved').length,
-      totalViews: userPhotos.reduce((sum, p) => sum + (p.views_count || 0), 0),
-      totalSales: userPhotos.reduce((sum, p) => sum + (p.sales_count || 0), 0),
+      photos: user.photos_count || 0,
+      approvedPhotos: user.approved_photos_count || 0,
+      totalViews: user.total_views || 0,
+      totalSales: user.total_sales || 0,
     };
 
     return (

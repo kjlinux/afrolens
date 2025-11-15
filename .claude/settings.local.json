@@ -12,7 +12,8 @@
       "Bash(pnpm run dev)",
       "Bash(timeout:*)",
       "Bash(del \"c:\\laragon\\www\\afrolens\\src\\pages\\ComponentsDemo.jsx\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []

@@ -14,11 +14,11 @@ import {
   Filter,
 } from "lucide-react";
 import {
-  withdrawals as allWithdrawals,
-  getPendingWithdrawals,
-  users,
-  getUserById,
-} from "../../data/mockData";
+  getAllWithdrawals,
+  approveWithdrawal,
+  rejectWithdrawal,
+  completeWithdrawal,
+} from "../../services/adminService";
 import { formatPrice, formatDate } from "../../utils/helpers";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
@@ -28,6 +28,7 @@ import Modal from "../../components/common/Modal";
 export default function Withdrawals() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [filterStatus, setFilterStatus] = useState("pending");
   const [showApproveModal, setShowApproveModal] = useState(false);
@@ -36,43 +37,44 @@ export default function Withdrawals() {
   const [transactionId, setTransactionId] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [notes, setNotes] = useState("");
+  const [stats, setStats] = useState({ pending: 0, pendingAmount: 0, completed: 0, rejected: 0 });
 
   useEffect(() => {
     loadWithdrawals();
   }, [filterStatus]);
 
-  const loadWithdrawals = () => {
-    setLoading(true);
+  const loadWithdrawals = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Simuler le chargement
-    setTimeout(() => {
-      let filteredWithdrawals = [...allWithdrawals];
-
-      // Filtrer par statut
-      if (filterStatus !== "all") {
-        filteredWithdrawals = filteredWithdrawals.filter(
-          (w) => w.status === filterStatus
-        );
-      }
+      // Charger tous les retraits ou filtrer par statut
+      const status = filterStatus === "all" ? undefined : filterStatus;
+      const data = await getAllWithdrawals(status);
+      const allWithdrawals = Array.isArray(data) ? data : (data.data || []);
 
       // Trier par date (plus récent en premier)
-      filteredWithdrawals.sort(
+      const sortedWithdrawals = [...allWithdrawals].sort(
         (a, b) => new Date(b.requested_at) - new Date(a.requested_at)
       );
 
-      setWithdrawals(filteredWithdrawals);
-      setLoading(false);
-    }, 300);
-  };
+      setWithdrawals(sortedWithdrawals);
 
-  // Calculer les stats
-  const stats = {
-    pending: allWithdrawals.filter((w) => w.status === "pending").length,
-    pendingAmount: allWithdrawals
-      .filter((w) => w.status === "pending")
-      .reduce((sum, w) => sum + w.amount, 0),
-    completed: allWithdrawals.filter((w) => w.status === "completed").length,
-    rejected: allWithdrawals.filter((w) => w.status === "rejected").length,
+      // Calculer les stats
+      setStats({
+        pending: allWithdrawals.filter((w) => w.status === "pending").length,
+        pendingAmount: allWithdrawals
+          .filter((w) => w.status === "pending")
+          .reduce((sum, w) => sum + w.amount, 0),
+        completed: allWithdrawals.filter((w) => w.status === "completed").length,
+        rejected: allWithdrawals.filter((w) => w.status === "rejected").length,
+      });
+    } catch (err) {
+      console.error("Erreur chargement retraits:", err);
+      setError(err.message || "Impossible de charger les retraits");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleApproveClick = (withdrawal) => {
@@ -82,45 +84,29 @@ export default function Withdrawals() {
     setShowApproveModal(true);
   };
 
-  const confirmApprove = () => {
+  const confirmApprove = async () => {
     if (!transactionId.trim()) {
       alert("Veuillez fournir un ID de transaction");
       return;
     }
 
-    // En production, appeler l'API
-    console.log(
-      "Approuver le retrait:",
-      withdrawalToProcess.id,
-      "Transaction:",
-      transactionId
-    );
+    try {
+      await completeWithdrawal(withdrawalToProcess.id, transactionId);
 
-    // Mettre à jour localement
-    const updatedWithdrawals = withdrawals.map((w) =>
-      w.id === withdrawalToProcess.id
-        ? {
-            ...w,
-            status: "completed",
-            processed_at: new Date().toISOString(),
-            processed_by: "admin-1",
-            transaction_id: transactionId,
-            notes: notes || "Paiement effectué avec succès",
-          }
-        : w
-    );
-    setWithdrawals(updatedWithdrawals);
-    setSelectedWithdrawal(null);
-    setShowApproveModal(false);
-    setWithdrawalToProcess(null);
-    setTransactionId("");
-    setNotes("");
+      setSelectedWithdrawal(null);
+      setShowApproveModal(false);
+      setWithdrawalToProcess(null);
+      setTransactionId("");
+      setNotes("");
 
-    // Afficher un message de succès
-    alert("Demande de retrait approuvée et paiement effectué !");
+      // Afficher un message de succès
+      alert("Demande de retrait approuvée et paiement effectué !");
 
-    // Recharger
-    loadWithdrawals();
+      // Recharger
+      loadWithdrawals();
+    } catch (err) {
+      alert(err.message || "Erreur lors de l'approbation");
+    }
   };
 
   const handleRejectClick = (withdrawal) => {
@@ -129,43 +115,28 @@ export default function Withdrawals() {
     setShowRejectModal(true);
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!rejectionReason.trim()) {
       alert("Veuillez fournir une raison pour le rejet");
       return;
     }
 
-    // En production, appeler l'API
-    console.log(
-      "Rejeter le retrait:",
-      withdrawalToProcess.id,
-      "Raison:",
-      rejectionReason
-    );
+    try {
+      await rejectWithdrawal(withdrawalToProcess.id, rejectionReason);
 
-    // Mettre à jour localement
-    const updatedWithdrawals = withdrawals.map((w) =>
-      w.id === withdrawalToProcess.id
-        ? {
-            ...w,
-            status: "rejected",
-            processed_at: new Date().toISOString(),
-            processed_by: "admin-1",
-            notes: rejectionReason,
-          }
-        : w
-    );
-    setWithdrawals(updatedWithdrawals);
-    setSelectedWithdrawal(null);
-    setShowRejectModal(false);
-    setWithdrawalToProcess(null);
-    setRejectionReason("");
+      setSelectedWithdrawal(null);
+      setShowRejectModal(false);
+      setWithdrawalToProcess(null);
+      setRejectionReason("");
 
-    // Afficher un message de succès
-    alert("Demande de retrait rejetée");
+      // Afficher un message de succès
+      alert("Demande de retrait rejetée");
 
-    // Recharger
-    loadWithdrawals();
+      // Recharger
+      loadWithdrawals();
+    } catch (err) {
+      alert(err.message || "Erreur lors du rejet");
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -209,7 +180,8 @@ export default function Withdrawals() {
   const WithdrawalDetailModal = ({ withdrawal, onClose }) => {
     if (!withdrawal) return null;
 
-    const photographer = getUserById(withdrawal.photographer_id);
+    // Les infos photographe sont incluses dans l'objet withdrawal
+    const photographer = withdrawal.photographer || withdrawal.user;
 
     return (
       <Modal
@@ -536,7 +508,7 @@ export default function Withdrawals() {
         ) : (
           <div className="space-y-4">
             {withdrawals.map((withdrawal) => {
-              const photographer = getUserById(withdrawal.photographer_id);
+              const photographer = withdrawal.photographer || withdrawal.user;
 
               return (
                 <div
@@ -657,8 +629,8 @@ export default function Withdrawals() {
               Vous êtes sur le point d'approuver et d'effectuer le paiement de{" "}
               <strong>{formatPrice(withdrawalToProcess.amount)}</strong> pour{" "}
               <strong>
-                {getUserById(withdrawalToProcess.photographer_id)?.first_name}{" "}
-                {getUserById(withdrawalToProcess.photographer_id)?.last_name}
+                {(withdrawalToProcess.photographer || withdrawalToProcess.user)?.first_name}{" "}
+                {(withdrawalToProcess.photographer || withdrawalToProcess.user)?.last_name}
               </strong>
               .
             </p>
@@ -732,8 +704,8 @@ export default function Withdrawals() {
               Vous êtes sur le point de rejeter la demande de retrait de{" "}
               <strong>{formatPrice(withdrawalToProcess.amount)}</strong> pour{" "}
               <strong>
-                {getUserById(withdrawalToProcess.photographer_id)?.first_name}{" "}
-                {getUserById(withdrawalToProcess.photographer_id)?.last_name}
+                {(withdrawalToProcess.photographer || withdrawalToProcess.user)?.first_name}{" "}
+                {(withdrawalToProcess.photographer || withdrawalToProcess.user)?.last_name}
               </strong>
               . Veuillez fournir une raison.
             </p>
