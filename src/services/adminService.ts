@@ -18,7 +18,7 @@ import {
  */
 export const getDashboardStats = async () => {
   try {
-    const response = await AdminDashboardService.getAdminDashboard();
+    const response = await AdminDashboardService.f6E3Ffeb3C9Fb988Ca2A77Ad48E2C04C();
     return response;
   } catch (error: any) {
     console.error('Error fetching admin dashboard:', error);

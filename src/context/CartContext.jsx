@@ -13,8 +13,9 @@ export const CartProvider = ({ children }) => {
 
   const loadCart = async () => {
     try {
-      const cartItems = await cartService.getCart();
-      setCart(cartItems);
+      const cartData = await cartService.getCart();
+      // Le nouveau service retourne un objet CartData avec items, subtotal, etc.
+      setCart(cartData.items || []);
     } catch (error) {
       console.error('Erreur chargement panier:', error);
     } finally {
@@ -23,21 +24,33 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (photo, licenseType = 'standard') => {
-    const updatedCart = await cartService.addToCart(photo, licenseType);
-    setCart(updatedCart);
-    return updatedCart;
+    // Le nouveau service attend photoId (string) et non l'objet photo complet
+    const cartData = await cartService.addToCart(photo.id || photo, licenseType);
+    setCart(cartData.items || []);
+    return cartData.items || [];
   };
 
   const removeFromCart = async (itemId) => {
-    const updatedCart = await cartService.removeFromCart(itemId);
-    setCart(updatedCart);
-    return updatedCart;
+    // Le nouveau service attend un index (number), pas un itemId
+    // Trouver l'index de l'item
+    const index = cart.findIndex((item) => item.id === itemId || item.photo_id === itemId);
+    if (index === -1) {
+      throw new Error('Item non trouvé dans le panier');
+    }
+    const cartData = await cartService.removeFromCart(index);
+    setCart(cartData.items || []);
+    return cartData.items || [];
   };
 
   const updateCartItem = async (itemId, updates) => {
-    const updatedCart = await cartService.updateCartItem(itemId, updates);
-    setCart(updatedCart);
-    return updatedCart;
+    // Le nouveau service attend un index (number) et un objet avec license_type
+    const index = cart.findIndex((item) => item.id === itemId || item.photo_id === itemId);
+    if (index === -1) {
+      throw new Error('Item non trouvé dans le panier');
+    }
+    const cartData = await cartService.updateCartItem(index, updates.license_type || updates.licenseType);
+    setCart(cartData.items || []);
+    return cartData.items || [];
   };
 
   const clearCart = async () => {

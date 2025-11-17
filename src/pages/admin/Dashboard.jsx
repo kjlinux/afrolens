@@ -24,8 +24,24 @@ export default function Dashboard() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getDashboardStats();
-      setDashboardData(data);
+      const response = await getDashboardStats();
+      // Extract data from API response
+      const data = response.data || {};
+
+      // Transform API response to match component expectations
+      const transformedData = {
+        totalUsers: data.users?.total || 0,
+        photographers: data.users?.photographers || 0,
+        buyers: data.users?.buyers || 0,
+        totalPhotos: data.photos?.total || 0,
+        pendingPhotos: data.photos?.pending || 0,
+        approvedPhotos: data.photos?.approved || 0,
+        rejectedPhotos: data.photos?.rejected || 0,
+        totalRevenue: data.orders?.total_revenue || 0,
+        commission: (data.orders?.total_revenue || 0) * 0.2, // Assuming 20% commission
+      };
+
+      setDashboardData(transformedData);
     } catch (err) {
       console.error('Erreur chargement dashboard admin:', err);
       setError(err.message || 'Impossible de charger le dashboard');

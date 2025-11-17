@@ -14,7 +14,9 @@
       "Bash(del \"c:\\laragon\\www\\afrolens\\src\\pages\\ComponentsDemo.jsx\")",
       "Bash(find:*)",
       "Bash(nul)",
-      "Bash(pnpm run build:*)"
+      "Bash(pnpm run build:*)",
+      "Bash(test:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
