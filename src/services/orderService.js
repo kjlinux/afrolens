@@ -74,4 +74,18 @@ export const getOrderById = async (orderId) => {
   return order;
 };
 
-export default { createOrder, processPayment, getOrders, getOrderById };
+export const createOrderAndPay = async (userId, cartItems, billingInfo, paymentMethod, paymentDetails) => {
+  // Créer la commande
+  const order = await createOrder(userId, cartItems, billingInfo);
+
+  // Traiter le paiement
+  const paymentResult = await processPayment(order.id, paymentMethod, paymentDetails);
+
+  if (!paymentResult.success) {
+    throw new Error(paymentResult.error || 'Le paiement a échoué');
+  }
+
+  return paymentResult.order;
+};
+
+export default { createOrder, processPayment, getOrders, getOrderById, createOrderAndPay };

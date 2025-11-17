@@ -81,9 +81,9 @@ export default function Dashboard() {
   ];
 
   const photoStatusData = [
-    { name: 'Approuvées', value: stats.approvedPhotos, color: '#22c55e' },
-    { name: 'En attente', value: stats.pendingPhotos, color: '#f59e0b' },
-    { name: 'Rejetées', value: stats.rejectedPhotos, color: '#ef4444' },
+    { name: 'Approuvées', value: stats.approvedPhotos || 0, color: '#22c55e' },
+    { name: 'En attente', value: stats.pendingPhotos || 0, color: '#f59e0b' },
+    { name: 'Rejetées', value: stats.rejectedPhotos || 0, color: '#ef4444' },
   ];
 
   // Activités récentes
@@ -156,12 +156,6 @@ export default function Dashboard() {
 
     return link ? <Link to={link}>{content}</Link> : content;
   };
-
-  const photoStatusData = [
-    { name: 'Approuvées', value: stats.approvedPhotos || 0, color: '#22c55e' },
-    { name: 'En attente', value: stats.pendingPhotos || 0, color: '#f59e0b' },
-    { name: 'Rejetées', value: stats.rejectedPhotos || 0, color: '#ef4444' },
-  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">

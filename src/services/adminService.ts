@@ -1,4 +1,13 @@
-import { OpenAPI, AdminService, PhotosService, UsersService, WithdrawalsService } from '../api';
+import {
+  OpenAPI,
+  AdminDashboardService,
+  AdminPhotoModerationService,
+  AdminPhotographersService,
+  AdminUsersService,
+  AdminWithdrawalsService,
+  AdminAnalyticsService,
+  PhotosService
+} from '../api';
 
 // ===========================
 // ADMIN DASHBOARD
@@ -9,7 +18,7 @@ import { OpenAPI, AdminService, PhotosService, UsersService, WithdrawalsService 
  */
 export const getDashboardStats = async () => {
   try {
-    const response = await AdminService.getAdminDashboard();
+    const response = await AdminDashboardService.getAdminDashboard();
     return response;
   } catch (error: any) {
     console.error('Error fetching admin dashboard:', error);
@@ -26,7 +35,7 @@ export const getDashboardStats = async () => {
  */
 export const getUsers = async (page: number = 1, perPage: number = 20, filters?: any) => {
   try {
-    const response = await UsersService.getUsers(page, perPage, filters);
+    const response = await AdminUsersService.getUsers(page, perPage, filters);
     return response;
   } catch (error: any) {
     console.error('Error fetching users:', error);
@@ -39,7 +48,7 @@ export const getUsers = async (page: number = 1, perPage: number = 20, filters?:
  */
 export const getUser = async (userId: string) => {
   try {
-    const response = await UsersService.getUser(userId);
+    const response = await AdminUsersService.getUser(userId);
     return response;
   } catch (error: any) {
     console.error('Error fetching user:', error);
@@ -52,7 +61,7 @@ export const getUser = async (userId: string) => {
  */
 export const updateUser = async (userId: string, data: any) => {
   try {
-    const response = await UsersService.updateUser(userId, data);
+    const response = await AdminUsersService.updateUser(userId, data);
     return response;
   } catch (error: any) {
     console.error('Error updating user:', error);
@@ -65,7 +74,7 @@ export const updateUser = async (userId: string, data: any) => {
  */
 export const deleteUser = async (userId: string) => {
   try {
-    const response = await UsersService.deleteUser(userId);
+    const response = await AdminUsersService.deleteUser(userId);
     return response;
   } catch (error: any) {
     console.error('Error deleting user:', error);
@@ -78,7 +87,7 @@ export const deleteUser = async (userId: string) => {
  */
 export const toggleUserBan = async (userId: string, isBanned: boolean) => {
   try {
-    const response = await UsersService.updateUser(userId, { is_banned: isBanned });
+    const response = await AdminUsersService.updateUser(userId, { is_banned: isBanned });
     return response;
   } catch (error: any) {
     console.error('Error toggling user ban:', error);
@@ -108,7 +117,7 @@ export const getPendingPhotos = async (page: number = 1, perPage: number = 20) =
  */
 export const approvePhoto = async (photoId: string) => {
   try {
-    const response = await AdminService.approvePhoto(photoId);
+    const response = await AdminPhotoModerationService.approvePhoto(photoId);
     return response;
   } catch (error: any) {
     console.error('Error approving photo:', error);
@@ -121,7 +130,7 @@ export const approvePhoto = async (photoId: string) => {
  */
 export const rejectPhoto = async (photoId: string, reason: string) => {
   try {
-    const response = await AdminService.rejectPhoto(photoId, { rejection_reason: reason });
+    const response = await AdminPhotoModerationService.rejectPhoto(photoId, { rejection_reason: reason });
     return response;
   } catch (error: any) {
     console.error('Error rejecting photo:', error);
@@ -151,7 +160,7 @@ export const deletePhoto = async (photoId: string) => {
  */
 export const getPendingPhotographers = async () => {
   try {
-    const response = await AdminService.getPendingPhotographers();
+    const response = await AdminPhotographersService.getPendingPhotographers();
     return response;
   } catch (error: any) {
     console.error('Error fetching pending photographers:', error);
@@ -164,7 +173,7 @@ export const getPendingPhotographers = async () => {
  */
 export const approvePhotographer = async (userId: string) => {
   try {
-    const response = await AdminService.approvePhotographer(userId);
+    const response = await AdminPhotographersService.approvePhotographer(userId);
     return response;
   } catch (error: any) {
     console.error('Error approving photographer:', error);
@@ -177,7 +186,7 @@ export const approvePhotographer = async (userId: string) => {
  */
 export const rejectPhotographer = async (userId: string, reason: string) => {
   try {
-    const response = await AdminService.rejectPhotographer(userId, { rejection_reason: reason });
+    const response = await AdminPhotographersService.rejectPhotographer(userId, { rejection_reason: reason });
     return response;
   } catch (error: any) {
     console.error('Error rejecting photographer:', error);
@@ -194,7 +203,7 @@ export const rejectPhotographer = async (userId: string, reason: string) => {
  */
 export const getAllWithdrawals = async (status?: string) => {
   try {
-    const response = await WithdrawalsService.getWithdrawals({ status });
+    const response = await AdminWithdrawalsService.getWithdrawals({ status });
     return response;
   } catch (error: any) {
     console.error('Error fetching withdrawals:', error);
@@ -207,7 +216,7 @@ export const getAllWithdrawals = async (status?: string) => {
  */
 export const approveWithdrawal = async (withdrawalId: string) => {
   try {
-    const response = await AdminService.approveWithdrawal(withdrawalId);
+    const response = await AdminWithdrawalsService.approveWithdrawal(withdrawalId);
     return response;
   } catch (error: any) {
     console.error('Error approving withdrawal:', error);
@@ -220,7 +229,7 @@ export const approveWithdrawal = async (withdrawalId: string) => {
  */
 export const rejectWithdrawal = async (withdrawalId: string, reason: string) => {
   try {
-    const response = await AdminService.rejectWithdrawal(withdrawalId, { rejection_reason: reason });
+    const response = await AdminWithdrawalsService.rejectWithdrawal(withdrawalId, { rejection_reason: reason });
     return response;
   } catch (error: any) {
     console.error('Error rejecting withdrawal:', error);
@@ -233,7 +242,7 @@ export const rejectWithdrawal = async (withdrawalId: string, reason: string) => 
  */
 export const completeWithdrawal = async (withdrawalId: string, transactionId: string) => {
   try {
-    const response = await AdminService.completeWithdrawal(withdrawalId, { transaction_id: transactionId });
+    const response = await AdminWithdrawalsService.completeWithdrawal(withdrawalId, { transaction_id: transactionId });
     return response;
   } catch (error: any) {
     console.error('Error completing withdrawal:', error);
@@ -250,7 +259,7 @@ export const completeWithdrawal = async (withdrawalId: string, transactionId: st
  */
 export const getPlatformAnalytics = async (period: string = '30d') => {
   try {
-    const response = await AdminService.getAnalytics({ period });
+    const response = await AdminAnalyticsService.getAnalytics({ period });
     return response;
   } catch (error: any) {
     console.error('Error fetching analytics:', error);
@@ -263,7 +272,7 @@ export const getPlatformAnalytics = async (period: string = '30d') => {
  */
 export const getRevenueReport = async (startDate?: string, endDate?: string) => {
   try {
-    const response = await AdminService.getRevenueReport({ start_date: startDate, end_date: endDate });
+    const response = await AdminAnalyticsService.getRevenueReport({ start_date: startDate, end_date: endDate });
     return response;
   } catch (error: any) {
     console.error('Error fetching revenue report:', error);

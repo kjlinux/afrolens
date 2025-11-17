@@ -166,13 +166,6 @@ const Analytics = () => {
         },
         hourlyDistribution: generateHourlyData(),
       };
-
-      setAnalytics(mockAnalytics);
-    } catch (error) {
-      console.error('Erreur lors du chargement des analytics:', error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   // Generate time series data based on period
