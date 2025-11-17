@@ -221,6 +221,34 @@ export const changePassword = async (
   throw new Error('Fonctionnalité non disponible pour le moment');
 };
 
+/**
+ * Récupérer les capacités (abilities) de l'utilisateur connecté
+ * Appelle l'endpoint /api/auth/abilities pour obtenir roles, permissions, et statuts
+ * @returns Promise<any>
+ */
+export const fetchAbilities = async (): Promise<any> => {
+  try {
+    const response = await AuthenticationService.abilities();
+
+    if (response.success && response.data) {
+      // Mettre à jour les données utilisateur dans le localStorage avec les nouvelles capacités
+      const currentUser = getCurrentUser();
+      const updatedUser = {
+        ...currentUser,
+        ...response.data,
+      };
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+
+      return response.data;
+    }
+
+    throw new Error('Impossible de récupérer les capacités utilisateur');
+  } catch (error: any) {
+    console.error('Erreur lors de la récupération des capacités:', error);
+    throw new Error(error.body?.message || 'Erreur lors de la récupération des capacités');
+  }
+};
+
 export default {
   login,
   register,
@@ -232,4 +260,5 @@ export default {
   forgotPassword,
   resetPassword,
   changePassword,
+  fetchAbilities,
 };

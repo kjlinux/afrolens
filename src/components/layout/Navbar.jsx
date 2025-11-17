@@ -2,14 +2,27 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings, FiMenu, FiX, FiSearch } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings, FiMenu, FiX, FiSearch, FiAlertCircle } from 'react-icons/fi';
+import { PERMISSIONS, PHOTOGRAPHER_STATUS } from '../../utils/permissions';
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    logout,
+    hasRole,
+    hasPermission,
+    isApprovedPhotographer,
+    getPhotographerStatus
+  } = useAuth();
   const { getItemCount } = useCart();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // Get photographer status for badge display
+  const photographerStatus = getPhotographerStatus();
+  const canAccessPhotographerDashboard = hasRole('photographer') && isApprovedPhotographer();
 
   const handleLogout = async () => {
     await logout();
@@ -84,16 +97,46 @@ export default function Navbar() {
                         <FiUser className="mr-2" /> Profil
                       </Link>
 
-                      {user.account_type === 'photographer' && (
-                        <Link
-                          to="/photographer/dashboard"
-                          className="flex items-center px-4 py-2 hover:bg-gray-100"
-                        >
-                          <FiCamera className="mr-2" /> Dashboard
-                        </Link>
+                      {/* Photographer Dashboard - Only if approved */}
+                      {hasRole('photographer') && (
+                        <>
+                          {canAccessPhotographerDashboard ? (
+                            <Link
+                              to="/photographer/dashboard"
+                              className="flex items-center px-4 py-2 hover:bg-gray-100"
+                            >
+                              <FiCamera className="mr-2" /> Dashboard
+                              <span className="ml-auto text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                                Approuvé
+                              </span>
+                            </Link>
+                          ) : (
+                            <Link
+                              to={
+                                photographerStatus === PHOTOGRAPHER_STATUS.PENDING
+                                  ? '/photographer/pending'
+                                  : photographerStatus === PHOTOGRAPHER_STATUS.REJECTED
+                                  ? '/photographer/rejected'
+                                  : photographerStatus === PHOTOGRAPHER_STATUS.SUSPENDED
+                                  ? '/photographer/suspended'
+                                  : '/photographer/pending'
+                              }
+                              className="flex items-center px-4 py-2 hover:bg-gray-100"
+                            >
+                              <FiAlertCircle className="mr-2 text-yellow-600" />
+                              <span>Dashboard</span>
+                              <span className="ml-auto text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                                {photographerStatus === PHOTOGRAPHER_STATUS.PENDING && 'En attente'}
+                                {photographerStatus === PHOTOGRAPHER_STATUS.REJECTED && 'Refusé'}
+                                {photographerStatus === PHOTOGRAPHER_STATUS.SUSPENDED && 'Suspendu'}
+                              </span>
+                            </Link>
+                          )}
+                        </>
                       )}
 
-                      {user.account_type === 'admin' && (
+                      {/* Admin Dashboard - Permission based */}
+                      {hasPermission(PERMISSIONS.VIEW_DASHBOARD) && (
                         <Link
                           to="/admin/dashboard"
                           className="flex items-center px-4 py-2 hover:bg-gray-100"
@@ -200,20 +243,49 @@ export default function Navbar() {
                   Profil
                 </Link>
 
-                {/* Photographer Dashboard */}
-                {user.account_type === 'photographer' && (
-                  <Link
-                    to="/photographer/dashboard"
-                    className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
-                    onClick={closeMobileMenu}
-                  >
-                    <FiCamera className="w-5 h-5 mr-3" />
-                    Dashboard Photographe
-                  </Link>
+                {/* Photographer Dashboard - Only if photographer role */}
+                {hasRole('photographer') && (
+                  <>
+                    {canAccessPhotographerDashboard ? (
+                      <Link
+                        to="/photographer/dashboard"
+                        className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
+                        onClick={closeMobileMenu}
+                      >
+                        <FiCamera className="w-5 h-5 mr-3" />
+                        <span className="flex-1">Dashboard Photographe</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                          Approuvé
+                        </span>
+                      </Link>
+                    ) : (
+                      <Link
+                        to={
+                          photographerStatus === PHOTOGRAPHER_STATUS.PENDING
+                            ? '/photographer/pending'
+                            : photographerStatus === PHOTOGRAPHER_STATUS.REJECTED
+                            ? '/photographer/rejected'
+                            : photographerStatus === PHOTOGRAPHER_STATUS.SUSPENDED
+                            ? '/photographer/suspended'
+                            : '/photographer/pending'
+                        }
+                        className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
+                        onClick={closeMobileMenu}
+                      >
+                        <FiAlertCircle className="w-5 h-5 mr-3 text-yellow-600" />
+                        <span className="flex-1">Dashboard Photographe</span>
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                          {photographerStatus === PHOTOGRAPHER_STATUS.PENDING && 'En attente'}
+                          {photographerStatus === PHOTOGRAPHER_STATUS.REJECTED && 'Refusé'}
+                          {photographerStatus === PHOTOGRAPHER_STATUS.SUSPENDED && 'Suspendu'}
+                        </span>
+                      </Link>
+                    )}
+                  </>
                 )}
 
-                {/* Admin Dashboard */}
-                {user.account_type === 'admin' && (
+                {/* Admin Dashboard - Permission based */}
+                {hasPermission(PERMISSIONS.VIEW_DASHBOARD) && (
                   <Link
                     to="/admin/dashboard"
                     className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"

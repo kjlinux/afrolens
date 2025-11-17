@@ -2,12 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreVertical, Ban, Trash2, UserCheck, Camera, ShoppingCart, Eye, Mail, MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
 import { getUsers, deleteUser, toggleUserBan, updateUser } from '../../services/adminService';
 import { formatDate, formatNumber } from '../../utils/helpers';
+import { PERMISSIONS } from '../../utils/permissions';
+import { Can } from '../../components/auth';
+import { usePermission } from '../../hooks/usePermission';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 
 export default function Users() {
+  // Permission checks
+  const canViewUsers = usePermission(PERMISSIONS.VIEW_USERS);
+  const canEditUsers = usePermission(PERMISSIONS.EDIT_USERS);
+  const canSuspendUsers = usePermission(PERMISSIONS.SUSPEND_USERS);
+  const canDeleteUsers = usePermission(PERMISSIONS.DELETE_USERS);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -251,25 +259,30 @@ export default function Users() {
 
           {/* Actions */}
           <div className="flex gap-3 pt-6 border-t">
-            <Button
-              onClick={() => handleBanUser(user)}
-              variant={user.is_active !== false ? 'warning' : 'success'}
-              fullWidth
-            >
-              <Ban className="w-4 h-4 mr-2" />
-              {user.is_active !== false ? 'Bannir' : 'Débannir'}
-            </Button>
-            <Button
-              onClick={() => {
-                onClose();
-                handleDeleteClick(user);
-              }}
-              variant="danger"
-              fullWidth
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Supprimer
-            </Button>
+            <Can permission={PERMISSIONS.SUSPEND_USERS}>
+              <Button
+                onClick={() => handleBanUser(user)}
+                variant={user.is_active !== false ? 'warning' : 'success'}
+                fullWidth
+              >
+                <Ban className="w-4 h-4 mr-2" />
+                {user.is_active !== false ? 'Bannir' : 'Débannir'}
+              </Button>
+            </Can>
+
+            <Can permission={PERMISSIONS.DELETE_USERS}>
+              <Button
+                onClick={() => {
+                  onClose();
+                  handleDeleteClick(user);
+                }}
+                variant="danger"
+                fullWidth
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </Button>
+            </Can>
           </div>
         </div>
       </Modal>

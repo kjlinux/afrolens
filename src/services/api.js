@@ -34,20 +34,72 @@ api.interceptors.response.use(
   (error) => {
     // Gestion des erreurs
     if (error.response) {
-      // Erreur de réponse du serveur
-      if (error.response.status === 401) {
-        // Non autorisé - déconnecter l'utilisateur
+      const { status, data } = error.response;
+
+      // 401 - Non autorisé (token invalide ou expiré)
+      if (status === 401) {
+        // Déconnecter l'utilisateur
         localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-        window.location.href = '/login';
+        localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
+
+        // Rediriger vers login si pas déjà sur la page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+
+      // 403 - Accès interdit (permissions insuffisantes ou statut photographe)
+      if (status === 403) {
+        // Vérifier si l'erreur contient des informations sur le statut photographe
+        if (data && data.photographer_status) {
+          const photographerStatus = data.photographer_status;
+
+          // Rediriger vers la page de statut appropriée
+          switch (photographerStatus) {
+            case 'pending':
+              window.location.href = '/photographer/pending';
+              break;
+            case 'rejected':
+              window.location.href = '/photographer/rejected';
+              break;
+            case 'suspended':
+              window.location.href = '/photographer/suspended';
+              break;
+            default:
+              window.location.href = '/forbidden';
+          }
+        } else {
+          // Erreur 403 générique - permissions insuffisantes
+          if (!window.location.pathname.includes('/forbidden')) {
+            window.location.href = '/forbidden';
+          }
+        }
+      }
+
+      // 404 - Ressource non trouvée
+      if (status === 404) {
+        console.error('Ressource non trouvée:', error.config.url);
+      }
+
+      // 422 - Erreur de validation
+      if (status === 422) {
+        console.error('Erreur de validation:', data.errors || data.message);
+      }
+
+      // 500 - Erreur serveur
+      if (status >= 500) {
+        console.error('Erreur serveur:', data.message || 'Une erreur inattendue est survenue');
       }
     } else if (error.request) {
-      // Erreur de requête (pas de réponse)
-      console.error('Erreur réseau:', error.request);
+      // Erreur de requête (pas de réponse du serveur)
+      console.error('Erreur réseau: Impossible de contacter le serveur');
+      console.error('Détails:', error.request);
     } else {
       // Erreur lors de la configuration de la requête
-      console.error('Erreur:', error.message);
+      console.error('Erreur de configuration:', error.message);
     }
+
     return Promise.reject(error);
   }
 );

@@ -5,14 +5,16 @@ import { useNavigate } from 'react-router-dom';
 import { uploadPhoto } from '../../services/photographerService';
 import { categories, getMainCategories, getSubCategories } from '../../data/mockData';
 import { CONFIG, LICENSE_TYPES } from '../../utils/constants';
+import { PERMISSIONS } from '../../utils/permissions';
 import { formatFileSize } from '../../utils/helpers';
+import { PhotographerGuard } from '../../components/auth';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 
 export default function Upload() {
-  const { user } = useAuth();
+  const { user, hasPermission, canUploadPhotos } = useAuth();
   const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -200,14 +202,15 @@ export default function Upload() {
   const currentFile = files[currentFileIndex];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-      {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Uploader des Photos</h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          Ajoutez vos photos à la plateforme POUIRE
-        </p>
-      </div>
+    <PhotographerGuard>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">Uploader des Photos</h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Ajoutez vos photos à la plateforme POUIRE
+          </p>
+        </div>
 
       {/* Message */}
       {message && (
@@ -570,6 +573,7 @@ export default function Upload() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </PhotographerGuard>
   );
 }

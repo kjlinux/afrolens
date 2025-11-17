@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/common/Toast';
+import { PHOTOGRAPHER_STATUS } from './utils/permissions';
 
 // Layouts
 import Navbar from './components/layout/Navbar';
@@ -21,6 +22,7 @@ import Contact from './pages/Contact';
 import Terms from './pages/Terms';
 import Photographers from './pages/Photographers';
 import Categories from './pages/Categories';
+import Forbidden from './pages/Forbidden';
 
 // Pages utilisateur
 import Profile from './pages/user/Profile';
@@ -36,6 +38,9 @@ import PhotographerUpload from './pages/photographer/Upload';
 import PhotographerRevenue from './pages/photographer/Revenue';
 import PhotographerAnalytics from './pages/photographer/Analytics';
 import PublicProfile from './pages/photographer/PublicProfile';
+import PendingApproval from './pages/photographer/PendingApproval';
+import RejectedStatus from './pages/photographer/RejectedStatus';
+import SuspendedAccount from './pages/photographer/SuspendedAccount';
 
 // Pages admin
 import AdminDashboard from './pages/admin/Dashboard';
@@ -44,9 +49,22 @@ import AdminModeration from './pages/admin/Moderation';
 import AdminPhotographersPending from './pages/admin/PhotographersPending';
 import AdminWithdrawals from './pages/admin/Withdrawals';
 
-// Component pour routes protégées
-const ProtectedRoute = ({ children, requiredRole }) => {
-  const { user, isAuthenticated, loading } = useAuth();
+// Component pour routes protégées (amélioré avec support permissions et statut photographe)
+const ProtectedRoute = ({
+  children,
+  requiredRole,
+  requirePermission,
+  requireApproval = false
+}) => {
+  const {
+    user,
+    isAuthenticated,
+    loading,
+    hasRole,
+    hasPermission,
+    isApprovedPhotographer,
+    getPhotographerStatus
+  } = useAuth();
 
   if (loading) {
     return (
@@ -56,12 +74,40 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     );
   }
 
+  // Not authenticated - redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user?.account_type !== requiredRole) {
-    return <Navigate to="/" replace />;
+  // Check role requirement
+  if (requiredRole && !hasRole(requiredRole)) {
+    return <Navigate to="/forbidden" replace />;
+  }
+
+  // Check permission requirement
+  if (requirePermission && !hasPermission(requirePermission)) {
+    return <Navigate to="/forbidden" replace />;
+  }
+
+  // Check photographer approval requirement
+  if (requireApproval && hasRole('photographer')) {
+    const status = getPhotographerStatus();
+
+    if (status === PHOTOGRAPHER_STATUS.PENDING) {
+      return <Navigate to="/photographer/pending" replace />;
+    }
+
+    if (status === PHOTOGRAPHER_STATUS.REJECTED) {
+      return <Navigate to="/photographer/rejected" replace />;
+    }
+
+    if (status === PHOTOGRAPHER_STATUS.SUSPENDED) {
+      return <Navigate to="/photographer/suspended" replace />;
+    }
+
+    if (!isApprovedPhotographer()) {
+      return <Navigate to="/photographer/pending" replace />;
+    }
   }
 
   return children;
@@ -87,6 +133,7 @@ function AppContent() {
           <Route path="/photographers" element={<Photographers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/photographer/:photographerId" element={<PublicProfile />} />
+          <Route path="/forbidden" element={<Forbidden />} />
 
           {/* Routes utilisateur (buyer/photographer) */}
           <Route
@@ -130,11 +177,37 @@ function AppContent() {
             }
           />
 
-          {/* Routes photographe */}
+          {/* Routes photographe - Status pages (no approval required) */}
+          <Route
+            path="/photographer/pending"
+            element={
+              <ProtectedRoute requiredRole="photographer">
+                <PendingApproval />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/photographer/rejected"
+            element={
+              <ProtectedRoute requiredRole="photographer">
+                <RejectedStatus />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/photographer/suspended"
+            element={
+              <ProtectedRoute requiredRole="photographer">
+                <SuspendedAccount />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Routes photographe - Require approval */}
           <Route
             path="/photographer/dashboard"
             element={
-              <ProtectedRoute requiredRole="photographer">
+              <ProtectedRoute requiredRole="photographer" requireApproval={true}>
                 <PhotographerDashboard />
               </ProtectedRoute>
             }
@@ -142,7 +215,7 @@ function AppContent() {
           <Route
             path="/photographer/photos"
             element={
-              <ProtectedRoute requiredRole="photographer">
+              <ProtectedRoute requiredRole="photographer" requireApproval={true}>
                 <PhotographerPhotos />
               </ProtectedRoute>
             }
@@ -150,7 +223,7 @@ function AppContent() {
           <Route
             path="/photographer/upload"
             element={
-              <ProtectedRoute requiredRole="photographer">
+              <ProtectedRoute requiredRole="photographer" requireApproval={true}>
                 <PhotographerUpload />
               </ProtectedRoute>
             }
@@ -158,7 +231,7 @@ function AppContent() {
           <Route
             path="/photographer/revenue"
             element={
-              <ProtectedRoute requiredRole="photographer">
+              <ProtectedRoute requiredRole="photographer" requireApproval={true}>
                 <PhotographerRevenue />
               </ProtectedRoute>
             }
@@ -166,7 +239,7 @@ function AppContent() {
           <Route
             path="/photographer/analytics"
             element={
-              <ProtectedRoute requiredRole="photographer">
+              <ProtectedRoute requiredRole="photographer" requireApproval={true}>
                 <PhotographerAnalytics />
               </ProtectedRoute>
             }

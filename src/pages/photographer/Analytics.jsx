@@ -31,6 +31,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { photographerService } from '../../services/api';
 import { formatPrice, formatNumber } from '../../utils/helpers';
+import { PhotographerGuard } from '../../components/auth';
 
 // Period filter options
 const PERIODS = [
@@ -225,12 +226,13 @@ const Analytics = () => {
   const { overview, topPhotos, categoryPerformance, revenueByCategory, audienceInsights } = analytics;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-          <p className="text-gray-600 mt-1">Analysez les performances de vos photos</p>
+    <PhotographerGuard>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
+            <p className="text-gray-600 mt-1">Analysez les performances de vos photos</p>
         </div>
 
         {/* Period Filter */}
@@ -570,7 +572,8 @@ const Analytics = () => {
           </table>
         </div>
       </div>
-    </div>
+      </div>
+    </PhotographerGuard>
   );
 };
 

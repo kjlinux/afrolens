@@ -4,6 +4,8 @@ import { Users, Image, DollarSign, Clock, TrendingUp, AlertCircle, ShoppingCart,
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { getDashboardStats } from '../../services/adminService';
 import { formatPrice, formatNumber, formatDate } from '../../utils/helpers';
+import { PERMISSIONS } from '../../utils/permissions';
+import { Can } from '../../components/auth';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';

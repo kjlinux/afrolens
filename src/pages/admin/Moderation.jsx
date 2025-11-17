@@ -3,12 +3,21 @@ import { Check, X, Eye, User, Calendar, Tag, AlertCircle, Filter, Clock, MapPin 
 import { getPendingPhotos, approvePhoto, rejectPhoto, deletePhoto } from '../../services/adminService';
 import { formatDate, formatPrice } from '../../utils/helpers';
 import { PHOTO_STATUS } from '../../utils/constants';
+import { PERMISSIONS } from '../../utils/permissions';
+import { Can } from '../../components/auth';
+import { usePermission } from '../../hooks/usePermission';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 
 export default function Moderation() {
+  // Permissions checks
+  const canModerate = usePermission(PERMISSIONS.MODERATE_PHOTOS);
+  const canApprove = usePermission(PERMISSIONS.APPROVE_PHOTOS);
+  const canReject = usePermission(PERMISSIONS.REJECT_PHOTOS);
+  const canDelete = usePermission(PERMISSIONS.DELETE_ANY_PHOTO);
+
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -268,22 +277,27 @@ export default function Moderation() {
           {/* Actions */}
           {photo.status === PHOTO_STATUS.PENDING && (
             <div className="flex gap-3">
-              <Button
-                onClick={() => handleApprove(photo.id)}
-                variant="success"
-                fullWidth
-              >
-                <Check className="w-5 h-5 mr-2" />
-                Approuver
-              </Button>
-              <Button
-                onClick={() => handleRejectClick(photo)}
-                variant="danger"
-                fullWidth
-              >
-                <X className="w-5 h-5 mr-2" />
-                Rejeter
-              </Button>
+              <Can permission={PERMISSIONS.APPROVE_PHOTOS}>
+                <Button
+                  onClick={() => handleApprove(photo.id)}
+                  variant="success"
+                  fullWidth
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  Approuver
+                </Button>
+              </Can>
+
+              <Can permission={PERMISSIONS.REJECT_PHOTOS}>
+                <Button
+                  onClick={() => handleRejectClick(photo)}
+                  variant="danger"
+                  fullWidth
+                >
+                  <X className="w-5 h-5 mr-2" />
+                  Rejeter
+                </Button>
+              </Can>
             </div>
           )}
         </div>
@@ -412,22 +426,27 @@ export default function Moderation() {
                       </Button>
                       {photo.status === PHOTO_STATUS.PENDING && (
                         <>
-                          <Button
-                            onClick={() => handleApprove(photo.id)}
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white px-3"
-                            title="Approuver"
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            onClick={() => handleRejectClick(photo)}
-                            size="sm"
-                            className="bg-red-600 hover:bg-red-700 text-white px-3"
-                            title="Rejeter"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
+                          <Can permission={PERMISSIONS.APPROVE_PHOTOS}>
+                            <Button
+                              onClick={() => handleApprove(photo.id)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white px-3"
+                              title="Approuver"
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                          </Can>
+
+                          <Can permission={PERMISSIONS.REJECT_PHOTOS}>
+                            <Button
+                              onClick={() => handleRejectClick(photo)}
+                              size="sm"
+                              className="bg-red-600 hover:bg-red-700 text-white px-3"
+                              title="Rejeter"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </Can>
                         </>
                       )}
                     </div>
