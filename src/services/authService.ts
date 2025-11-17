@@ -249,7 +249,8 @@ export const fetchAbilities = async (): Promise<any> => {
   }
 };
 
-export default {
+// Export par défaut pour la compatibilité
+const authService = {
   login,
   register,
   logout,
@@ -262,3 +263,5 @@ export default {
   changePassword,
   fetchAbilities,
 };
+
+export default authService;
