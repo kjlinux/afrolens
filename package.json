@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext js,jsx"
+    "lint": "eslint src --ext js,jsx",
+    "generate:api": "openapi --input ../pourier-back/storage/api-docs/api-docs.json --output ./src/api --client axios"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.16",

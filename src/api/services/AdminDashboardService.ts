@@ -12,7 +12,7 @@ export class AdminDashboardService {
      * @returns any Dashboard statistics retrieved successfully
      * @throws ApiError
      */
-    public static f6E3Ffeb3C9Fb988Ca2A77Ad48E2C04C(): CancelablePromise<{
+    public static getAdminDashboard(): CancelablePromise<{
         success?: boolean;
         data?: {
             users?: {

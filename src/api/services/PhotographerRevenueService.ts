@@ -12,7 +12,7 @@ export class PhotographerRevenueService {
      * @returns any Revenue records retrieved successfully
      * @throws ApiError
      */
-    public static bd3F03689B56Aab703Ed9342A2F4Be6(): CancelablePromise<{
+    public static getPhotographerRevenue(): CancelablePromise<{
         success?: boolean;
         data?: {
             data?: Array<{
@@ -56,7 +56,7 @@ export class PhotographerRevenueService {
      * @returns any Available balance retrieved successfully
      * @throws ApiError
      */
-    public static c25F98A4Da9C9E158526A0F3C31Ab9(): CancelablePromise<{
+    public static getPhotographerRevenueAvailable(): CancelablePromise<{
         success?: boolean;
         data?: {
             /**
@@ -79,7 +79,7 @@ export class PhotographerRevenueService {
      * @returns any Pending revenue retrieved successfully
      * @throws ApiError
      */
-    public static b16Db1C03Af07E4E7140Ee1A05F173(): CancelablePromise<{
+    public static getPhotographerRevenuePending(): CancelablePromise<{
         success?: boolean;
         data?: Array<{
             id?: string;
@@ -114,7 +114,7 @@ export class PhotographerRevenueService {
      * @returns any Revenue history retrieved successfully
      * @throws ApiError
      */
-    public static a10Dbaf5C1Bd533C259E1C969C98509E(): CancelablePromise<{
+    public static getPhotographerRevenueHistory(): CancelablePromise<{
         success?: boolean;
         data?: {
             data?: Array<{

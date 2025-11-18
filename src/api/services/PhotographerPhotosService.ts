@@ -16,7 +16,7 @@ export class PhotographerPhotosService {
      * @returns any Photos retrieved successfully
      * @throws ApiError
      */
-    public static a43C817414560A7Bdf05Afba7963Ac(
+    public static getPhotographerPhotos(
         perPage: number = 20,
     ): CancelablePromise<{
         data?: Array<Photo>;
@@ -41,7 +41,7 @@ export class PhotographerPhotosService {
      * @returns any Photos uploaded successfully and processing started
      * @throws ApiError
      */
-    public static cd28B0E25Ab4Dfee84C3Ebe79056B918(
+    public static storePhotographerPhotos(
         formData: {
             /**
              * One or more photo files to upload
@@ -99,7 +99,7 @@ export class PhotographerPhotosService {
      * @returns Photo Photo details retrieved successfully
      * @throws ApiError
      */
-    public static e4C354Bd5A1Bcd911D275D7Ab89Dfa92(
+    public static getPhotographerPhoto(
         photo: string,
     ): CancelablePromise<Photo> {
         return __request(OpenAPI, {
@@ -123,7 +123,7 @@ export class PhotographerPhotosService {
      * @returns any Photo updated successfully
      * @throws ApiError
      */
-    public static c9D833Ee1174Defaf3Bcac859Eac370B(
+    public static updatePhotographerPhotos(
         photo: string,
         requestBody: {
             title?: string;
@@ -172,7 +172,7 @@ export class PhotographerPhotosService {
      * @returns any Photo deleted successfully
      * @throws ApiError
      */
-    public static dcc95E82Bb0D61F647375B504Dc9Fa95(
+    public static deletePhotographerPhotos(
         photo: string,
     ): CancelablePromise<{
         success?: boolean;

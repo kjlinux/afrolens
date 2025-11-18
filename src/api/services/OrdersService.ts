@@ -16,7 +16,7 @@ export class OrdersService {
      * @returns any Orders retrieved successfully
      * @throws ApiError
      */
-    public static bb77A45Ae173A485Fadb8Befed93F(
+    public static getOrders(
         perPage: number = 20,
     ): CancelablePromise<{
         data?: Array<Order>;
@@ -41,7 +41,7 @@ export class OrdersService {
      * @returns any Order created successfully
      * @throws ApiError
      */
-    public static ba58Dadb22Bd6F2C8081Af562230(
+    public static storeOrders(
         requestBody: {
             items: Array<{
                 photo_id?: string;
@@ -96,7 +96,7 @@ export class OrdersService {
      * @returns Order Order details retrieved successfully
      * @throws ApiError
      */
-    public static ac185Cc1Bf301D8862617E497098(
+    public static getOrder(
         order: string,
     ): CancelablePromise<Order> {
         return __request(OpenAPI, {
@@ -120,7 +120,7 @@ export class OrdersService {
      * @returns any Payment initiated successfully
      * @throws ApiError
      */
-    public static e0A9E0Db3E62Bbf57Ea9E2F7C32(
+    public static payOrders(
         order: string,
         requestBody: {
             /**
@@ -172,7 +172,7 @@ export class OrdersService {
      * @returns any Payment status retrieved successfully
      * @throws ApiError
      */
-    public static e232D86Eae57979494D5Ab5Af016C9(
+    public static getOrdersStatus(
         order: string,
     ): CancelablePromise<{
         success?: boolean;

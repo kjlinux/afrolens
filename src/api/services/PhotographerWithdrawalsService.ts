@@ -12,7 +12,7 @@ export class PhotographerWithdrawalsService {
      * @returns any Withdrawal requests retrieved successfully
      * @throws ApiError
      */
-    public static f38E6C8B25031766666792874007A4F8(): CancelablePromise<{
+    public static getPhotographerWithdrawals(): CancelablePromise<{
         success?: boolean;
         data?: {
             data?: Array<{
@@ -48,7 +48,7 @@ export class PhotographerWithdrawalsService {
      * @returns any Withdrawal request created successfully
      * @throws ApiError
      */
-    public static c1Bbe4Eab25230Fecc17373F83F6E109(
+    public static storePhotographerWithdrawals(
         requestBody: {
             /**
              * Withdrawal amount in FCFA (minimum: 10,000)
@@ -91,7 +91,7 @@ export class PhotographerWithdrawalsService {
      * @returns any Withdrawal details retrieved successfully
      * @throws ApiError
      */
-    public static bd04836C1Fbf54D5C678D35C2B258296(
+    public static getPhotographerWithdrawal(
         withdrawal: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -127,7 +127,7 @@ export class PhotographerWithdrawalsService {
      * @returns any Withdrawal request cancelled successfully
      * @throws ApiError
      */
-    public static d854Fccd76C827379C744C2F5E35A6A(
+    public static deletePhotographerWithdrawals(
         withdrawal: string,
     ): CancelablePromise<{
         success?: boolean;

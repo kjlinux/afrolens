@@ -13,7 +13,7 @@ export class DownloadsService {
      * @returns binary Photo file download (streamed)
      * @throws ApiError
      */
-    public static fb36046A91Fbcb13Ee86055Ea3Ff012C(
+    public static getDownloadsPhoto(
         photo: string,
     ): CancelablePromise<Blob> {
         return __request(OpenAPI, {
@@ -36,7 +36,7 @@ export class DownloadsService {
      * @returns binary ZIP file download (streamed)
      * @throws ApiError
      */
-    public static e4140B1D9C865E376F28Cd1544D4C8E2(
+    public static getDownloadsOrder(
         order: string,
     ): CancelablePromise<Blob> {
         return __request(OpenAPI, {
@@ -60,7 +60,7 @@ export class DownloadsService {
      * @returns binary PDF invoice download
      * @throws ApiError
      */
-    public static dac631C9621Ed5983Fc7D1Ef6Be19D86(
+    public static getDownloadsInvoice(
         order: string,
     ): CancelablePromise<Blob> {
         return __request(OpenAPI, {
@@ -83,7 +83,7 @@ export class DownloadsService {
      * @returns binary Watermarked preview image download
      * @throws ApiError
      */
-    public static adfaff54Ee48B5C1E40Daa66651339(
+    public static getDownloadsPreview(
         photo: string,
     ): CancelablePromise<Blob> {
         return __request(OpenAPI, {

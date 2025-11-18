@@ -13,7 +13,7 @@ export class WebhooksService {
      * @returns any Webhook processed successfully
      * @throws ApiError
      */
-    public static f9F20C5Bba5306E0Cb977F9Fdaf966(
+    public static storeWebhooksCinetpay(
         requestBody: {
             /**
              * CinetPay transaction ID
@@ -61,7 +61,7 @@ export class WebhooksService {
      * @returns void
      * @throws ApiError
      */
-    public static c814Cac6Aa142F6Bc1992D112584F2E(
+    public static getWebhooksCinetpayReturn(
         order: string,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {

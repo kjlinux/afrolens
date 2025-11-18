@@ -13,7 +13,7 @@ export class NotificationsService {
      * @returns any Notifications retrieved successfully
      * @throws ApiError
      */
-    public static ee6A891D459Ba2173E2A9Aeec8F2(
+    public static getUserNotifications(
         page: number = 1,
     ): CancelablePromise<{
         success?: boolean;
@@ -51,7 +51,7 @@ export class NotificationsService {
      * @returns any Unread notifications retrieved successfully
      * @throws ApiError
      */
-    public static d34B6B678E744E1169D84Ac475E63Cd8(): CancelablePromise<{
+    public static getUserNotificationsUnread(): CancelablePromise<{
         success?: boolean;
         data?: Array<{
             id?: string;
@@ -79,7 +79,7 @@ export class NotificationsService {
      * @returns any Notification marked as read successfully
      * @throws ApiError
      */
-    public static b3C173F2963Bc54D9D0A541Dfd33C(
+    public static updateUserNotificationsRead(
         notification: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -104,7 +104,7 @@ export class NotificationsService {
      * @returns any All notifications marked as read successfully
      * @throws ApiError
      */
-    public static ab4F4C7283D29454F4716C40348Fcf6(): CancelablePromise<{
+    public static readAllUserNotifications(): CancelablePromise<{
         success?: boolean;
         message?: string;
     }> {
@@ -123,7 +123,7 @@ export class NotificationsService {
      * @returns any Notification deleted successfully
      * @throws ApiError
      */
-    public static b986B490223C6B35Ac535Ba8Cd3C2(
+    public static deleteUserNotifications(
         notification: string,
     ): CancelablePromise<{
         success?: boolean;

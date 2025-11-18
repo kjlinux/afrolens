@@ -17,7 +17,9 @@ export const CartProvider = ({ children }) => {
       // Le nouveau service retourne un objet CartData avec items, subtotal, etc.
       setCart(cartData.items || []);
     } catch (error) {
-      console.error('Erreur chargement panier:', error);
+      console.error('Erreur lors de la récupération du panier:', error);
+      // En cas d'erreur, définir un panier vide
+      setCart([]);
     } finally {
       setLoading(false);
     }
@@ -31,24 +33,15 @@ export const CartProvider = ({ children }) => {
   };
 
   const removeFromCart = async (itemId) => {
-    // Le nouveau service attend un index (number), pas un itemId
-    // Trouver l'index de l'item
-    const index = cart.findIndex((item) => item.id === itemId || item.photo_id === itemId);
-    if (index === -1) {
-      throw new Error('Item non trouvé dans le panier');
-    }
-    const cartData = await cartService.removeFromCart(index);
+    // Le service attend un UUID de l'item
+    const cartData = await cartService.removeFromCart(itemId);
     setCart(cartData.items || []);
     return cartData.items || [];
   };
 
   const updateCartItem = async (itemId, updates) => {
-    // Le nouveau service attend un index (number) et un objet avec license_type
-    const index = cart.findIndex((item) => item.id === itemId || item.photo_id === itemId);
-    if (index === -1) {
-      throw new Error('Item non trouvé dans le panier');
-    }
-    const cartData = await cartService.updateCartItem(index, updates.license_type || updates.licenseType);
+    // Le service attend un UUID de l'item et le nouveau license_type
+    const cartData = await cartService.updateCartItem(itemId, updates.license_type || updates.licenseType);
     setCart(cartData.items || []);
     return cartData.items || [];
   };

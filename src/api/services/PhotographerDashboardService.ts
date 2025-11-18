@@ -12,7 +12,7 @@ export class PhotographerDashboardService {
      * @returns any Dashboard data retrieved successfully
      * @throws ApiError
      */
-    public static ca3Be02D9Ba17Cae694A7B0F111575B(): CancelablePromise<{
+    public static getPhotographerDashboard(): CancelablePromise<{
         success?: boolean;
         data?: {
             photos?: {
@@ -93,7 +93,7 @@ export class PhotographerDashboardService {
      * @returns any Profile statistics retrieved successfully
      * @throws ApiError
      */
-    public static d5D3E0A9F0786Deea0729B7530Daff(): CancelablePromise<{
+    public static getPhotographerDashboardStats(): CancelablePromise<{
         success?: boolean;
         data?: {
             /**

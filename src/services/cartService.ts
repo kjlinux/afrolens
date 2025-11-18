@@ -30,7 +30,7 @@ export interface CartData {
  */
 export const getCart = async (): Promise<CartData> => {
   try {
-    const response = await CartService.fdb9B40Bd4Ad2Baf12Aa15164Eab788();
+    const response = await CartService.getCart();
 
     if (response.success && response.data) {
       return {
@@ -70,7 +70,7 @@ export const addToCart = async (
   licenseType: 'standard' | 'extended' = 'standard'
 ): Promise<CartData> => {
   try {
-    const response = await CartService.c1Ea70Dfbb034F059570D0Ab4A0({
+    const response = await CartService.addCartItem({
       photo_id: photoId,
       license_type: licenseType,
     });
@@ -93,16 +93,16 @@ export const addToCart = async (
 
 /**
  * Mettre à jour un item du panier
- * @param index - Index de l'item dans le panier
+ * @param itemId - UUID de l'item dans le panier
  * @param licenseType - Nouveau type de licence
  * @returns Promise<CartData>
  */
 export const updateCartItem = async (
-  index: number,
+  itemId: string,
   licenseType: 'standard' | 'extended'
 ): Promise<CartData> => {
   try {
-    const response = await CartService.dbda638A0Efc2D64E70Dfd4F01F6979(index, {
+    const response = await CartService.updateCartItem(itemId, {
       license_type: licenseType,
     });
 
@@ -124,12 +124,12 @@ export const updateCartItem = async (
 
 /**
  * Retirer un item du panier
- * @param index - Index de l'item dans le panier
+ * @param itemId - UUID de l'item dans le panier
  * @returns Promise<CartData>
  */
-export const removeFromCart = async (index: number): Promise<CartData> => {
+export const removeFromCart = async (itemId: string): Promise<CartData> => {
   try {
-    const response = await CartService.eb273E1375182A67Df9E585D2222B15F(index);
+    const response = await CartService.removeCartItem(itemId);
 
     if (response.success && response.data) {
       return {
@@ -153,7 +153,7 @@ export const removeFromCart = async (index: number): Promise<CartData> => {
  */
 export const clearCart = async (): Promise<boolean> => {
   try {
-    const response = await CartService.c37760F7C1C679D2A0C391E6A666105();
+    const response = await CartService.clearCart();
     return response.success || false;
   } catch (error: any) {
     console.error('Erreur lors du vidage du panier:', error);

@@ -12,7 +12,7 @@ export class UserProfileService {
      * @returns any Profile retrieved successfully
      * @throws ApiError
      */
-    public static f982Fed939320696F49Aae69E0D6(): CancelablePromise<{
+    public static getUserProfile(): CancelablePromise<{
         success?: boolean;
         data?: {
             id?: string;
@@ -47,7 +47,7 @@ export class UserProfileService {
      * @returns any Profile updated successfully
      * @throws ApiError
      */
-    public static ed1Eeb1Dca260Eaf9823A1164A32738C(
+    public static updateUserProfile(
         requestBody: {
             /**
              * User's first name
@@ -96,7 +96,7 @@ export class UserProfileService {
      * @returns any Avatar updated successfully
      * @throws ApiError
      */
-    public static e2D2514A22B7Fd00C76D733Aba3936A2(
+    public static avatarUserProfile(
         formData: {
             /**
              * Avatar image file (JPEG, PNG, GIF, max 2MB)
@@ -125,7 +125,7 @@ export class UserProfileService {
      * @returns any Password updated successfully
      * @throws ApiError
      */
-    public static a242B9024697A504E108E26A89F2(
+    public static passwordUserProfile(
         requestBody: {
             /**
              * Current password for verification

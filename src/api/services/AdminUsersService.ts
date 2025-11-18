@@ -16,7 +16,7 @@ export class AdminUsersService {
      * @returns any Users retrieved successfully
      * @throws ApiError
      */
-    public static ded17315E13756Cd593B5840Cd39A26(
+    public static getAdminUsers(
         accountType?: 'buyer' | 'photographer' | 'admin',
         isActive?: boolean,
         search?: string,
@@ -51,7 +51,7 @@ export class AdminUsersService {
      * @returns any User details retrieved successfully
      * @throws ApiError
      */
-    public static e6Ac1393C92A407Ec78308857C0E(
+    public static getAdminUser(
         user: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -77,7 +77,7 @@ export class AdminUsersService {
      * @returns any User account deleted successfully
      * @throws ApiError
      */
-    public static b96Bca56895875C78781639320F633(
+    public static deleteAdminUser(
         user: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -103,7 +103,7 @@ export class AdminUsersService {
      * @returns any User account suspended successfully
      * @throws ApiError
      */
-    public static c42Bdb31874134C6Cdac109Fe(
+    public static suspendAdminUser(
         user: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -130,7 +130,7 @@ export class AdminUsersService {
      * @returns any User account activated successfully
      * @throws ApiError
      */
-    public static f501F5364Ae2Acb64C8B709131A923Cf(
+    public static activateAdminUser(
         user: string,
     ): CancelablePromise<{
         success?: boolean;

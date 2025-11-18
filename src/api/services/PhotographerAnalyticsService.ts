@@ -13,7 +13,7 @@ export class PhotographerAnalyticsService {
      * @returns any Sales analytics retrieved successfully
      * @throws ApiError
      */
-    public static e337Ddc1B9A906Cc43E0559D8736Bd19(
+    public static getPhotographerAnalyticsSales(
         period: '7days' | '30days' | '90days' = '30days',
     ): CancelablePromise<{
         success?: boolean;
@@ -49,7 +49,7 @@ export class PhotographerAnalyticsService {
      * @returns any Popular photos retrieved successfully
      * @throws ApiError
      */
-    public static ea198A883Cbb2Ba0Cff5503A4E621(): CancelablePromise<{
+    public static getPhotographerAnalyticsPopularPhotos(): CancelablePromise<{
         success?: boolean;
         /**
          * Top 10 photos by sales count

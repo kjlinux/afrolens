@@ -15,7 +15,7 @@ export class AdminWithdrawalsService {
      * @returns any Withdrawals retrieved successfully
      * @throws ApiError
      */
-    public static d8F8998Ec69B7D5F1A365723925573(
+    public static getAdminWithdrawals(
         status?: 'pending' | 'approved' | 'rejected' | 'completed',
         photographerId?: string,
         perPage: number = 20,
@@ -48,7 +48,7 @@ export class AdminWithdrawalsService {
      * @returns any Pending withdrawals retrieved successfully
      * @throws ApiError
      */
-    public static dc50E8542A1C1Be346B5Fb9800C854(
+    public static getAdminWithdrawalsPending(
         perPage: number = 20,
     ): CancelablePromise<{
         success?: boolean;
@@ -77,7 +77,7 @@ export class AdminWithdrawalsService {
      * @returns any Withdrawal details retrieved successfully
      * @throws ApiError
      */
-    public static d7F399Cdb7077B992F1Cc3Edbacf7C7(
+    public static getAdminWithdrawal(
         withdrawal: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -104,7 +104,7 @@ export class AdminWithdrawalsService {
      * @returns any Withdrawal approved successfully
      * @throws ApiError
      */
-    public static b2Af88C84F042E7D124F2F78Fd89C6Ca(
+    public static approveAdminWithdrawal(
         withdrawal: string,
         requestBody?: {
             /**
@@ -145,7 +145,7 @@ export class AdminWithdrawalsService {
      * @returns any Withdrawal rejected successfully
      * @throws ApiError
      */
-    public static d4Fbee7Fa32F707035Dd8A5B92C8C03(
+    public static rejectAdminWithdrawal(
         withdrawal: string,
         requestBody: {
             /**
@@ -182,7 +182,7 @@ export class AdminWithdrawalsService {
      * @returns any Withdrawal marked as completed successfully
      * @throws ApiError
      */
-    public static bf75F5837Afb4A9Cafa110F7F74C9305(
+    public static completeAdminWithdrawal(
         withdrawal: string,
         requestBody: {
             /**

@@ -13,7 +13,7 @@ export class FavoritesService {
      * @returns any Favorites retrieved successfully
      * @throws ApiError
      */
-    public static b1Fff6F302Cbd7A85627321A82(
+    public static getUserFavorites(
         page: number = 1,
     ): CancelablePromise<{
         success?: boolean;
@@ -56,7 +56,7 @@ export class FavoritesService {
      * @returns any Photo added to favorites successfully
      * @throws ApiError
      */
-    public static b7E953A0D3B5A08B6916B0Cc2328Ecb7(
+    public static storeUserFavorites(
         photo: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -82,7 +82,7 @@ export class FavoritesService {
      * @returns any Photo removed from favorites successfully
      * @throws ApiError
      */
-    public static ef4F9124F7C756D2D3697Fabf4F2(
+    public static deleteUserFavorites(
         photo: string,
     ): CancelablePromise<{
         success?: boolean;

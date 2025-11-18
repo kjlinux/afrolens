@@ -13,7 +13,7 @@ export class AdminAnalyticsService {
      * @returns any Revenue analytics retrieved successfully
      * @throws ApiError
      */
-    public static f7E3Bbc8333De2385D1E9Dc470Da368(
+    public static getAdminAnalyticsRevenue(
         period: '7days' | '30days' | '90days' | 'year' = '30days',
     ): CancelablePromise<{
         success?: boolean;
@@ -48,7 +48,7 @@ export class AdminAnalyticsService {
      * @returns any Sales analytics retrieved successfully
      * @throws ApiError
      */
-    public static da2592B88F216B7D8E6268Ab5C9940(
+    public static getAdminAnalyticsSales(
         period: '7days' | '30days' | '90days' | 'year' = '30days',
     ): CancelablePromise<{
         success?: boolean;
@@ -81,7 +81,7 @@ export class AdminAnalyticsService {
      * @returns any Photographer analytics retrieved successfully
      * @throws ApiError
      */
-    public static e6Ee5449E4E1Af04C79A74037B7Adfc(): CancelablePromise<{
+    public static getAdminAnalyticsPhotographers(): CancelablePromise<{
         success?: boolean;
         data?: {
             /**
@@ -114,7 +114,7 @@ export class AdminAnalyticsService {
      * @returns any User growth analytics retrieved successfully
      * @throws ApiError
      */
-    public static c5049326F73Fc64Dee8B801E754Fc4Fd(
+    public static getAdminAnalyticsUserGrowth(
         period: '7days' | '30days' | '90days' | 'year' = '30days',
     ): CancelablePromise<{
         success?: boolean;

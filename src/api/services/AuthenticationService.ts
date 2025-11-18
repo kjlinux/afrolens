@@ -170,4 +170,59 @@ export class AuthenticationService {
             },
         });
     }
+    /**
+     * Obtenir les capacités de l'utilisateur connecté
+     * Récupérer les rôles, permissions et drapeaux de capacité pour l'utilisateur authentifié (utile pour le frontend)
+     * @returns any Capacités utilisateur récupérées
+     * @throws ApiError
+     */
+    public static abilities(): CancelablePromise<{
+        success?: boolean;
+        data?: {
+            /**
+             * Type de compte
+             */
+            account_type?: string;
+            /**
+             * Liste des rôles assignés
+             */
+            roles?: Array<string>;
+            /**
+             * Liste des permissions assignées
+             */
+            permissions?: Array<string>;
+            /**
+             * Statut du profil photographe (pending, approved, rejected, suspended)
+             */
+            photographer_status?: string | null;
+            /**
+             * Peut uploader des photos
+             */
+            can_upload_photos?: boolean;
+            /**
+             * Peut modérer du contenu
+             */
+            can_moderate?: boolean;
+            /**
+             * Peut gérer les utilisateurs
+             */
+            can_manage_users?: boolean;
+            /**
+             * Email vérifié
+             */
+            is_verified?: boolean;
+            /**
+             * Compte actif
+             */
+            is_active?: boolean;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/auth/abilities',
+            errors: {
+                401: `Non authentifié`,
+            },
+        });
+    }
 }

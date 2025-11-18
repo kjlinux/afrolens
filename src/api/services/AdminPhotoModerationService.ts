@@ -14,7 +14,7 @@ export class AdminPhotoModerationService {
      * @returns any Pending photos retrieved successfully
      * @throws ApiError
      */
-    public static ca3803521Afa22884315F7Cb541D776F(
+    public static getAdminPhotosPending(
         perPage: number = 20,
         page: number = 1,
     ): CancelablePromise<{
@@ -48,7 +48,7 @@ export class AdminPhotoModerationService {
      * @returns any Photos retrieved successfully
      * @throws ApiError
      */
-    public static f63E306E3522B2313047Ce38234035(
+    public static getAdminPhotos(
         status?: 'pending' | 'approved' | 'rejected',
         photographerId?: string,
         search?: string,
@@ -83,7 +83,7 @@ export class AdminPhotoModerationService {
      * @returns any Photo approved successfully
      * @throws ApiError
      */
-    public static a26Bc0Dfd6081Bee150B4Dacb4De(
+    public static approveAdminPhoto(
         photo: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -112,7 +112,7 @@ export class AdminPhotoModerationService {
      * @returns any Photo rejected successfully
      * @throws ApiError
      */
-    public static e4Edbb7D244Fab417581Ab8(
+    public static rejectAdminPhoto(
         photo: string,
         requestBody?: {
             /**
@@ -148,7 +148,7 @@ export class AdminPhotoModerationService {
      * @returns any Photo featured status toggled successfully
      * @throws ApiError
      */
-    public static d0Ce84B8F87B4A581C2B939A2D02Aa58(
+    public static toggleAdminPhotoFeatured(
         photo: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -176,7 +176,7 @@ export class AdminPhotoModerationService {
      * @returns any Photo deleted successfully
      * @throws ApiError
      */
-    public static b9Eeac24Cf97Fdab4C53Bf9C161Cb5(
+    public static deleteAdminPhoto(
         photo: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -202,7 +202,7 @@ export class AdminPhotoModerationService {
      * @returns any Photos approved successfully
      * @throws ApiError
      */
-    public static c95344A8Ff17C18E1882C07E8218Fc6A(
+    public static bulkApproveAdminPhotos(
         requestBody: {
             /**
              * Array of photo UUIDs to approve
@@ -232,7 +232,7 @@ export class AdminPhotoModerationService {
      * @returns any Photos rejected successfully
      * @throws ApiError
      */
-    public static a1Bd48C38Cb1A52F39Ae01Cd4499E0A5(
+    public static bulkRejectAdminPhotos(
         requestBody: {
             /**
              * Array of photo UUIDs to reject

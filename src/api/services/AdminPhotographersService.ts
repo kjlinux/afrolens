@@ -15,7 +15,7 @@ export class AdminPhotographersService {
      * @returns any Photographers retrieved successfully
      * @throws ApiError
      */
-    public static c59E5E3B1Be817Df2D1C98A41235B(
+    public static getAdminPhotographers(
         status?: 'pending' | 'approved' | 'rejected',
         search?: string,
         perPage: number = 20,
@@ -48,7 +48,7 @@ export class AdminPhotographersService {
      * @returns any Pending photographers retrieved successfully
      * @throws ApiError
      */
-    public static bbc2A32D4A7F9Cf2Fa0B163C09549D1(
+    public static getAdminPhotographersPending(
         perPage: number = 20,
     ): CancelablePromise<{
         success?: boolean;
@@ -77,7 +77,7 @@ export class AdminPhotographersService {
      * @returns any Photographer details retrieved successfully
      * @throws ApiError
      */
-    public static cc2307F06C141635430Bf4C0Ae7871D(
+    public static getAdminPhotographer(
         photographer: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -104,7 +104,7 @@ export class AdminPhotographersService {
      * @returns any Photographer profile approved successfully
      * @throws ApiError
      */
-    public static ce2F612628527Cd241Df2E3E5E56A3(
+    public static approveAdminPhotographer(
         photographer: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -133,7 +133,7 @@ export class AdminPhotographersService {
      * @returns any Photographer profile rejected successfully
      * @throws ApiError
      */
-    public static ae6A5B7B1D311B060774Ddddc4C68(
+    public static rejectAdminPhotographer(
         photographer: string,
         requestBody?: {
             /**
@@ -169,7 +169,7 @@ export class AdminPhotographersService {
      * @returns any Photographer account suspended successfully
      * @throws ApiError
      */
-    public static e5865Ccb50849Aa283Cd2F8C574Caba6(
+    public static suspendAdminPhotographer(
         photographer: string,
     ): CancelablePromise<{
         success?: boolean;
@@ -196,7 +196,7 @@ export class AdminPhotographersService {
      * @returns any Photographer account activated successfully
      * @throws ApiError
      */
-    public static ed5E94429C5Ccf6Bf026B4D6B6Ed7C45(
+    public static activateAdminPhotographer(
         photographer: string,
     ): CancelablePromise<{
         success?: boolean;
