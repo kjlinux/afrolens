@@ -53,7 +53,7 @@ export const getOrders = async (
   perPage: number = 20
 ): Promise<PaginatedOrdersResult> => {
   try {
-    const response = await OrdersService.bb77A45Ae173A485Fadb8Befed93F(perPage);
+    const response = await OrdersService.getOrders(perPage);
 
     return {
       data: response.data || [],
@@ -76,7 +76,7 @@ export const getOrders = async (
  */
 export const getOrder = async (orderId: string): Promise<Order> => {
   try {
-    const order = await OrdersService.ac185Cc1Bf301D8862617E497098(orderId);
+    const order = await OrdersService.getOrder(orderId);
     return order;
   } catch (error: any) {
     console.error('Erreur lors de la récupération de la commande:', error);
@@ -91,7 +91,7 @@ export const getOrder = async (orderId: string): Promise<Order> => {
  */
 export const createOrder = async (orderData: CreateOrderData): Promise<Order> => {
   try {
-    const response = await OrdersService.ba58Dadb22Bd6F2C8081Af562230(orderData);
+    const response = await OrdersService.storeOrders(orderData);
 
     if (response.success && response.data) {
       return response.data;
@@ -100,9 +100,21 @@ export const createOrder = async (orderData: CreateOrderData): Promise<Order> =>
     throw new Error('Erreur lors de la création de la commande');
   } catch (error: any) {
     console.error('Erreur lors de la création de la commande:', error);
-    throw new Error(
-      error.body?.message || 'Impossible de créer la commande'
-    );
+
+    // Extraire les détails de l'erreur de validation
+    let errorMessage = 'Impossible de créer la commande';
+
+    if (error.body?.message) {
+      errorMessage = error.body.message;
+    } else if (error.body?.errors) {
+      // Si l'erreur contient des détails de validation
+      const errors = Object.values(error.body.errors).flat();
+      errorMessage = errors.join('. ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    throw new Error(errorMessage);
   }
 };
 
@@ -117,7 +129,7 @@ export const initiatePayment = async (
   paymentData: PaymentInitData
 ): Promise<{ payment_url: string; payment_token: string }> => {
   try {
-    const response = await OrdersService.e0A9E0Db3E62Bbf57Ea9E2F7C32(
+    const response = await OrdersService.payOrders(
       orderId,
       paymentData
     );
@@ -132,9 +144,21 @@ export const initiatePayment = async (
     throw new Error('Erreur lors de l\'initiation du paiement');
   } catch (error: any) {
     console.error('Erreur lors de l\'initiation du paiement:', error);
-    throw new Error(
-      error.body?.message || 'Impossible d\'initier le paiement'
-    );
+
+    // Extraire les détails de l'erreur de validation
+    let errorMessage = 'Impossible d\'initier le paiement';
+
+    if (error.body?.message) {
+      errorMessage = error.body.message;
+    } else if (error.body?.errors) {
+      // Si l'erreur contient des détails de validation
+      const errors = Object.values(error.body.errors).flat();
+      errorMessage = errors.join('. ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    throw new Error(errorMessage);
   }
 };
 

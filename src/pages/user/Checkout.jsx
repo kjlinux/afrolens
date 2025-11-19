@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -9,15 +9,17 @@ import { FiCreditCard, FiSmartphone, FiCheck } from 'react-icons/fi';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
+import PhoneInput from '../../components/common/PhoneInput';
 import Modal from '../../components/common/Modal';
 import Spinner from '../../components/common/Spinner';
 import ImageWatermark from '../../components/photos/ImageWatermark';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { cart, getTotal, clearCart } = useCart();
+  const { cart, loading, getTotal, clearCart } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMountedRef = useRef(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -43,14 +45,28 @@ export default function Checkout() {
     cardName: '',
   });
 
-  // Rediriger si panier vide
-  if (cart.length === 0 && currentStep === 1) {
-    navigate('/cart');
-    return null;
-  }
+  // Marquer le composant comme monté
+  useEffect(() => {
+    isMountedRef.current = true;
+  }, []);
+
+  // Rediriger si panier vide (uniquement après le chargement initial)
+  useEffect(() => {
+    if (isMountedRef.current && !loading && cart.length === 0) {
+      navigate('/cart');
+    }
+  }, [loading, cart.length, navigate]);
 
   const handleBillingChange = (e) => {
     setBillingInfo({ ...billingInfo, [e.target.name]: e.target.value });
+  };
+
+  const handlePhoneChange = (phoneValue) => {
+    setBillingInfo({ ...billingInfo, phone: phoneValue });
+  };
+
+  const handleMobileNumberChange = (phoneValue) => {
+    setPaymentDetails({ ...paymentDetails, mobileNumber: phoneValue });
   };
 
   const handlePaymentDetailsChange = (e) => {
@@ -73,27 +89,53 @@ export default function Checkout() {
     setProcessing(true);
 
     try {
+      // Calculer les totaux
+      const total = getTotal();
+      const subtotal = total;
+
       // Préparer les données de commande
       const orderData = {
         items: cart.map(item => ({
-          photo_id: item.id,
+          photo_id: item.photo_id,
           license_type: item.license_type || 'standard',
-          price: item.license_type === 'extended' ? item.price_extended : item.price_standard,
         })),
+        subtotal: subtotal,
+        tax: 0,
+        discount: 0,
+        total: total,
+        payment_method: paymentMethod,
         billing_first_name: billingInfo.firstName,
         billing_last_name: billingInfo.lastName,
         billing_email: billingInfo.email,
         billing_phone: billingInfo.phone,
       };
 
+      // Mapper les opérateurs vers les codes CinetPay
+      const providerMap = {
+        orange: 'FLOOZ',
+        moov: 'MOOV',
+        telecel: 'TMONEY',
+      };
+
+      // Formater le numéro de téléphone pour CinetPay (sans le signe +)
+      const formatPhoneForPayment = (phone) => {
+        if (!phone) return '';
+        // Retirer tous les caractères non numériques sauf le +
+        return phone.replace(/^\+/, '').replace(/\D/g, '');
+      };
+
       // Préparer les données de paiement CinetPay
       const paymentData = {
-        payment_method: paymentMethod === 'mobile_money' ? 'MOBILE_MONEY' : 'CREDIT_CARD',
+        payment_method: paymentMethod,
         payment_provider: paymentMethod === 'mobile_money'
-          ? paymentDetails.mobileProvider.toUpperCase() + '_MONEY'
-          : 'CREDIT_CARD',
-        phone_number: paymentMethod === 'mobile_money' ? paymentDetails.mobileNumber : null,
+          ? providerMap[paymentDetails.mobileProvider] || 'FLOOZ'
+          : 'CARD',
+        ...(paymentMethod === 'mobile_money' && paymentDetails.mobileNumber
+          ? { phone: formatPhoneForPayment(paymentDetails.mobileNumber) }
+          : {}),
       };
+
+      console.log('Payment data being sent:', paymentData);
 
       // Créer la commande et initier le paiement avec CinetPay
       const response = await createOrderAndPay(orderData, paymentData);
@@ -109,7 +151,22 @@ export default function Checkout() {
       }
     } catch (error) {
       console.error('Erreur paiement:', error);
-      toast.error(error.message || 'Une erreur est survenue. Veuillez réessayer.');
+
+      // Extraire le message d'erreur détaillé
+      let errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+
+      if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Afficher des messages d'erreur plus spécifiques
+      if (errorMessage.includes('photo')) {
+        errorMessage = 'Une ou plusieurs photos du panier ne sont plus disponibles. Veuillez actualiser votre panier.';
+      } else if (errorMessage.includes('fournisseur') || errorMessage.includes('provider')) {
+        errorMessage = 'Le fournisseur de paiement sélectionné n\'est pas disponible. Veuillez en choisir un autre.';
+      }
+
+      toast.error(errorMessage);
       setShowPaymentModal(false);
     } finally {
       setProcessing(false);
@@ -197,13 +254,12 @@ export default function Checkout() {
                     onChange={handleBillingChange}
                     required
                   />
-                  <Input
+                  <PhoneInput
                     label="Téléphone"
-                    name="phone"
-                    type="tel"
                     value={billingInfo.phone}
-                    onChange={handleBillingChange}
+                    onChange={handlePhoneChange}
                     required
+                    defaultCountry="BF"
                   />
                   <Button type="submit" fullWidth>
                     Continuer vers le paiement
@@ -274,35 +330,45 @@ export default function Checkout() {
                           Opérateur
                         </label>
                         <div className="grid grid-cols-3 gap-3">
-                          {['orange', 'moov', 'telecel'].map((provider) => (
-                            <button
-                              key={provider}
-                              type="button"
-                              onClick={() =>
-                                setPaymentDetails({
-                                  ...paymentDetails,
-                                  mobileProvider: provider,
-                                })
-                              }
-                              className={`p-3 border-2 rounded-lg font-medium capitalize ${
-                                paymentDetails.mobileProvider === provider
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                            >
-                              {provider}
-                            </button>
-                          ))}
+                          {[
+                            { id: 'orange', label: 'Orange' },
+                            { id: 'moov', label: 'Moov' },
+                            { id: 'telecel', label: 'Telecel' }
+                          ].map((provider) => {
+                            const isSelected = paymentDetails.mobileProvider === provider.id;
+                            return (
+                              <button
+                                key={provider.id}
+                                type="button"
+                                onClick={() =>
+                                  setPaymentDetails({
+                                    ...paymentDetails,
+                                    mobileProvider: provider.id,
+                                  })
+                                }
+                                className={`
+                                  p-4 border-2 rounded-lg font-semibold transition-all relative
+                                  ${isSelected
+                                    ? 'border-green-600 bg-green-600 text-white shadow-lg scale-105'
+                                    : 'border-gray-300 bg-white text-gray-800 hover:border-green-600 hover:shadow-md'
+                                  }
+                                `}
+                              >
+                                {isSelected && (
+                                  <FiCheck className="absolute top-1.5 right-1.5 w-4 h-4" />
+                                )}
+                                <span className="block text-center">{provider.label}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
-                      <Input
+                      <PhoneInput
                         label="Numéro de téléphone"
-                        name="mobileNumber"
-                        type="tel"
-                        placeholder="70 00 00 00"
                         value={paymentDetails.mobileNumber}
-                        onChange={handlePaymentDetailsChange}
+                        onChange={handleMobileNumberChange}
                         required
+                        defaultCountry="BF"
                         helperText="Vous recevrez une notification pour confirmer le paiement"
                       />
                     </>

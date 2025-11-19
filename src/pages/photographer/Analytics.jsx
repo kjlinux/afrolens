@@ -29,7 +29,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { photographerService } from '../../services/api';
+import { getAnalytics } from '../../services/photographerService';
 import { formatPrice, formatNumber } from '../../utils/helpers';
 import { PhotographerGuard } from '../../components/auth';
 
@@ -69,7 +69,7 @@ const Analytics = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await photographerService.getAnalytics(period);
+      const data = await getAnalytics(period);
       setAnalytics(data);
     } catch (err) {
       console.error('Erreur lors du chargement des analytics:', err);

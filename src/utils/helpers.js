@@ -10,6 +10,9 @@ import { fr } from 'date-fns/locale';
  * @returns {string} - Prix formaté
  */
 export const formatPrice = (price, currency = 'XOF') => {
+  if (price === null || price === undefined || isNaN(price)) {
+    return 'N/A';
+  }
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency,

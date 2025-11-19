@@ -67,7 +67,7 @@ export default function Cart() {
                 <div className="p-4 flex gap-4">
                   {/* Image */}
                   <Link
-                    to={`/photo/${item.id}`}
+                    to={`/photo/${item.photo_id || item.id}`}
                     className="flex-shrink-0 w-32 h-24 rounded-lg overflow-hidden bg-gray-200 relative"
                   >
                     <img
@@ -87,7 +87,7 @@ export default function Cart() {
                   {/* Infos */}
                   <div className="flex-1 min-w-0">
                     <Link
-                      to={`/photo/${item.id}`}
+                      to={`/photo/${item.photo_id || item.id}`}
                       className="font-semibold text-gray-900 hover:text-primary mb-1 block truncate"
                     >
                       {item.title}

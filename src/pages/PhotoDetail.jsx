@@ -317,7 +317,7 @@ export default function PhotoDetail() {
           <h2 className="text-xl font-bold mb-4">Description</h2>
           <p className="text-gray-700 mb-6">{photo.description}</p>
 
-          {photo.tags && photo.tags.length > 0 && (
+          {photo.tags && Array.isArray(photo.tags) && photo.tags.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-gray-600 mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">

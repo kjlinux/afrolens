@@ -11,14 +11,30 @@ export const CartProvider = ({ children }) => {
     loadCart();
   }, []);
 
+  // Mapper les items de l'API vers le format attendu par les composants
+  const mapCartItems = (items) => {
+    return (items || []).map(item => ({
+      // L'id est l'UUID unique de l'item dans le panier (pour removeFromCart, updateCartItem)
+      id: item.id,
+      // photo_id est l'ID de la photo
+      photo_id: item.photo_id,
+      title: item.photo_title || 'Sans titre',
+      preview_url: item.photo_thumbnail,
+      photographer_name: item.photographer_name,
+      photographer_id: item.photographer_id,
+      license_type: item.license_type,
+      price: item.price,
+      price_standard: item.price,
+      price_extended: item.license_type === 'extended' ? item.price : null
+    }));
+  };
+
   const loadCart = async () => {
     try {
       const cartData = await cartService.getCart();
-      // Le nouveau service retourne un objet CartData avec items, subtotal, etc.
-      setCart(cartData.items || []);
+      setCart(mapCartItems(cartData.items));
     } catch (error) {
       console.error('Erreur lors de la récupération du panier:', error);
-      // En cas d'erreur, définir un panier vide
       setCart([]);
     } finally {
       setLoading(false);
@@ -26,24 +42,24 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (photo, licenseType = 'standard') => {
-    // Le nouveau service attend photoId (string) et non l'objet photo complet
     const cartData = await cartService.addToCart(photo.id || photo, licenseType);
-    setCart(cartData.items || []);
-    return cartData.items || [];
+    const mappedItems = mapCartItems(cartData.items);
+    setCart(mappedItems);
+    return mappedItems;
   };
 
   const removeFromCart = async (itemId) => {
-    // Le service attend un UUID de l'item
     const cartData = await cartService.removeFromCart(itemId);
-    setCart(cartData.items || []);
-    return cartData.items || [];
+    const mappedItems = mapCartItems(cartData.items);
+    setCart(mappedItems);
+    return mappedItems;
   };
 
   const updateCartItem = async (itemId, updates) => {
-    // Le service attend un UUID de l'item et le nouveau license_type
     const cartData = await cartService.updateCartItem(itemId, updates.license_type || updates.licenseType);
-    setCart(cartData.items || []);
-    return cartData.items || [];
+    const mappedItems = mapCartItems(cartData.items);
+    setCart(mappedItems);
+    return mappedItems;
   };
 
   const clearCart = async () => {
