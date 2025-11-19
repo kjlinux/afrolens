@@ -104,24 +104,8 @@ api.interceptors.response.use(
   }
 );
 
-// Photographer service
-export const photographerService = {
-  getAnalytics: async (photographerId, period = '30d') => {
-    const response = await api.get(`/photographers/${photographerId}/analytics`, {
-      params: { period }
-    });
-    return response.data;
-  },
-  getRevenue: async (photographerId, period = '30d') => {
-    const response = await api.get(`/photographers/${photographerId}/revenue`, {
-      params: { period }
-    });
-    return response.data;
-  },
-  getStats: async (photographerId) => {
-    const response = await api.get(`/photographers/${photographerId}/stats`);
-    return response.data;
-  },
-};
+// DEPRECATED: photographerService has been moved to photographerService.ts
+// Use PhotographerAnalyticsService, PhotographerRevenueService, and PhotographerDashboardService instead
+// This export is kept for backwards compatibility but should not be used in new code
 
 export default api;

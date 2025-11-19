@@ -14,6 +14,21 @@ import {
 
 /**
  * Generate mock time series data for analytics
+ *
+ * ⚠️ TEMPORARY MOCK DATA - À REMPLACER
+ *
+ * Cette fonction génère des données mockées pour la visualisation des graphiques
+ * dans le dashboard photographe. Elle doit être remplacée par de vraies données
+ * provenant du backend une fois les endpoints suivants implémentés:
+ *
+ * - GET /api/photographer/analytics/views-over-time
+ * - GET /api/photographer/analytics/sales-over-time
+ * - GET /api/photographer/analytics/revenue-over-time
+ * - GET /api/photographer/analytics/conversion-over-time
+ *
+ * Voir le fichier ENDPOINTS_MANQUANTS.md pour les spécifications complètes.
+ *
+ * @deprecated Cette fonction sera supprimée après l'implémentation des endpoints backend
  */
 const generateMockTimeSeriesData = (period: string, dataType: 'views' | 'sales' | 'revenue') => {
   const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
@@ -72,7 +87,9 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
       const totalRevenue = salesData?.total_revenue || 0;
       const avgSale = salesData?.average_sale || 0;
 
-      // Generate mock data for charts (will be replaced when backend provides real data)
+      // ⚠️ MOCK DATA: Generate mock time series data for visualization
+      // TODO BACKEND: Replace with real API data once endpoints are implemented
+      // See ENDPOINTS_MANQUANTS.md sections 2.1, 2.2, 2.3, 2.4
       const viewsOverTime = generateMockTimeSeriesData(period, 'views');
       const salesOverTime = generateMockTimeSeriesData(period, 'sales');
       const revenueOverTime = generateMockTimeSeriesData(period, 'revenue');
@@ -107,6 +124,10 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
             rank: index + 1,
           };
         }) : [],
+        // ⚠️ MOCK DATA: Empty arrays - waiting for backend implementation
+        // TODO BACKEND: Implement endpoints for these features
+        // - categoryPerformance: See ENDPOINTS_MANQUANTS.md section 2.6
+        // - audienceInsights: See ENDPOINTS_MANQUANTS.md section 2.7
         categoryPerformance: [],
         revenueByCategory: [],
         audienceInsights: {
@@ -122,6 +143,8 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
           date: item.date,
           conversion: salesOverTime[index] ? (salesOverTime[index].value / item.value) * 100 : 0,
         })),
+        // ⚠️ MOCK DATA: Hourly distribution with random data
+        // TODO BACKEND: See ENDPOINTS_MANQUANTS.md section 2.5
         hourlyDistribution: Array.from({ length: 24 }, (_, i) => ({
           hour: `${i}h`,
           views: Math.floor(10 + Math.random() * 30),

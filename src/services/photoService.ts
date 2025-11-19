@@ -1,5 +1,5 @@
 // Service de gestion des photos utilisant l'API générée
-import { PhotosService, Photo } from '@/api';
+import { PhotosService, SearchService, Photo } from '@/api';
 
 /**
  * Interface pour les résultats paginés
@@ -122,27 +122,35 @@ export const getSimilar = async (
 
 /**
  * Rechercher des photos
- * Note: Utilise le SearchService de l'API
+ * Utilise le SearchService de l'API avec filtres avancés
  * @param query - Terme de recherche
- * @param filters - Filtres de recherche
+ * @param filters - Filtres de recherche (categories, photographerId, minPrice, maxPrice, orientation, sortBy)
  * @returns Promise<Photo[]>
  */
 export const search = async (
-  query: string,
-  filters: any = {}
+  query: string = '',
+  filters: {
+    categories?: string[];
+    photographerId?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    orientation?: 'landscape' | 'portrait' | 'square';
+    sortBy?: 'date' | 'popularity' | 'price_asc' | 'price_desc';
+    perPage?: number;
+  } = {}
 ): Promise<Photo[]> => {
-  // TODO: Implémenter avec SearchService quand disponible
-  console.warn('search: Utiliser SearchService à la place');
   try {
-    // Pour l'instant, retourner toutes les photos et filtrer côté client
-    const response = await PhotosService.indexPhotos(100, 1);
-    const photos = response.data || [];
-
-    // Filtrage basique côté client
-    return photos.filter((photo) =>
-      photo.title?.toLowerCase().includes(query.toLowerCase()) ||
-      photo.description?.toLowerCase().includes(query.toLowerCase())
+    const response = await SearchService.searchPhotos(
+      query || undefined,
+      filters.categories,
+      filters.photographerId,
+      filters.minPrice,
+      filters.maxPrice,
+      filters.orientation,
+      filters.sortBy || 'date',
+      filters.perPage || 100
     );
+    return response.data || [];
   } catch (error: any) {
     console.error('Erreur lors de la recherche de photos:', error);
     return [];
@@ -151,19 +159,27 @@ export const search = async (
 
 /**
  * Récupérer les photos par catégorie
- * Note: Cette fonctionnalité devrait utiliser le CategoriesService
+ * Utilise le SearchService avec filtre de catégorie
  * @param categoryId - ID de la catégorie
+ * @param limit - Nombre de photos à récupérer
  * @returns Promise<Photo[]>
  */
-export const getByCategory = async (categoryId: string): Promise<Photo[]> => {
-  // TODO: Utiliser CategoriesService.getCategoryPhotos quand disponible
-  console.warn('getByCategory: Non implémenté dans l\'API actuelle');
+export const getByCategory = async (
+  categoryId: string,
+  limit: number = 100
+): Promise<Photo[]> => {
   try {
-    // Pour l'instant, récupérer toutes les photos et filtrer
-    const response = await PhotosService.indexPhotos(100, 1);
-    const photos = response.data || [];
-
-    return photos.filter((photo) => photo.category_id === categoryId);
+    const response = await SearchService.searchPhotos(
+      undefined,
+      [categoryId],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'date',
+      limit
+    );
+    return response.data || [];
   } catch (error: any) {
     console.error('Erreur lors de la récupération des photos par catégorie:', error);
     return [];
@@ -172,51 +188,50 @@ export const getByCategory = async (categoryId: string): Promise<Photo[]> => {
 
 /**
  * Incrémenter le compteur de vues
- * Note: Cette fonctionnalité n'est pas disponible dans l'API générée
+ * Note: Cette fonctionnalité nécessite l'implémentation de l'endpoint backend
+ * POST /api/photos/{id}/view
  * @param photoId - ID de la photo
  * @returns Promise<boolean>
  */
 export const incrementViews = async (photoId: string): Promise<boolean> => {
-  // TODO: Implémenter quand l'endpoint sera disponible
-  console.warn('incrementViews: Endpoint non disponible dans l\'API');
+  // TODO BACKEND: Implémenter l'endpoint POST /api/photos/{id}/view
+  // Voir ENDPOINTS_MANQUANTS.md pour plus de détails
+  console.warn('incrementViews: Endpoint POST /api/photos/{id}/view non implémenté');
   return true;
 };
 
 /**
  * Upload une photo (photographe)
- * Note: Utilise PhotographerPhotosService
+ * DEPRECATED: Utiliser directement PhotographerPhotosService.uploadPhoto
  * @param formData - Données du formulaire
  * @returns Promise<Photo>
+ * @deprecated Utiliser PhotographerPhotosService.uploadPhoto
  */
 export const uploadPhoto = async (formData: FormData): Promise<Photo> => {
-  // TODO: Implémenter avec PhotographerPhotosService
-  console.warn('uploadPhoto: Utiliser PhotographerPhotosService à la place');
-  throw new Error('Utilisez PhotographerPhotosService.uploadPhoto');
+  throw new Error('DEPRECATED: Utilisez PhotographerPhotosService.uploadPhoto à la place');
 };
 
 /**
  * Mettre à jour une photo
- * Note: Utilise PhotographerPhotosService
+ * DEPRECATED: Utiliser directement PhotographerPhotosService.updatePhoto
  * @param id - ID de la photo
  * @param data - Données à mettre à jour
  * @returns Promise<Photo>
+ * @deprecated Utiliser PhotographerPhotosService.updatePhoto
  */
 export const updatePhoto = async (id: string, data: any): Promise<Photo> => {
-  // TODO: Implémenter avec PhotographerPhotosService
-  console.warn('updatePhoto: Utiliser PhotographerPhotosService à la place');
-  throw new Error('Utilisez PhotographerPhotosService.updatePhoto');
+  throw new Error('DEPRECATED: Utilisez PhotographerPhotosService.updatePhoto à la place');
 };
 
 /**
  * Supprimer une photo
- * Note: Utilise PhotographerPhotosService
+ * DEPRECATED: Utiliser directement PhotographerPhotosService.deletePhoto
  * @param id - ID de la photo
  * @returns Promise<boolean>
+ * @deprecated Utiliser PhotographerPhotosService.deletePhoto
  */
 export const deletePhoto = async (id: string): Promise<boolean> => {
-  // TODO: Implémenter avec PhotographerPhotosService
-  console.warn('deletePhoto: Utiliser PhotographerPhotosService à la place');
-  throw new Error('Utilisez PhotographerPhotosService.deletePhoto');
+  throw new Error('DEPRECATED: Utilisez PhotographerPhotosService.deletePhoto à la place');
 };
 
 // Export alias pour la compatibilité
