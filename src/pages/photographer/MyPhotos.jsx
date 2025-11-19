@@ -7,11 +7,13 @@ import { PHOTO_STATUS } from '../../utils/constants';
 import { PERMISSIONS } from '../../utils/permissions';
 import { PhotographerGuard, Can } from '../../components/auth';
 import { usePermission } from '../../hooks/usePermission';
+import { useToast } from '../../contexts/ToastContext';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Lightbox from '../../components/common/Lightbox';
 
 export default function MyPhotos() {
@@ -20,6 +22,7 @@ export default function MyPhotos() {
   // Permission checks
   const canEditOwnPhotos = usePermission(PERMISSIONS.EDIT_OWN_PHOTOS);
   const canDeleteOwnPhotos = usePermission(PERMISSIONS.DELETE_OWN_PHOTOS);
+  const { toast } = useToast();
   const [myPhotos, setMyPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,6 +33,7 @@ export default function MyPhotos() {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [editingPhoto, setEditingPhoto] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -117,22 +121,27 @@ export default function MyPhotos() {
       setMyPhotos(prev => prev.filter(p => p.id !== photoToDelete.id));
       setShowDeleteModal(false);
       setPhotoToDelete(null);
+      toast.success('Photo supprimée avec succès');
     } catch (err) {
       console.error('Erreur lors de la suppression:', err);
-      alert(err.message || 'Impossible de supprimer la photo');
+      toast.error(err.message || 'Impossible de supprimer la photo');
     }
   };
 
-  const handleBulkDelete = async () => {
-    if (window.confirm(`Supprimer ${selectedPhotos.length} photo(s) ?`)) {
-      try {
-        await Promise.all(selectedPhotos.map(photoId => deletePhoto(photoId)));
-        setMyPhotos(prev => prev.filter(p => !selectedPhotos.includes(p.id)));
-        setSelectedPhotos([]);
-      } catch (err) {
-        console.error('Erreur lors de la suppression:', err);
-        alert(err.message || 'Impossible de supprimer les photos');
-      }
+  const handleBulkDeleteClick = () => {
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      await Promise.all(selectedPhotos.map(photoId => deletePhoto(photoId)));
+      setMyPhotos(prev => prev.filter(p => !selectedPhotos.includes(p.id)));
+      setSelectedPhotos([]);
+      setShowBulkDeleteModal(false);
+      toast.success(`${selectedPhotos.length} photo(s) supprimée(s) avec succès`);
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err);
+      toast.error(err.message || 'Impossible de supprimer les photos');
     }
   };
 
@@ -284,7 +293,7 @@ export default function MyPhotos() {
             <span className="text-sm text-gray-600">
               {selectedPhotos.length} photo{selectedPhotos.length > 1 ? 's' : ''} sélectionnée{selectedPhotos.length > 1 ? 's' : ''}
             </span>
-            <Button variant="danger" size="sm" onClick={handleBulkDelete}>
+            <Button variant="danger" size="sm" onClick={handleBulkDeleteClick}>
               Supprimer la sélection
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setSelectedPhotos([])}>
@@ -554,28 +563,33 @@ export default function MyPhotos() {
         </Modal>
       )}
 
-      {/* Modal de suppression */}
+      {/* ConfirmDialog de suppression */}
       {showDeleteModal && photoToDelete && (
-        <Modal
+        <ConfirmDialog
           isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setPhotoToDelete(null);
+          }}
+          onConfirm={confirmDelete}
           title="Supprimer la photo"
-        >
-          <div className="p-6">
-            <p className="text-gray-600 mb-6">
-              Êtes-vous sûr de vouloir supprimer "<strong>{photoToDelete.title}</strong>" ?
-              Cette action est irréversible.
-            </p>
-            <div className="flex gap-3">
-              <Button variant="danger" onClick={confirmDelete} fullWidth>
-                Supprimer
-              </Button>
-              <Button variant="ghost" onClick={() => setShowDeleteModal(false)} fullWidth>
-                Annuler
-              </Button>
-            </div>
-          </div>
-        </Modal>
+          message={`Êtes-vous sûr de vouloir supprimer "${photoToDelete.title}" ? Cette action est irréversible.`}
+          confirmText="Supprimer"
+          variant="danger"
+        />
+      )}
+
+      {/* ConfirmDialog de suppression en masse */}
+      {showBulkDeleteModal && (
+        <ConfirmDialog
+          isOpen={showBulkDeleteModal}
+          onClose={() => setShowBulkDeleteModal(false)}
+          onConfirm={confirmBulkDelete}
+          title="Supprimer les photos sélectionnées"
+          message={`Êtes-vous sûr de vouloir supprimer ${selectedPhotos.length} photo(s) ? Cette action est irréversible.`}
+          confirmText={`Supprimer ${selectedPhotos.length} photo(s)`}
+          variant="danger"
+        />
       )}
 
       {/* Lightbox pour visualiser les photos */}

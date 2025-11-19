@@ -35,7 +35,12 @@ export const getDashboardStats = async () => {
  */
 export const getUsers = async (page: number = 1, perPage: number = 20, filters?: any) => {
   try {
-    const response = await AdminUsersService.getUsers(page, perPage, filters);
+    const response = await AdminUsersService.getAdminUsers(
+      filters?.role,
+      filters?.status === 'active' ? true : filters?.status === 'banned' ? false : undefined,
+      filters?.search,
+      perPage
+    );
     return response;
   } catch (error: any) {
     console.error('Error fetching users:', error);
@@ -48,7 +53,7 @@ export const getUsers = async (page: number = 1, perPage: number = 20, filters?:
  */
 export const getUser = async (userId: string) => {
   try {
-    const response = await AdminUsersService.getUser(userId);
+    const response = await AdminUsersService.getAdminUser(userId);
     return response;
   } catch (error: any) {
     console.error('Error fetching user:', error);
@@ -61,8 +66,9 @@ export const getUser = async (userId: string) => {
  */
 export const updateUser = async (userId: string, data: any) => {
   try {
-    const response = await AdminUsersService.updateUser(userId, data);
-    return response;
+    // Note: There's no generic update method in the API,
+    // we need to use specific methods like suspend/activate
+    throw new Error('Use specific update methods like toggleUserBan');
   } catch (error: any) {
     console.error('Error updating user:', error);
     throw new Error(error.body?.message || 'Impossible de mettre à jour l\'utilisateur');
@@ -74,7 +80,7 @@ export const updateUser = async (userId: string, data: any) => {
  */
 export const deleteUser = async (userId: string) => {
   try {
-    const response = await AdminUsersService.deleteUser(userId);
+    const response = await AdminUsersService.deleteAdminUser(userId);
     return response;
   } catch (error: any) {
     console.error('Error deleting user:', error);
@@ -87,7 +93,9 @@ export const deleteUser = async (userId: string) => {
  */
 export const toggleUserBan = async (userId: string, isBanned: boolean) => {
   try {
-    const response = await AdminUsersService.updateUser(userId, { is_banned: isBanned });
+    const response = isBanned
+      ? await AdminUsersService.suspendAdminUser(userId)
+      : await AdminUsersService.activateAdminUser(userId);
     return response;
   } catch (error: any) {
     console.error('Error toggling user ban:', error);
@@ -104,7 +112,7 @@ export const toggleUserBan = async (userId: string, isBanned: boolean) => {
  */
 export const getPendingPhotos = async (page: number = 1, perPage: number = 20) => {
   try {
-    const response = await PhotosService.getPhotos(page, perPage, { status: 'pending' });
+    const response = await AdminPhotoModerationService.getAdminPhotosPending(perPage, page);
     return response;
   } catch (error: any) {
     console.error('Error fetching pending photos:', error);
@@ -117,7 +125,7 @@ export const getPendingPhotos = async (page: number = 1, perPage: number = 20) =
  */
 export const approvePhoto = async (photoId: string) => {
   try {
-    const response = await AdminPhotoModerationService.approvePhoto(photoId);
+    const response = await AdminPhotoModerationService.approveAdminPhoto(photoId);
     return response;
   } catch (error: any) {
     console.error('Error approving photo:', error);
@@ -130,7 +138,7 @@ export const approvePhoto = async (photoId: string) => {
  */
 export const rejectPhoto = async (photoId: string, reason: string) => {
   try {
-    const response = await AdminPhotoModerationService.rejectPhoto(photoId, { rejection_reason: reason });
+    const response = await AdminPhotoModerationService.rejectAdminPhoto(photoId, { rejection_reason: reason });
     return response;
   } catch (error: any) {
     console.error('Error rejecting photo:', error);
@@ -143,7 +151,7 @@ export const rejectPhoto = async (photoId: string, reason: string) => {
  */
 export const deletePhoto = async (photoId: string) => {
   try {
-    const response = await PhotosService.deletePhoto(photoId);
+    const response = await AdminPhotoModerationService.deleteAdminPhoto(photoId);
     return response;
   } catch (error: any) {
     console.error('Error deleting photo:', error);
@@ -203,7 +211,9 @@ export const rejectPhotographer = async (userId: string, reason: string) => {
  */
 export const getAllWithdrawals = async (status?: string) => {
   try {
-    const response = await AdminWithdrawalsService.getWithdrawals({ status });
+    const response = await AdminWithdrawalsService.getAdminWithdrawals(
+      status as 'pending' | 'approved' | 'rejected' | 'completed' | undefined
+    );
     return response;
   } catch (error: any) {
     console.error('Error fetching withdrawals:', error);
@@ -214,9 +224,12 @@ export const getAllWithdrawals = async (status?: string) => {
 /**
  * Approve withdrawal
  */
-export const approveWithdrawal = async (withdrawalId: string) => {
+export const approveWithdrawal = async (withdrawalId: string, transactionRef?: string, notes?: string) => {
   try {
-    const response = await AdminWithdrawalsService.approveWithdrawal(withdrawalId);
+    const response = await AdminWithdrawalsService.approveAdminWithdrawal(withdrawalId, {
+      transaction_reference: transactionRef,
+      admin_notes: notes
+    });
     return response;
   } catch (error: any) {
     console.error('Error approving withdrawal:', error);
@@ -229,7 +242,7 @@ export const approveWithdrawal = async (withdrawalId: string) => {
  */
 export const rejectWithdrawal = async (withdrawalId: string, reason: string) => {
   try {
-    const response = await AdminWithdrawalsService.rejectWithdrawal(withdrawalId, { rejection_reason: reason });
+    const response = await AdminWithdrawalsService.rejectAdminWithdrawal(withdrawalId, { rejection_reason: reason });
     return response;
   } catch (error: any) {
     console.error('Error rejecting withdrawal:', error);
@@ -240,9 +253,9 @@ export const rejectWithdrawal = async (withdrawalId: string, reason: string) => 
 /**
  * Mark withdrawal as completed
  */
-export const completeWithdrawal = async (withdrawalId: string, transactionId: string) => {
+export const completeWithdrawal = async (withdrawalId: string, transactionRef: string) => {
   try {
-    const response = await AdminWithdrawalsService.completeWithdrawal(withdrawalId, { transaction_id: transactionId });
+    const response = await AdminWithdrawalsService.completeAdminWithdrawal(withdrawalId, { transaction_reference: transactionRef });
     return response;
   } catch (error: any) {
     console.error('Error completing withdrawal:', error);

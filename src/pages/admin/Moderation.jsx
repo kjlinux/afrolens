@@ -6,6 +6,7 @@ import { PHOTO_STATUS } from '../../utils/constants';
 import { PERMISSIONS } from '../../utils/permissions';
 import { Can } from '../../components/auth';
 import { usePermission } from '../../hooks/usePermission';
+import { useToast } from '../../contexts/ToastContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
@@ -18,6 +19,7 @@ export default function Moderation() {
   const canReject = usePermission(PERMISSIONS.REJECT_PHOTOS);
   const canDelete = usePermission(PERMISSIONS.DELETE_ANY_PHOTO);
 
+  const { toast } = useToast();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -38,11 +40,12 @@ export default function Moderation() {
       setError(null);
 
       // Charger toutes les photos en attente (on peut paginer si besoin)
-      const data = await getPendingPhotos(1, 100);
-      const allPhotos = data.data || data;
+      const response = await getPendingPhotos(1, 100);
+      // API returns: { success, data: { current_page, data: [...], total } }
+      const allPhotos = response.data?.data || [];
 
       // Filtrer par statut si nécessaire
-      let filteredPhotos = allPhotos;
+      let filteredPhotos = Array.isArray(allPhotos) ? allPhotos : [];
       if (filterStatus !== 'all' && filterStatus !== 'pending') {
         filteredPhotos = allPhotos.filter(p => p.status === filterStatus);
       }
@@ -58,6 +61,7 @@ export default function Moderation() {
     } catch (err) {
       console.error('Erreur chargement photos:', err);
       setError(err.message || 'Impossible de charger les photos');
+      setPhotos([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -72,12 +76,12 @@ export default function Moderation() {
       setSelectedPhoto(null);
 
       // Afficher un message de succès
-      alert('Photo approuvée avec succès !');
+      toast.success('Photo approuvée avec succès !');
 
       // Recharger pour mettre à jour les stats
       loadPhotos();
     } catch (err) {
-      alert(err.message || 'Erreur lors de l\'approbation');
+      toast.error(err.message || 'Erreur lors de l\'approbation');
     }
   };
 
@@ -89,7 +93,7 @@ export default function Moderation() {
 
   const confirmReject = async () => {
     if (!rejectionReason.trim()) {
-      alert('Veuillez fournir une raison pour le rejet');
+      toast.warning('Veuillez fournir une raison pour le rejet');
       return;
     }
 
@@ -104,12 +108,12 @@ export default function Moderation() {
       setRejectionReason('');
 
       // Afficher un message de succès
-      alert('Photo rejetée avec succès');
+      toast.success('Photo rejetée avec succès');
 
       // Recharger pour mettre à jour les stats
       loadPhotos();
     } catch (err) {
-      alert(err.message || 'Erreur lors du rejet');
+      toast.error(err.message || 'Erreur lors du rejet');
     }
   };
 
@@ -191,7 +195,7 @@ export default function Moderation() {
           </div>
 
           {/* Tags */}
-          {photo.tags && photo.tags.length > 0 && (
+          {photo.tags && Array.isArray(photo.tags) && photo.tags.length > 0 && (
             <div className="mb-6">
               <p className="text-sm text-gray-600 mb-2">Tags</p>
               <div className="flex flex-wrap gap-2">

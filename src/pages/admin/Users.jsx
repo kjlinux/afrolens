@@ -5,10 +5,12 @@ import { formatDate, formatNumber } from '../../utils/helpers';
 import { PERMISSIONS } from '../../utils/permissions';
 import { Can } from '../../components/auth';
 import { usePermission } from '../../hooks/usePermission';
+import { useToast } from '../../contexts/ToastContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 export default function Users() {
   // Permission checks
@@ -16,6 +18,7 @@ export default function Users() {
   const canEditUsers = usePermission(PERMISSIONS.EDIT_USERS);
   const canSuspendUsers = usePermission(PERMISSIONS.SUSPEND_USERS);
   const canDeleteUsers = usePermission(PERMISSIONS.DELETE_USERS);
+  const { toast } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,7 +28,9 @@ export default function Users() {
   const [showMenu, setShowMenu] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showBanModal, setShowBanModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [userToBan, setUserToBan] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, perPage: 20, total: 0 });
 
   useEffect(() => {
@@ -42,12 +47,22 @@ export default function Users() {
       if (filterStatus !== 'all') filters.status = filterStatus;
       if (searchTerm) filters.search = searchTerm;
 
-      const data = await getUsers(pagination.page, pagination.perPage, filters);
-      setUsers(data.data || data);
-      if (data.pagination) setPagination(prev => ({ ...prev, ...data.pagination }));
+      const response = await getUsers(pagination.page, pagination.perPage, filters);
+      // API returns: { success, data: { current_page, data: [...], total } }
+      const usersData = response.data?.data || [];
+      setUsers(Array.isArray(usersData) ? usersData : []);
+
+      if (response.data) {
+        setPagination(prev => ({
+          ...prev,
+          page: response.data.current_page || prev.page,
+          total: response.data.total || 0
+        }));
+      }
     } catch (err) {
       console.error('Erreur chargement utilisateurs:', err);
       setError(err.message || 'Impossible de charger les utilisateurs');
+      setUsers([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -63,24 +78,27 @@ export default function Users() {
     banned: users.filter(u => u.is_active === false).length,
   };
 
-  const handleBanUser = async (user) => {
-    if (!window.confirm(`Êtes-vous sûr de vouloir ${user.is_active !== false ? 'bannir' : 'débannir'} ${user.first_name} ${user.last_name} ?`)) {
-      return;
-    }
+  const handleBanClick = (user) => {
+    setUserToBan(user);
+    setShowBanModal(true);
+    setShowMenu(null);
+  };
 
+  const confirmBan = async () => {
     try {
-      const newStatus = !(user.is_active !== false);
-      await toggleUserBan(user.id, !newStatus);
+      const newStatus = !(userToBan.is_active !== false);
+      await toggleUserBan(userToBan.id, !newStatus);
 
       // Mise à jour locale optimiste
       const updatedUsers = users.map(u =>
-        u.id === user.id ? { ...u, is_active: newStatus } : u
+        u.id === userToBan.id ? { ...u, is_active: newStatus } : u
       );
       setUsers(updatedUsers);
-      setShowMenu(null);
-      alert(`Utilisateur ${user.is_active !== false ? 'banni' : 'débanni'} avec succès`);
+      setShowBanModal(false);
+      setUserToBan(null);
+      toast.success(`Utilisateur ${userToBan.is_active !== false ? 'banni' : 'débanni'} avec succès`);
     } catch (err) {
-      alert(err.message || 'Erreur lors du changement de statut');
+      toast.error(err.message || 'Erreur lors du changement de statut');
     }
   };
 
@@ -98,29 +116,33 @@ export default function Users() {
       setUsers(updatedUsers);
       setShowDeleteModal(false);
       setUserToDelete(null);
-      alert('Utilisateur supprimé avec succès');
+      toast.success('Utilisateur supprimé avec succès');
     } catch (err) {
-      alert(err.message || 'Erreur lors de la suppression');
+      toast.error(err.message || 'Erreur lors de la suppression');
     }
   };
 
   const handleChangeRole = async (user, newRole) => {
-    if (!window.confirm(`Changer le rôle de ${user.first_name} ${user.last_name} en "${newRole}" ?`)) {
-      return;
-    }
+    // TODO: Implement role change when API endpoint is available
+    toast.info('La modification de rôle n\'est pas encore disponible dans l\'API');
+    return;
 
-    try {
-      await updateUser(user.id, { role: newRole });
+    // if (!window.confirm(`Changer le rôle de ${user.first_name} ${user.last_name} en "${newRole}" ?`)) {
+    //   return;
+    // }
 
-      const updatedUsers = users.map(u =>
-        u.id === user.id ? { ...u, role: newRole } : u
-      );
-      setUsers(updatedUsers);
-      setShowMenu(null);
-      alert('Rôle modifié avec succès');
-    } catch (err) {
-      alert(err.message || 'Erreur lors du changement de rôle');
-    }
+    // try {
+    //   await updateUser(user.id, { role: newRole });
+
+    //   const updatedUsers = users.map(u =>
+    //     u.id === user.id ? { ...u, role: newRole } : u
+    //   );
+    //   setUsers(updatedUsers);
+    //   setShowMenu(null);
+    //   alert('Rôle modifié avec succès');
+    // } catch (err) {
+    //   alert(err.message || 'Erreur lors du changement de rôle');
+    // }
   };
 
   const getRoleBadge = (role) => {
@@ -261,7 +283,7 @@ export default function Users() {
           <div className="flex gap-3 pt-6 border-t">
             <Can permission={PERMISSIONS.SUSPEND_USERS}>
               <Button
-                onClick={() => handleBanUser(user)}
+                onClick={() => handleBanClick(user)}
                 variant={user.is_active !== false ? 'warning' : 'success'}
                 fullWidth
               >
@@ -469,7 +491,7 @@ export default function Users() {
                                     Changer en {user.role === 'photographer' ? 'Acheteur' : 'Photographe'}
                                   </button>
                                   <button
-                                    onClick={() => handleBanUser(user)}
+                                    onClick={() => handleBanClick(user)}
                                     className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
                                       user.is_active !== false
                                         ? 'text-orange-600 hover:bg-orange-50'
@@ -548,6 +570,22 @@ export default function Users() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* ConfirmDialog Bannissement */}
+      {showBanModal && userToBan && (
+        <ConfirmDialog
+          isOpen={showBanModal}
+          onClose={() => {
+            setShowBanModal(false);
+            setUserToBan(null);
+          }}
+          onConfirm={confirmBan}
+          title={userToBan.is_active !== false ? 'Bannir l\'utilisateur' : 'Débannir l\'utilisateur'}
+          message={`Êtes-vous sûr de vouloir ${userToBan.is_active !== false ? 'bannir' : 'débannir'} ${userToBan.first_name} ${userToBan.last_name} ?`}
+          confirmText={userToBan.is_active !== false ? 'Bannir' : 'Débannir'}
+          variant={userToBan.is_active !== false ? 'warning' : 'info'}
+        />
       )}
     </div>
   );

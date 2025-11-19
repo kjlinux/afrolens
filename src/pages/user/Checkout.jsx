@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { createOrderAndPay } from '../../services/orderService';
 import { formatPrice } from '../../utils/helpers';
 import { FiCreditCard, FiSmartphone, FiCheck } from 'react-icons/fi';
@@ -16,6 +17,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { cart, getTotal, clearCart } = useCart();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [processing, setProcessing] = useState(false);
@@ -107,7 +109,7 @@ export default function Checkout() {
       }
     } catch (error) {
       console.error('Erreur paiement:', error);
-      alert(error.message || 'Une erreur est survenue. Veuillez réessayer.');
+      toast.error(error.message || 'Une erreur est survenue. Veuillez réessayer.');
       setShowPaymentModal(false);
     } finally {
       setProcessing(false);

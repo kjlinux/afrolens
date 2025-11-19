@@ -20,12 +20,14 @@ import {
   completeWithdrawal,
 } from "../../services/adminService";
 import { formatPrice, formatDate } from "../../utils/helpers";
+import { useToast } from "../../contexts/ToastContext";
 import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import Modal from "../../components/common/Modal";
 
 export default function Withdrawals() {
+  const { toast } = useToast();
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -50,28 +52,34 @@ export default function Withdrawals() {
 
       // Charger tous les retraits ou filtrer par statut
       const status = filterStatus === "all" ? undefined : filterStatus;
-      const data = await getAllWithdrawals(status);
-      const allWithdrawals = Array.isArray(data) ? data : (data.data || []);
+      const response = await getAllWithdrawals(status);
+      // API returns: { success, data: { current_page, data: [...], total } }
+      const allWithdrawals = response.data?.data || [];
 
       // Trier par date (plus récent en premier)
-      const sortedWithdrawals = [...allWithdrawals].sort(
-        (a, b) => new Date(b.requested_at) - new Date(a.requested_at)
-      );
+      const sortedWithdrawals = Array.isArray(allWithdrawals)
+        ? [...allWithdrawals].sort(
+            (a, b) => new Date(b.requested_at) - new Date(a.requested_at)
+          )
+        : [];
 
       setWithdrawals(sortedWithdrawals);
 
       // Calculer les stats
-      setStats({
-        pending: allWithdrawals.filter((w) => w.status === "pending").length,
-        pendingAmount: allWithdrawals
-          .filter((w) => w.status === "pending")
-          .reduce((sum, w) => sum + w.amount, 0),
-        completed: allWithdrawals.filter((w) => w.status === "completed").length,
-        rejected: allWithdrawals.filter((w) => w.status === "rejected").length,
-      });
+      if (Array.isArray(allWithdrawals)) {
+        setStats({
+          pending: allWithdrawals.filter((w) => w.status === "pending").length,
+          pendingAmount: allWithdrawals
+            .filter((w) => w.status === "pending")
+            .reduce((sum, w) => sum + (w.amount || 0), 0),
+          completed: allWithdrawals.filter((w) => w.status === "completed").length,
+          rejected: allWithdrawals.filter((w) => w.status === "rejected").length,
+        });
+      }
     } catch (err) {
       console.error("Erreur chargement retraits:", err);
       setError(err.message || "Impossible de charger les retraits");
+      setWithdrawals([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -86,7 +94,7 @@ export default function Withdrawals() {
 
   const confirmApprove = async () => {
     if (!transactionId.trim()) {
-      alert("Veuillez fournir un ID de transaction");
+      toast.warning("Veuillez fournir un ID de transaction");
       return;
     }
 
@@ -100,12 +108,12 @@ export default function Withdrawals() {
       setNotes("");
 
       // Afficher un message de succès
-      alert("Demande de retrait approuvée et paiement effectué !");
+      toast.success("Demande de retrait approuvée et paiement effectué !");
 
       // Recharger
       loadWithdrawals();
     } catch (err) {
-      alert(err.message || "Erreur lors de l'approbation");
+      toast.error(err.message || "Erreur lors de l'approbation");
     }
   };
 
@@ -117,7 +125,7 @@ export default function Withdrawals() {
 
   const confirmReject = async () => {
     if (!rejectionReason.trim()) {
-      alert("Veuillez fournir une raison pour le rejet");
+      toast.warning("Veuillez fournir une raison pour le rejet");
       return;
     }
 
@@ -130,12 +138,12 @@ export default function Withdrawals() {
       setRejectionReason("");
 
       // Afficher un message de succès
-      alert("Demande de retrait rejetée");
+      toast.success("Demande de retrait rejetée");
 
       // Recharger
       loadWithdrawals();
     } catch (err) {
-      alert(err.message || "Erreur lors du rejet");
+      toast.error(err.message || "Erreur lors du rejet");
     }
   };
 
@@ -453,7 +461,7 @@ export default function Withdrawals() {
             <h3 className="font-semibold text-gray-900">Total</h3>
           </div>
           <p className="text-4xl font-bold text-blue-600">
-            {allWithdrawals.length}
+            {withdrawals.length}
           </p>
         </Card>
       </div>

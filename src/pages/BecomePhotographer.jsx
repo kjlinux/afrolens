@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { Camera, CheckCircle, Upload, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { CONFIG } from '../utils/constants';
 import { formatFileSize } from '../utils/helpers';
 import Button from '../components/common/Button';
@@ -12,6 +13,7 @@ import Card from '../components/common/Card';
 export default function BecomePhotographer() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [step, setStep] = useState(1); // 1: form, 2: upload, 3: success
   const [submitting, setSubmitting] = useState(false);
   const [samplePhotos, setSamplePhotos] = useState([]);
@@ -45,13 +47,13 @@ export default function BecomePhotographer() {
         }
         return `${file.file.name}: Format non supporté`;
       });
-      alert(errors.join('\n'));
+      toast.error(errors.join('\n'));
       return;
     }
 
     // Limite de 10 photos échantillons
     if (samplePhotos.length + acceptedFiles.length > 10) {
-      alert('Maximum 10 photos échantillons autorisées');
+      toast.warning('Maximum 10 photos échantillons autorisées');
       return;
     }
 
@@ -89,17 +91,17 @@ export default function BecomePhotographer() {
 
     // Validation
     if (!formData.bio.trim() || formData.bio.length < 50) {
-      alert('Votre biographie doit contenir au moins 50 caractères');
+      toast.warning('Votre biographie doit contenir au moins 50 caractères');
       return;
     }
 
     if (!formData.experience.trim()) {
-      alert('Veuillez décrire votre expérience');
+      toast.warning('Veuillez décrire votre expérience');
       return;
     }
 
     if (!formData.motivation.trim() || formData.motivation.length < 100) {
-      alert('Votre motivation doit contenir au moins 100 caractères');
+      toast.warning('Votre motivation doit contenir au moins 100 caractères');
       return;
     }
 
@@ -110,12 +112,12 @@ export default function BecomePhotographer() {
     e.preventDefault();
 
     if (samplePhotos.length < 3) {
-      alert('Veuillez ajouter au moins 3 photos échantillons');
+      toast.warning('Veuillez ajouter au moins 3 photos échantillons');
       return;
     }
 
     if (samplePhotos.length > 10) {
-      alert('Maximum 10 photos échantillons autorisées');
+      toast.warning('Maximum 10 photos échantillons autorisées');
       return;
     }
 
@@ -137,7 +139,7 @@ export default function BecomePhotographer() {
       samplePhotos.forEach(photo => URL.revokeObjectURL(photo.preview));
 
     } catch (error) {
-      alert('Erreur lors de la soumission. Veuillez réessayer.');
+      toast.error('Erreur lors de la soumission. Veuillez réessayer.');
       console.error(error);
     } finally {
       setSubmitting(false);

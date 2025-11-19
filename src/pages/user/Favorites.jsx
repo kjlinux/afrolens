@@ -2,17 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getFavorites, removeFromFavorites } from '../../services/favoritesService';
+import { useToast } from '../../contexts/ToastContext';
 import PhotoGrid from '../../components/photos/PhotoGrid';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Spinner from '../../components/common/Spinner';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 
 export default function Favorites() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [favoritePhotos, setFavoritePhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('recent'); // recent, price_asc, price_desc, popular
+  const [showClearAllModal, setShowClearAllModal] = useState(false);
 
   useEffect(() => {
     loadFavorites();
@@ -38,22 +42,27 @@ export default function Favorites() {
       await removeFromFavorites(photoId);
       // Mettre à jour l'état local
       setFavoritePhotos(prev => prev.filter(photo => photo.id !== photoId));
+      toast.success('Photo retirée des favoris');
     } catch (err) {
       console.error('Erreur lors de la suppression du favori:', err);
-      alert(err.message || 'Impossible de retirer des favoris');
+      toast.error(err.message || 'Impossible de retirer des favoris');
     }
   };
 
-  const clearAllFavorites = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer tous vos favoris ?')) {
-      try {
-        // Supprimer tous les favoris un par un
-        await Promise.all(favoritePhotos.map(photo => removeFromFavorites(photo.id)));
-        setFavoritePhotos([]);
-      } catch (err) {
-        console.error('Erreur lors de la suppression des favoris:', err);
-        alert(err.message || 'Impossible de supprimer tous les favoris');
-      }
+  const handleClearAllClick = () => {
+    setShowClearAllModal(true);
+  };
+
+  const confirmClearAll = async () => {
+    try {
+      // Supprimer tous les favoris un par un
+      await Promise.all(favoritePhotos.map(photo => removeFromFavorites(photo.id)));
+      setFavoritePhotos([]);
+      setShowClearAllModal(false);
+      toast.success('Tous les favoris ont été supprimés');
+    } catch (err) {
+      console.error('Erreur lors de la suppression des favoris:', err);
+      toast.error(err.message || 'Impossible de supprimer tous les favoris');
     }
   };
 
@@ -101,7 +110,7 @@ export default function Favorites() {
             <Button
               variant="danger"
               size="sm"
-              onClick={clearAllFavorites}
+              onClick={handleClearAllClick}
             >
               <svg
                 className="mr-1 h-4 w-4"
@@ -312,6 +321,19 @@ export default function Favorites() {
             </div>
           </Card>
         </div>
+      )}
+
+      {/* ConfirmDialog pour supprimer tous les favoris */}
+      {showClearAllModal && (
+        <ConfirmDialog
+          isOpen={showClearAllModal}
+          onClose={() => setShowClearAllModal(false)}
+          onConfirm={confirmClearAll}
+          title="Supprimer tous les favoris"
+          message="Êtes-vous sûr de vouloir supprimer tous vos favoris ? Cette action est irréversible."
+          confirmText="Tout supprimer"
+          variant="danger"
+        />
       )}
     </div>
   );

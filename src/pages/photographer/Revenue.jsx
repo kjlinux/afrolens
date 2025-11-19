@@ -24,6 +24,7 @@ import {
   calculateCommission,
 } from "../../utils/helpers";
 import { CONFIG } from "../../utils/constants";
+import { useToast } from "../../contexts/ToastContext";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Card from "../../components/common/Card";
@@ -32,6 +33,7 @@ import Modal from "../../components/common/Modal";
 
 export default function Revenue() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
@@ -79,17 +81,17 @@ export default function Revenue() {
     const amount = parseFloat(withdrawalAmount);
 
     if (isNaN(amount) || amount <= 0) {
-      alert('Veuillez entrer un montant valide');
+      toast.warning('Veuillez entrer un montant valide');
       return;
     }
 
     if (amount > revenueData.availableBalance) {
-      alert('Le montant demandé dépasse votre solde disponible');
+      toast.error('Le montant demandé dépasse votre solde disponible');
       return;
     }
 
     if (amount < CONFIG.MIN_WITHDRAWAL_AMOUNT) {
-      alert(`Le montant minimum de retrait est de ${formatPrice(CONFIG.MIN_WITHDRAWAL_AMOUNT)}`);
+      toast.warning(`Le montant minimum de retrait est de ${formatPrice(CONFIG.MIN_WITHDRAWAL_AMOUNT)}`);
       return;
     }
 
@@ -109,10 +111,10 @@ export default function Revenue() {
       setShowWithdrawalModal(false);
       setWithdrawalAmount('');
       setWithdrawalDetails('');
-      alert('Demande de retrait envoyée avec succès');
+      toast.success('Demande de retrait envoyée avec succès');
     } catch (err) {
       console.error('Erreur lors de la demande de retrait:', err);
-      alert(err.message || 'Impossible de créer la demande de retrait');
+      toast.error(err.message || 'Impossible de créer la demande de retrait');
     } finally {
       setWithdrawalProcessing(false);
     }
@@ -160,7 +162,7 @@ export default function Revenue() {
 
     // Validations
     if (amount < CONFIG.MINIMUM_WITHDRAWAL) {
-      alert(
+      toast.warning(
         `Le montant minimum de retrait est de ${formatPrice(
           CONFIG.MINIMUM_WITHDRAWAL
         )}`
@@ -169,12 +171,12 @@ export default function Revenue() {
     }
 
     if (amount > revenueData.availableBalance) {
-      alert("Solde disponible insuffisant");
+      toast.error("Solde disponible insuffisant");
       return;
     }
 
     if (!withdrawalDetails.trim()) {
-      alert("Veuillez fournir les détails du compte");
+      toast.warning("Veuillez fournir les détails du compte");
       return;
     }
 
@@ -185,7 +187,7 @@ export default function Revenue() {
       details: withdrawalDetails,
     });
 
-    alert(`Demande de retrait de ${formatPrice(amount)} soumise avec succès!`);
+    toast.success(`Demande de retrait de ${formatPrice(amount)} soumise avec succès!`);
     setShowWithdrawalModal(false);
     setWithdrawalAmount("");
     setWithdrawalDetails("");
