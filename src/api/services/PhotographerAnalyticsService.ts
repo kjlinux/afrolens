@@ -76,4 +76,200 @@ export class PhotographerAnalyticsService {
             },
         });
     }
+    /**
+     * Get views over time
+     * Get historical view counts for photographer's photos over a specified period
+     * @param period Analytics period
+     * @returns any Views data retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerViewsOverTime(
+        period: '7d' | '30d' | '90d',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: Array<{
+            date?: string;
+            views?: number;
+        }>;
+        summary?: {
+            total_views?: number;
+            average_daily_views?: number;
+            change_percentage?: number;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/analytics/views-over-time',
+            query: {
+                'period': period,
+            },
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * Get sales over time
+     * Get historical sales counts over a specified period
+     * @param period Analytics period
+     * @returns any Sales data retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerSalesOverTime(
+        period: '7d' | '30d' | '90d',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: Array<{
+            date?: string;
+            sales?: number;
+        }>;
+        summary?: {
+            total_sales?: number;
+            average_daily_sales?: number;
+            change_percentage?: number;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/analytics/sales-over-time',
+            query: {
+                'period': period,
+            },
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * Get revenue over time
+     * Get historical revenue data (photographer's 80% share after commission) over a specified period
+     * @param period Analytics period
+     * @returns any Revenue data retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerRevenueOverTime(
+        period: '7d' | '30d' | '90d',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: Array<{
+            date?: string;
+            revenue?: number;
+        }>;
+        summary?: {
+            total_revenue?: number;
+            average_daily_revenue?: number;
+            change_percentage?: number;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/analytics/revenue-over-time',
+            query: {
+                'period': period,
+            },
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * Get conversion rate over time
+     * Get historical conversion rate (views to sales) over a specified period
+     * @param period Analytics period
+     * @returns any Conversion data retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerConversionOverTime(
+        period: '7d' | '30d' | '90d',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: Array<{
+            date?: string;
+            conversion_rate?: number;
+        }>;
+        summary?: {
+            average_conversion_rate?: number;
+            change_percentage?: number;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/analytics/conversion-over-time',
+            query: {
+                'period': period,
+            },
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * Get hourly distribution
+     * Analyze which hours of the day photos are most viewed or purchased
+     * @param period Analytics period
+     * @param metric Metric to analyze
+     * @returns any Hourly distribution retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerHourlyDistribution(
+        period: '7d' | '30d' | '90d',
+        metric: 'views' | 'sales' = 'views',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: Array<{
+            hour?: number;
+            value?: number;
+        }>;
+        peak_hours?: Array<number>;
+        lowest_hours?: Array<number>;
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/analytics/hourly-distribution',
+            query: {
+                'period': period,
+                'metric': metric,
+            },
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * Get performance by category
+     * Analyze photo performance grouped by category
+     * @param period Analytics period
+     * @returns any Category performance retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerCategoryPerformance(
+        period: '7d' | '30d' | '90d',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: Array<{
+            category_id?: string;
+            category_name?: string;
+            total_sales?: number;
+            total_revenue?: number;
+            total_views?: number;
+            conversion_rate?: number;
+            average_price?: number;
+        }>;
+        top_category?: {
+            by_sales?: string;
+            by_revenue?: string;
+            by_conversion?: string;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/analytics/category-performance',
+            query: {
+                'period': period,
+            },
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
 }

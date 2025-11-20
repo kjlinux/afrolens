@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Calendar, Award, Image, Heart, Share2, Mail } from 'lucide-react';
-import { users, getPhotosByPhotographer, categories } from '../../data/mockData';
+import { SearchService, CategoriesService } from '../../api';
 import { formatDate, formatNumber } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
 import PhotoGrid from '../../components/photos/PhotoGrid';
@@ -14,6 +14,7 @@ export default function PublicProfile() {
   const { user } = useAuth();
   const [photographer, setPhotographer] = useState(null);
   const [photos, setPhotos] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState('all'); // all, category
@@ -21,35 +22,64 @@ export default function PublicProfile() {
 
   useEffect(() => {
     loadPhotographerData();
+    loadCategories();
   }, [photographerId]);
+
+  const loadCategories = async () => {
+    try {
+      const response = await CategoriesService.indexCategories();
+      if (response.data) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des catégories:', error);
+    }
+  };
 
   const loadPhotographerData = async () => {
     try {
       setLoading(true);
 
-      // Simuler le chargement des données
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Charger les photos du photographe via SearchService
+      // Les informations du photographe seront extraites des photos
+      const photosResponse = await SearchService.searchPhotos(
+        undefined, // query
+        undefined, // categories
+        photographerId, // photographer_id
+        undefined, // min_price
+        undefined, // max_price
+        undefined, // orientation
+        'date', // sort_by
+        100 // per_page
+      );
 
-      // Trouver le photographe
-      const photographerData = users.find(u => u.id === parseInt(photographerId) && u.role === 'photographer');
-
-      if (!photographerData) {
-        throw new Error('Photographe non trouvé');
-      }
-
-      setPhotographer(photographerData);
-
-      // Charger les photos du photographe (seulement les approuvées pour le profil public)
-      const photographerPhotos = getPhotosByPhotographer(photographerData.id)
-        .filter(photo => photo.status === 'approved');
-
+      const photographerPhotos = photosResponse.data || [];
       setPhotos(photographerPhotos);
+
+      // Extraire les informations du photographe depuis la première photo
+      if (photographerPhotos.length > 0 && photographerPhotos[0].photographer) {
+        const photographerData = photographerPhotos[0].photographer;
+        setPhotographer({
+          id: photographerData.user_id || photographerId,
+          first_name: photographerData.first_name || 'Photographe',
+          last_name: photographerData.last_name || '',
+          email: photographerData.email,
+          bio: photographerData.bio,
+          location: photographerData.location,
+          avatar_url: photographerData.avatar_url,
+          created_at: photographerData.created_at,
+        });
+      } else {
+        // Pas de photos trouvées pour ce photographe
+        setPhotographer(null);
+      }
 
       // Simuler le statut de suivi (en production, charger depuis l'API)
       setIsFollowing(false);
 
     } catch (error) {
       console.error('Erreur lors du chargement du photographe:', error);
+      setPhotographer(null);
     } finally {
       setLoading(false);
     }

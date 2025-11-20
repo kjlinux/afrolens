@@ -18,7 +18,8 @@
       "Bash(test:*)",
       "Bash(npm run build:*)",
       "Bash(npm run generate:api:*)",
-      "Bash(Remove-Item -Recurse -Force \"c:\\laragon\\www\\afrolens\\src\\data\")"
+      "Bash(Remove-Item -Recurse -Force \"c:\\laragon\\www\\afrolens\\src\\data\")",
+      "Bash(pnpm run generate:api:*)"
     ],
     "deny": [],
     "ask": []

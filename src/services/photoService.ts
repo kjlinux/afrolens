@@ -188,16 +188,27 @@ export const getByCategory = async (
 
 /**
  * Incrémenter le compteur de vues
- * Note: Cette fonctionnalité nécessite l'implémentation de l'endpoint backend
- * POST /api/photos/{id}/view
+ * Enregistre une vue lorsqu'un utilisateur consulte une photo
  * @param photoId - ID de la photo
- * @returns Promise<boolean>
+ * @returns Promise<{ photo_id: string; views_count: number } | null>
  */
-export const incrementViews = async (photoId: string): Promise<boolean> => {
-  // TODO BACKEND: Implémenter l'endpoint POST /api/photos/{id}/view
-  // Voir ENDPOINTS_MANQUANTS.md pour plus de détails
-  console.warn('incrementViews: Endpoint POST /api/photos/{id}/view non implémenté');
-  return true;
+export const incrementViews = async (photoId: string): Promise<{ photo_id: string; views_count: number } | null> => {
+  try {
+    const response = await PhotosService.trackPhotoView(photoId);
+
+    if (response.success && response.data) {
+      return {
+        photo_id: response.data.photo_id || photoId,
+        views_count: response.data.views_count || 0,
+      };
+    }
+
+    return null;
+  } catch (error: any) {
+    console.error('Erreur lors de l\'enregistrement de la vue:', error);
+    // On ne lance pas d'erreur car c'est une fonctionnalité non critique
+    return null;
+  }
 };
 
 /**

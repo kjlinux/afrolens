@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { categories } from '../../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { CategoriesService } from '../../api';
 import Button from '../common/Button';
 
 /**
@@ -8,8 +8,30 @@ import Button from '../common/Button';
  * @param {Object} props.filters - Filtres actuels
  * @param {Function} props.onFilterChange - Callback quand les filtres changent
  * @param {Function} props.onReset - Callback pour réinitialiser les filtres
+ * @param {Array} props.categories - Catégories (optionnel, sinon chargées depuis l'API)
  */
-export default function FilterSidebar({ filters, onFilterChange, onReset }) {
+export default function FilterSidebar({ filters, onFilterChange, onReset, categories: propCategories }) {
+  const [categories, setCategories] = useState(propCategories || []);
+  const [loadingCategories, setLoadingCategories] = useState(!propCategories);
+
+  // Fetch categories from API if not provided as props
+  useEffect(() => {
+    if (!propCategories) {
+      const fetchCategories = async () => {
+        try {
+          const response = await CategoriesService.indexCategories();
+          if (response.data) {
+            setCategories(response.data);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des catégories:', error);
+        } finally {
+          setLoadingCategories(false);
+        }
+      };
+      fetchCategories();
+    }
+  }, [propCategories]);
   const handleCategoryChange = (categoryId) => {
     const currentCategories = filters.category || [];
     const newCategories = currentCategories.includes(categoryId)

@@ -4,6 +4,7 @@
 /* eslint-disable */
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios';
+import FormData from 'form-data';
 
 import { ApiError } from './ApiError';
 import type { ApiRequestOptions } from './ApiRequestOptions';
@@ -151,10 +152,13 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
         resolve(options, config.HEADERS),
     ]);
 
+    const formHeaders = typeof formData?.getHeaders === 'function' && formData?.getHeaders() || {}
+
     const headers = Object.entries({
         Accept: 'application/json',
         ...additionalHeaders,
         ...options.headers,
+        ...formHeaders,
     })
     .filter(([_, value]) => isDefined(value))
     .reduce((headers, [key, value]) => ({
@@ -259,18 +263,6 @@ export const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): 
 
     const error = errors[result.status];
     if (error) {
-        // Handle 401 Unauthorized - redirect to login
-        if (result.status === 401) {
-            // Clear authentication data
-            localStorage.removeItem('pouire_access_token');
-            localStorage.removeItem('pouire_user_data');
-
-            // Redirect to login page
-            if (typeof window !== 'undefined') {
-                window.location.href = '/login';
-            }
-        }
-
         throw new ApiError(options, result, error);
     }
 

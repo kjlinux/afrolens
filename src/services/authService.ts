@@ -179,30 +179,53 @@ export const refreshToken = async (): Promise<string> => {
 
 /**
  * Demander la réinitialisation du mot de passe
- * Note: Cette fonctionnalité n'est pas encore implémentée dans l'API générée
+ * Envoie un email avec un lien de réinitialisation (limité à 3 requêtes par 15 min)
  * @param email - Email
  * @returns Promise<boolean>
  */
 export const forgotPassword = async (email: string): Promise<boolean> => {
-  // TODO: Implémenter quand l'endpoint sera disponible dans l'API
-  console.warn('forgotPassword: Endpoint non disponible dans l\'API');
-  throw new Error('Fonctionnalité non disponible pour le moment');
+  try {
+    const response = await AuthenticationService.forgotPassword({ email });
+    return response.success || false;
+  } catch (error: any) {
+    console.error('Erreur lors de la demande de réinitialisation:', error);
+    if (error.status === 429) {
+      throw new Error('Trop de requêtes. Veuillez réessayer dans quelques minutes.');
+    }
+    throw new Error(error.body?.message || 'Erreur lors de la demande de réinitialisation');
+  }
 };
 
 /**
  * Réinitialiser le mot de passe
- * Note: Cette fonctionnalité n'est pas encore implémentée dans l'API générée
+ * Finalise la réinitialisation avec le token reçu par email
  * @param token - Token de réinitialisation
- * @param newPassword - Nouveau mot de passe
+ * @param email - Email de l'utilisateur
+ * @param password - Nouveau mot de passe
+ * @param passwordConfirmation - Confirmation du nouveau mot de passe
  * @returns Promise<boolean>
  */
 export const resetPassword = async (
   token: string,
-  newPassword: string
+  email: string,
+  password: string,
+  passwordConfirmation: string
 ): Promise<boolean> => {
-  // TODO: Implémenter quand l'endpoint sera disponible dans l'API
-  console.warn('resetPassword: Endpoint non disponible dans l\'API');
-  throw new Error('Fonctionnalité non disponible pour le moment');
+  try {
+    const response = await AuthenticationService.resetPassword({
+      token,
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
+    return response.success || false;
+  } catch (error: any) {
+    console.error('Erreur lors de la réinitialisation du mot de passe:', error);
+    if (error.status === 400) {
+      throw new Error('Token invalide ou expiré');
+    }
+    throw new Error(error.body?.message || 'Erreur lors de la réinitialisation du mot de passe');
+  }
 };
 
 /**

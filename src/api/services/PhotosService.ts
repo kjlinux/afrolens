@@ -148,4 +148,31 @@ export class PhotosService {
             },
         });
     }
+    /**
+     * Enregistrer une vue de photo
+     * Incrémenter le compteur de vues d'une photo lorsqu'un utilisateur la consulte
+     * @param photo ID de la photo (UUID)
+     * @returns any Vue enregistrée avec succès
+     * @throws ApiError
+     */
+    public static trackPhotoView(
+        photo: string,
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: {
+            photo_id?: string;
+            views_count?: number;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/photos/{photo}/view',
+            path: {
+                'photo': photo,
+            },
+            errors: {
+                404: `Photo non trouvée`,
+            },
+        });
+    }
 }

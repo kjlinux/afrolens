@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { uploadPhoto } from '../../services/photographerService';
-import { categories, getMainCategories, getSubCategories } from '../../data/mockData';
+import { CategoriesService } from '../../api';
 import { CONFIG, LICENSE_TYPES } from '../../utils/constants';
 import { PERMISSIONS } from '../../utils/permissions';
 import { formatFileSize } from '../../utils/helpers';
@@ -31,6 +31,30 @@ export default function Upload() {
     price_extended: 100,
     location: '',
   });
+
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await CategoriesService.indexCategories();
+        if (response.data) {
+          setCategories(response.data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des catégories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Helper functions for categories
+  const getMainCategories = () => categories.filter(cat => !cat.parent_id);
+  const getSubCategories = (parentId) => categories.filter(cat => cat.parent_id === parentId);
 
   const mainCategories = getMainCategories();
 

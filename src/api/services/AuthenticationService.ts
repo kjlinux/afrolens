@@ -225,4 +225,59 @@ export class AuthenticationService {
             },
         });
     }
+    /**
+     * Demander la réinitialisation du mot de passe
+     * Envoie un email avec un lien de réinitialisation de mot de passe. Limité à 3 requêtes par 15 minutes par email.
+     * @param requestBody
+     * @returns any Email de réinitialisation envoyé
+     * @throws ApiError
+     */
+    public static forgotPassword(
+        requestBody: {
+            email: string;
+        },
+    ): CancelablePromise<{
+        success?: boolean;
+        message?: string;
+    }> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/forgot-password',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Erreur de validation`,
+                429: `Trop de requêtes`,
+            },
+        });
+    }
+    /**
+     * Réinitialiser le mot de passe
+     * Finalise la réinitialisation du mot de passe avec le token reçu par email. Le token est valide pendant 60 minutes.
+     * @param requestBody
+     * @returns any Mot de passe réinitialisé avec succès
+     * @throws ApiError
+     */
+    public static resetPassword(
+        requestBody: {
+            token: string;
+            email: string;
+            password: string;
+            password_confirmation: string;
+        },
+    ): CancelablePromise<{
+        success?: boolean;
+        message?: string;
+    }> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/auth/reset-password',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Token invalide ou expiré`,
+                422: `Erreur de validation`,
+            },
+        });
+    }
 }

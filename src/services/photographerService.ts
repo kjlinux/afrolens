@@ -13,147 +13,159 @@ import {
 // =====================
 
 /**
- * Generate mock time series data for analytics
- *
- * ⚠️ TEMPORARY MOCK DATA - À REMPLACER
- *
- * Cette fonction génère des données mockées pour la visualisation des graphiques
- * dans le dashboard photographe. Elle doit être remplacée par de vraies données
- * provenant du backend une fois les endpoints suivants implémentés:
- *
- * - GET /api/photographer/analytics/views-over-time
- * - GET /api/photographer/analytics/sales-over-time
- * - GET /api/photographer/analytics/revenue-over-time
- * - GET /api/photographer/analytics/conversion-over-time
- *
- * Voir le fichier ENDPOINTS_MANQUANTS.md pour les spécifications complètes.
- *
- * @deprecated Cette fonction sera supprimée après l'implémentation des endpoints backend
- */
-const generateMockTimeSeriesData = (period: string, dataType: 'views' | 'sales' | 'revenue') => {
-  const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
-  const data = [];
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-
-    let value = 0;
-    if (dataType === 'views') {
-      value = Math.floor(50 + Math.random() * 100);
-    } else if (dataType === 'sales') {
-      value = Math.floor(2 + Math.random() * 8);
-    } else if (dataType === 'revenue') {
-      value = Math.floor(1000 + Math.random() * 5000);
-    }
-
-    data.push({
-      date: dateStr,
-      value: value,
-      [dataType]: value,
-    });
-  }
-
-  return data;
-};
-
-/**
  * Récupérer les analytics du photographe
+ * Utilise les vrais endpoints API pour récupérer les données
  * @param period - Période d'analyse (7d, 30d, 90d)
  * @returns Promise<any>
  */
 export const getAnalytics = async (period: string = '30d'): Promise<any> => {
   try {
-    // Map period format: '30d' -> '30days'
-    const periodMap: Record<string, '7days' | '30days' | '90days'> = {
+    // Map period format for sales endpoint: '30d' -> '30days'
+    const salesPeriodMap: Record<string, '7days' | '30days' | '90days'> = {
       '7d': '7days',
       '30d': '30days',
       '90d': '90days',
     };
-    const apiPeriod = periodMap[period] || '30days';
+    const apiSalesPeriod = salesPeriodMap[period] || '30days';
 
-    const [salesResponse, popularPhotosResponse] = await Promise.all([
-      PhotographerAnalyticsService.getPhotographerAnalyticsSales(apiPeriod),
+    // Map period format for time series endpoints: '30d' -> '30d'
+    const timeSeriesPeriod = period as '7d' | '30d' | '90d';
+
+    // Fetch all analytics data in parallel
+    const [
+      salesResponse,
+      popularPhotosResponse,
+      viewsOverTimeResponse,
+      salesOverTimeResponse,
+      revenueOverTimeResponse,
+      conversionOverTimeResponse,
+      hourlyDistributionResponse,
+      categoryPerformanceResponse,
+    ] = await Promise.all([
+      PhotographerAnalyticsService.getPhotographerAnalyticsSales(apiSalesPeriod),
       PhotographerAnalyticsService.getPhotographerAnalyticsPopularPhotos().catch(() => ({ success: true, data: [] })),
+      PhotographerAnalyticsService.getPhotographerViewsOverTime(timeSeriesPeriod).catch(() => ({ success: true, data: [], summary: {} })),
+      PhotographerAnalyticsService.getPhotographerSalesOverTime(timeSeriesPeriod).catch(() => ({ success: true, data: [], summary: {} })),
+      PhotographerAnalyticsService.getPhotographerRevenueOverTime(timeSeriesPeriod).catch(() => ({ success: true, data: [], summary: {} })),
+      PhotographerAnalyticsService.getPhotographerConversionOverTime(timeSeriesPeriod).catch(() => ({ success: true, data: [], summary: {} })),
+      PhotographerAnalyticsService.getPhotographerHourlyDistribution(timeSeriesPeriod, 'views').catch(() => ({ success: true, data: [], peak_hours: [], lowest_hours: [] })),
+      PhotographerAnalyticsService.getPhotographerCategoryPerformance(timeSeriesPeriod).catch(() => ({ success: true, data: [], top_category: {} })),
     ]);
 
-    if (salesResponse.success) {
-      const salesData = salesResponse.data;
-      const popularPhotos = popularPhotosResponse.data || [];
+    const salesData = salesResponse.data;
+    const popularPhotos = popularPhotosResponse.data || [];
 
-      // Calculate totals and averages
-      const totalSales = salesData?.total_sales || 0;
-      const totalRevenue = salesData?.total_revenue || 0;
-      const avgSale = salesData?.average_sale || 0;
+    // Calculate totals from real data
+    const totalSales = salesData?.total_sales || 0;
+    const totalRevenue = salesData?.total_revenue || 0;
+    const avgSale = salesData?.average_sale || 0;
 
-      // ⚠️ MOCK DATA: Generate mock time series data for visualization
-      // TODO BACKEND: Replace with real API data once endpoints are implemented
-      // See ENDPOINTS_MANQUANTS.md sections 2.1, 2.2, 2.3, 2.4
-      const viewsOverTime = generateMockTimeSeriesData(period, 'views');
-      const salesOverTime = generateMockTimeSeriesData(period, 'sales');
-      const revenueOverTime = generateMockTimeSeriesData(period, 'revenue');
+    // Transform views over time data
+    const viewsOverTime = (viewsOverTimeResponse.data || []).map((item: any) => ({
+      date: item.date,
+      value: item.views,
+      views: item.views,
+    }));
 
-      // Transform API response to match expected Analytics component format
-      return {
-        overview: {
-          totalViews: viewsOverTime.reduce((sum, item) => sum + item.value, 0),
-          viewsChange: 12.5,
-          totalDownloads: totalSales,
-          downloadsChange: 8.3,
-          conversionRate: totalSales > 0 ? 7.5 : 0,
-          conversionChange: -2.1,
-          avgPhotoPrice: avgSale,
-          priceChange: 5.2,
-        },
-        topPhotos: popularPhotos.length > 0 ? popularPhotos.slice(0, 10).map((photo: any, index: number) => {
-          const views = photo.view_count || 100;
-          const sales = photo.order_items_count || 0;
-          const downloads = sales;
-          const conversionRate = views > 0 ? (sales / views) * 100 : 0;
+    // Transform sales over time data
+    const salesOverTime = (salesOverTimeResponse.data || []).map((item: any) => ({
+      date: item.date,
+      value: item.sales,
+      sales: item.sales,
+    }));
 
-          return {
-            id: photo.id,
-            title: photo.title,
-            sales: sales,
-            revenue: sales * (photo.price_standard || 0) * 0.8,
-            views: views,
-            downloads: downloads,
-            conversionRate: conversionRate,
-            thumbnail: photo.thumbnail_url,
-            rank: index + 1,
-          };
-        }) : [],
-        // ⚠️ MOCK DATA: Empty arrays - waiting for backend implementation
-        // TODO BACKEND: Implement endpoints for these features
-        // - categoryPerformance: See ENDPOINTS_MANQUANTS.md section 2.6
-        // - audienceInsights: See ENDPOINTS_MANQUANTS.md section 2.7
-        categoryPerformance: [],
-        revenueByCategory: [],
-        audienceInsights: {
-          topCountries: [],
-          deviceTypes: [],
-          referralSources: [],
-          topCustomers: [],
-        },
-        viewsOverTime: viewsOverTime,
-        salesOverTime: salesOverTime,
-        revenueOverTime: revenueOverTime,
-        conversionOverTime: viewsOverTime.map((item, index) => ({
-          date: item.date,
-          conversion: salesOverTime[index] ? (salesOverTime[index].value / item.value) * 100 : 0,
-        })),
-        // ⚠️ MOCK DATA: Hourly distribution with random data
-        // TODO BACKEND: See ENDPOINTS_MANQUANTS.md section 2.5
-        hourlyDistribution: Array.from({ length: 24 }, (_, i) => ({
-          hour: `${i}h`,
-          views: Math.floor(10 + Math.random() * 30),
-          sales: Math.floor(Math.random() * 5),
-        })),
-      };
-    }
+    // Transform revenue over time data
+    const revenueOverTime = (revenueOverTimeResponse.data || []).map((item: any) => ({
+      date: item.date,
+      value: item.revenue,
+      revenue: item.revenue,
+    }));
 
-    throw new Error('Erreur lors de la récupération des analytics');
+    // Transform conversion over time data
+    const conversionOverTime = (conversionOverTimeResponse.data || []).map((item: any) => ({
+      date: item.date,
+      conversion: item.conversion_rate,
+    }));
+
+    // Transform hourly distribution data
+    const hourlyDistribution = (hourlyDistributionResponse.data || []).map((item: any) => ({
+      hour: `${item.hour}h`,
+      views: item.value,
+      sales: 0, // Will need separate call for sales metric
+    }));
+
+    // Transform category performance data
+    const categoryPerformance = (categoryPerformanceResponse.data || []).map((item: any) => ({
+      category: item.category_name,
+      categoryId: item.category_id,
+      sales: item.total_sales,
+      revenue: item.total_revenue,
+      views: item.total_views,
+      conversionRate: item.conversion_rate,
+      avgPrice: item.average_price,
+    }));
+
+    // Calculate totals from time series data
+    const totalViews = viewsOverTimeResponse.summary?.total_views ||
+      viewsOverTime.reduce((sum: number, item: any) => sum + (item.value || 0), 0);
+    const viewsChange = viewsOverTimeResponse.summary?.change_percentage || 0;
+    const downloadsChange = salesOverTimeResponse.summary?.change_percentage || 0;
+    const conversionChange = conversionOverTimeResponse.summary?.change_percentage || 0;
+    const avgConversionRate = conversionOverTimeResponse.summary?.average_conversion_rate ||
+      (totalViews > 0 ? (totalSales / totalViews) * 100 : 0);
+
+    // Transform API response to match expected Analytics component format
+    return {
+      overview: {
+        totalViews: totalViews,
+        viewsChange: viewsChange,
+        totalDownloads: totalSales,
+        downloadsChange: downloadsChange,
+        conversionRate: avgConversionRate,
+        conversionChange: conversionChange,
+        avgPhotoPrice: avgSale,
+        priceChange: revenueOverTimeResponse.summary?.change_percentage || 0,
+      },
+      topPhotos: popularPhotos.length > 0 ? popularPhotos.slice(0, 10).map((photo: any, index: number) => {
+        const views = photo.view_count || 0;
+        const sales = photo.order_items_count || 0;
+        const downloads = sales;
+        const conversionRate = views > 0 ? (sales / views) * 100 : 0;
+
+        return {
+          id: photo.id,
+          title: photo.title,
+          sales: sales,
+          revenue: sales * (photo.price_standard || 0) * 0.8,
+          views: views,
+          downloads: downloads,
+          conversionRate: conversionRate,
+          thumbnail: photo.thumbnail_url,
+          rank: index + 1,
+        };
+      }) : [],
+      categoryPerformance: categoryPerformance,
+      revenueByCategory: categoryPerformance.map((cat: any) => ({
+        category: cat.category,
+        revenue: cat.revenue,
+      })),
+      audienceInsights: {
+        // Audience insights endpoint not yet implemented
+        topCountries: [],
+        deviceTypes: [],
+        referralSources: [],
+        topCustomers: [],
+      },
+      viewsOverTime: viewsOverTime,
+      salesOverTime: salesOverTime,
+      revenueOverTime: revenueOverTime,
+      conversionOverTime: conversionOverTime,
+      hourlyDistribution: hourlyDistribution,
+      // Additional metadata
+      peakHours: hourlyDistributionResponse.peak_hours || [],
+      lowestHours: hourlyDistributionResponse.lowest_hours || [],
+      topCategory: categoryPerformanceResponse.top_category || {},
+    };
   } catch (error: any) {
     console.error('Erreur lors de la récupération des analytics:', error);
     throw new Error(
