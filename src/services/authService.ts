@@ -229,22 +229,6 @@ export const resetPassword = async (
 };
 
 /**
- * Changer le mot de passe
- * Note: Cette fonctionnalité n'est pas encore implémentée dans l'API générée
- * @param currentPassword - Mot de passe actuel
- * @param newPassword - Nouveau mot de passe
- * @returns Promise<boolean>
- */
-export const changePassword = async (
-  currentPassword: string,
-  newPassword: string
-): Promise<boolean> => {
-  // TODO: Implémenter quand l'endpoint sera disponible dans l'API
-  console.warn('changePassword: Endpoint non disponible dans l\'API');
-  throw new Error('Fonctionnalité non disponible pour le moment');
-};
-
-/**
  * Récupérer les capacités (abilities) de l'utilisateur connecté
  * Appelle l'endpoint /api/auth/abilities pour obtenir roles, permissions, et statuts
  * @returns Promise<any>
@@ -283,7 +267,6 @@ const authService = {
   refreshToken,
   forgotPassword,
   resetPassword,
-  changePassword,
   fetchAbilities,
 };
 

@@ -13,7 +13,6 @@ import {
   FiMapPin,
   FiCalendar,
 } from 'react-icons/fi';
-import { FaHeart } from 'react-icons/fa';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import Spinner from '../components/common/Spinner';
@@ -35,7 +34,6 @@ export default function PhotoDetail() {
   const { addToCart } = useCart();
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [selectedLicense, setSelectedLicense] = useState('standard');
   const [similarPhotos, setSimilarPhotos] = useState([]);
 
@@ -260,30 +258,10 @@ export default function PhotoDetail() {
                   Ajouter au panier - {formatPrice(currentPrice)}
                 </Button>
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    fullWidth
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className="flex items-center justify-center gap-2"
-                  >
-                    {isFavorite ? (
-                      <>
-                        <FaHeart className="text-red-500" />
-                        Retiré des favoris
-                      </>
-                    ) : (
-                      <>
-                        <FiHeart />
-                        Ajouter aux favoris
-                      </>
-                    )}
-                  </Button>
-
-                  <Button variant="ghost" onClick={handleShare}>
-                    <FiShare2 />
-                  </Button>
-                </div>
+                <Button variant="outline" fullWidth onClick={handleShare} className="flex items-center justify-center gap-2">
+                  <FiShare2 />
+                  Partager
+                </Button>
               </div>
 
               {/* Métadonnées image */}

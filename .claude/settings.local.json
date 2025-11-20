@@ -19,7 +19,8 @@
       "Bash(npm run build:*)",
       "Bash(npm run generate:api:*)",
       "Bash(Remove-Item -Recurse -Force \"c:\\laragon\\www\\afrolens\\src\\data\")",
-      "Bash(pnpm run generate:api:*)"
+      "Bash(pnpm run generate:api:*)",
+      "Bash(del \"c:\\laragon\\www\\afrolens\\src\\services\\authService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\photoService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\cartService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\userService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\orderService.js.backup\")"
     ],
     "deny": [],
     "ask": []

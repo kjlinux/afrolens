@@ -21,9 +21,7 @@ import {
   Eye,
   Download,
   ShoppingCart,
-  Users,
   DollarSign,
-  Calendar,
   TrendingDown,
   Award,
   Clock,
@@ -79,134 +77,6 @@ const Analytics = () => {
     }
   };
 
-  // Mock analytics data pour fallback
-  const getMockAnalytics = () => {
-    return {
-        overview: {
-          totalViews: 45234,
-          viewsChange: 12.5,
-          totalDownloads: 3421,
-          downloadsChange: 8.3,
-          conversionRate: 7.56,
-          conversionChange: -2.1,
-          avgPhotoPrice: 45.50,
-          priceChange: 5.2,
-        },
-        viewsOverTime: generateTimeSeriesData(period, 'views'),
-        salesOverTime: generateTimeSeriesData(period, 'sales'),
-        revenueOverTime: generateTimeSeriesData(period, 'revenue'),
-        conversionOverTime: generateTimeSeriesData(period, 'conversion'),
-        topPhotos: [
-          {
-            id: 1,
-            title: 'Action match Burkina vs Mali',
-            views: 2341,
-            downloads: 234,
-            revenue: 10530,
-            conversionRate: 10.0,
-          },
-          {
-            id: 2,
-            title: 'Célébration victoire équipe',
-            views: 1987,
-            downloads: 189,
-            revenue: 8505,
-            conversionRate: 9.5,
-          },
-          {
-            id: 3,
-            title: 'Portrait joueur vedette',
-            views: 1654,
-            downloads: 142,
-            revenue: 6390,
-            conversionRate: 8.6,
-          },
-          {
-            id: 4,
-            title: 'Supporters dans le stade',
-            views: 1432,
-            downloads: 128,
-            revenue: 5760,
-            conversionRate: 8.9,
-          },
-          {
-            id: 5,
-            title: 'Entraînement matinal',
-            views: 1201,
-            downloads: 98,
-            revenue: 4410,
-            conversionRate: 8.2,
-          },
-        ],
-        categoryPerformance: [
-          { name: 'Matchs', photos: 145, views: 18234, sales: 1234, revenue: 55530 },
-          { name: 'Portraits', photos: 89, views: 12456, sales: 892, revenue: 40140 },
-          { name: 'Entraînements', photos: 67, views: 8932, sales: 567, revenue: 25515 },
-          { name: 'Célébrations', photos: 54, views: 5612, sales: 456, revenue: 20520 },
-          { name: 'Coulisses', photos: 32, views: 3421, sales: 272, revenue: 12240 },
-        ],
-        revenueByCategory: [
-          { name: 'Matchs', value: 55530 },
-          { name: 'Portraits', value: 40140 },
-          { name: 'Entraînements', value: 25515 },
-          { name: 'Célébrations', value: 20520 },
-          { name: 'Coulisses', value: 12240 },
-        ],
-        audienceInsights: {
-          totalCustomers: 892,
-          returningCustomers: 234,
-          returningRate: 26.2,
-          avgPhotosPerCustomer: 3.8,
-          topCustomers: [
-            { id: 1, name: 'Amadou Traoré', purchases: 45, totalSpent: 2025 },
-            { id: 2, name: 'Fatou Ouédraogo', purchases: 38, totalSpent: 1710 },
-            { id: 3, name: 'Ibrahim Kaboré', purchases: 32, totalSpent: 1440 },
-            { id: 4, name: 'Awa Sawadogo', purchases: 28, totalSpent: 1260 },
-            { id: 5, name: 'Boureima Zongo', purchases: 24, totalSpent: 1080 },
-          ],
-        },
-        hourlyDistribution: generateHourlyData(),
-      };
-  };
-
-  // Generate time series data based on period
-  function generateTimeSeriesData(period, type) {
-    const dataPoints = period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365;
-    const data = [];
-
-    for (let i = dataPoints - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-
-      const baseValue = type === 'views' ? 1500 : type === 'sales' ? 120 : type === 'revenue' ? 5400 : 7.5;
-      const randomFactor = 0.7 + Math.random() * 0.6;
-      const trendFactor = 1 + (dataPoints - i) / dataPoints * 0.3;
-
-      data.push({
-        date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-        value: Math.round(baseValue * randomFactor * trendFactor),
-      });
-    }
-
-    return data;
-  }
-
-  // Generate hourly distribution data
-  function generateHourlyData() {
-    const hours = [];
-    for (let i = 0; i < 24; i++) {
-      const baseViews = i >= 8 && i <= 22 ? 800 : 200;
-      const baseSales = i >= 8 && i <= 22 ? 60 : 15;
-
-      hours.push({
-        hour: `${i}h`,
-        views: Math.round(baseViews * (0.8 + Math.random() * 0.4)),
-        sales: Math.round(baseSales * (0.8 + Math.random() * 0.4)),
-      });
-    }
-    return hours;
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -223,7 +93,7 @@ const Analytics = () => {
     );
   }
 
-  const { overview, topPhotos, categoryPerformance, revenueByCategory, audienceInsights } = analytics;
+  const { overview, topPhotos, categoryPerformance, revenueByCategory } = analytics;
 
   return (
     <PhotographerGuard>
@@ -498,7 +368,7 @@ const Analytics = () => {
       </div>
 
       {/* Hourly Distribution */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <Clock className="w-5 h-5" />
           Distribution horaire de l'activité
@@ -515,62 +385,6 @@ const Analytics = () => {
             <Bar yAxisId="right" dataKey="sales" fill={COLORS.success} name="Ventes" />
           </BarChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Audience Insights */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          Insights clients
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Total clients</p>
-            <p className="text-2xl font-bold text-blue-600">{formatNumber(audienceInsights.totalCustomers)}</p>
-          </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Clients récurrents</p>
-            <p className="text-2xl font-bold text-green-600">{formatNumber(audienceInsights.returningCustomers)}</p>
-          </div>
-          <div className="p-4 bg-purple-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Taux de fidélité</p>
-            <p className="text-2xl font-bold text-purple-600">{audienceInsights.returningRate}%</p>
-          </div>
-          <div className="p-4 bg-orange-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Photos/client</p>
-            <p className="text-2xl font-bold text-orange-600">{audienceInsights.avgPhotosPerCustomer}</p>
-          </div>
-        </div>
-
-        <h3 className="font-semibold mb-3">Top 5 meilleurs clients</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-2 text-sm font-medium text-gray-700">Client</th>
-                <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">Achats</th>
-                <th className="text-right py-2 px-2 text-sm font-medium text-gray-700">Total dépensé</th>
-              </tr>
-            </thead>
-            <tbody>
-              {audienceInsights.topCustomers.map((customer, index) => (
-                <tr key={customer.id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 px-2">
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-bold">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium">{customer.name}</span>
-                    </div>
-                  </td>
-                  <td className="text-right py-3 px-2 text-gray-600">{customer.purchases}</td>
-                  <td className="text-right py-3 px-2 font-medium">{formatPrice(customer.totalSpent)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
       </div>
     </PhotographerGuard>

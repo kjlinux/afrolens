@@ -149,13 +149,6 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
         category: cat.category,
         revenue: cat.revenue,
       })),
-      audienceInsights: {
-        // Audience insights endpoint not yet implemented
-        topCountries: [],
-        deviceTypes: [],
-        referralSources: [],
-        topCustomers: [],
-      },
       viewsOverTime: viewsOverTime,
       salesOverTime: salesOverTime,
       revenueOverTime: revenueOverTime,
