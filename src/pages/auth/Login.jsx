@@ -55,36 +55,6 @@ export default function Login() {
             </div>
           )}
 
-          {/* Comptes de test */}
-          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
-            <p className="text-xs sm:text-sm font-semibold text-blue-900 mb-2">
-              Comptes de test :
-            </p>
-            <div className="space-y-1 text-xs text-blue-800">
-              <button
-                type="button"
-                onClick={() => quickLogin('buyer@test.com', 'password123')}
-                className="block hover:underline text-left w-full"
-              >
-                • Acheteur: buyer@test.com / password123
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLogin('photographer@test.com', 'password123')}
-                className="block hover:underline text-left w-full"
-              >
-                • Photographe: photographer@test.com / password123
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLogin('admin@test.com', 'password123')}
-                className="block hover:underline text-left w-full"
-              >
-                • Admin: admin@test.com / password123
-              </button>
-            </div>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">

@@ -245,21 +245,27 @@ const Analytics = () => {
           <TrendingUp className="w-5 h-5" />
           Taux de conversion
         </h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={analytics.conversionOverTime}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip formatter={(value) => `${value}%`} />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke={COLORS.secondary}
-              strokeWidth={2}
-              dot={{ r: 3 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {analytics.conversionOverTime && analytics.conversionOverTime.length > 0 ? (
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={analytics.conversionOverTime}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip formatter={(value) => `${value}%`} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={COLORS.secondary}
+                strokeWidth={2}
+                dot={{ r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-[250px] text-gray-500">
+            Aucune donnée de taux de conversion disponible
+          </div>
+        )}
       </div>
 
       {/* Category Performance */}
@@ -279,23 +285,31 @@ const Analytics = () => {
                 </tr>
               </thead>
               <tbody>
-                {categoryPerformance.map((category, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }}
-                        />
-                        <span className="font-medium">{category.name}</span>
-                      </div>
+                {categoryPerformance && categoryPerformance.length > 0 ? (
+                  categoryPerformance.map((category, index) => (
+                    <tr key={index} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }}
+                          />
+                          <span className="font-medium">{category.name}</span>
+                        </div>
+                      </td>
+                      <td className="text-right py-3 px-2 text-gray-600">{category.photos}</td>
+                      <td className="text-right py-3 px-2 text-gray-600">{formatNumber(category.views)}</td>
+                      <td className="text-right py-3 px-2 text-gray-600">{formatNumber(category.sales)}</td>
+                      <td className="text-right py-3 px-2 font-medium">{formatPrice(category.revenue)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                      Aucune donnée de catégorie disponible
                     </td>
-                    <td className="text-right py-3 px-2 text-gray-600">{category.photos}</td>
-                    <td className="text-right py-3 px-2 text-gray-600">{formatNumber(category.views)}</td>
-                    <td className="text-right py-3 px-2 text-gray-600">{formatNumber(category.sales)}</td>
-                    <td className="text-right py-3 px-2 font-medium">{formatPrice(category.revenue)}</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -304,25 +318,31 @@ const Analytics = () => {
         {/* Revenue by Category Pie Chart */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4">Répartition du CA par catégorie</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={revenueByCategory}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {revenueByCategory.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => formatPrice(value)} />
-            </PieChart>
-          </ResponsiveContainer>
+          {revenueByCategory && revenueByCategory.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={revenueByCategory}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {revenueByCategory.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatPrice(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-500">
+              Aucune donnée de revenus par catégorie disponible
+            </div>
+          )}
         </div>
       </div>
 

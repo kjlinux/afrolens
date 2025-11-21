@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getOrders } from '../../services/orderService';
-import { formatPrice, formatDate, downloadFile } from '../../utils/helpers';
-import { ORDER_STATUS, PAYMENT_PROVIDERS } from '../../utils/constants';
+import { DownloadsService } from '../../api';
+import { formatPrice, formatDate } from '../../utils/helpers';
+import { ORDER_STATUS, PAYMENT_METHODS } from '../../utils/constants';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Card from '../../components/common/Card';
@@ -26,8 +27,8 @@ export default function Orders() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getOrders(user.id);
-      setOrders(data);
+      const result = await getOrders();
+      setOrders(result.data || []);
     } catch (err) {
       setError('Impossible de charger les commandes');
       console.error(err);
@@ -62,26 +63,63 @@ export default function Orders() {
     );
   };
 
-  const getPaymentProviderLabel = (provider) => {
+  const getPaymentMethodLabel = (method) => {
     const labels = {
-      [PAYMENT_PROVIDERS.ORANGE_MONEY]: 'Orange Money',
-      [PAYMENT_PROVIDERS.MOOV_MONEY]: 'Moov Money',
-      [PAYMENT_PROVIDERS.TELECEL_MONEY]: 'Telecel Money',
-      [PAYMENT_PROVIDERS.STRIPE]: 'Carte bancaire',
-      [PAYMENT_PROVIDERS.PAYPAL]: 'PayPal',
+      'mobile_money': 'Mobile Money',
+      'card': 'Carte bancaire',
     };
-    return labels[provider] || provider;
+    return labels[method] || method;
   };
 
-  const handleDownload = (photoUrl, photoTitle) => {
-    // Simule le téléchargement de la photo haute résolution
-    // En production, cela devrait pointer vers l'URL de téléchargement sécurisé
-    const highResUrl = photoUrl.replace('.jpg', '_full.jpg');
-    downloadFile(highResUrl, `${photoTitle}.jpg`);
+  const handleDownloadPhoto = async (photoId, photoTitle) => {
+    try {
+      const blob = await DownloadsService.getDownloadsPhoto(photoId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${photoTitle || 'photo'}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Erreur lors du téléchargement de la photo:', err);
+      alert('Impossible de télécharger la photo');
+    }
   };
 
-  const handleDownloadInvoice = (invoiceUrl, orderNumber) => {
-    downloadFile(invoiceUrl, `Facture_${orderNumber}.pdf`);
+  const handleDownloadAllPhotos = async (orderId, orderNumber) => {
+    try {
+      const blob = await DownloadsService.getDownloadsOrder(orderId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Commande_${orderNumber}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Erreur lors du téléchargement des photos:', err);
+      alert('Impossible de télécharger les photos');
+    }
+  };
+
+  const handleDownloadInvoice = async (orderId, orderNumber) => {
+    try {
+      const blob = await DownloadsService.getDownloadsInvoice(orderId);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Facture_${orderNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Erreur lors du téléchargement de la facture:', err);
+      alert('Impossible de télécharger la facture');
+    }
   };
 
   const toggleOrderDetails = (orderId) => {
@@ -195,10 +233,10 @@ export default function Orders() {
                       <span>
                         {order.items.length} photo{order.items.length > 1 ? 's' : ''}
                       </span>
-                      {order.payment_provider && (
+                      {order.payment_method && (
                         <>
                           <span>•</span>
-                          <span>{getPaymentProviderLabel(order.payment_provider)}</span>
+                          <span>{getPaymentMethodLabel(order.payment_method)}</span>
                         </>
                       )}
                     </div>
@@ -245,11 +283,11 @@ export default function Orders() {
                       >
                         <Link
                           to={`/photo/${item.photo_id}`}
-                          className="flex-shrink-0 relative"
+                          className="shrink-0 relative"
                         >
                           <img
-                            src={item.photo_preview}
-                            alt={item.photo_title}
+                            src={item.photo?.preview_url || item.photo?.thumbnail_url}
+                            alt={item.photo?.title || 'Photo'}
                             className="w-24 h-24 object-cover rounded-lg"
                             onContextMenu={(e) => e.preventDefault()}
                             draggable={false}
@@ -265,10 +303,10 @@ export default function Orders() {
                             to={`/photo/${item.photo_id}`}
                             className="text-lg font-medium text-gray-900 hover:text-primary"
                           >
-                            {item.photo_title}
+                            {item.photo?.title || 'Photo sans titre'}
                           </Link>
                           <p className="text-sm text-gray-600 mt-1">
-                            Par {item.photographer_name}
+                            Par {item.photo?.photographer?.display_name || item.photo?.photographer?.name || 'Photographe inconnu'}
                           </p>
                           <div className="mt-2">
                             <Badge variant="gray" size="sm">
@@ -283,7 +321,7 @@ export default function Orders() {
                           {order.payment_status === ORDER_STATUS.COMPLETED && (
                             <Button
                               size="sm"
-                              onClick={() => handleDownload(item.photo_preview, item.photo_title)}
+                              onClick={() => handleDownloadPhoto(item.photo_id, item.photo?.title)}
                             >
                               <svg
                                 className="mr-1 h-4 w-4"
@@ -334,11 +372,11 @@ export default function Orders() {
 
                   {/* Actions */}
                   <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-gray-200">
-                    {order.invoice_url && (
+                    {order.payment_status === ORDER_STATUS.COMPLETED && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDownloadInvoice(order.invoice_url, order.order_number)}
+                        onClick={() => handleDownloadInvoice(order.id, order.order_number)}
                       >
                         <svg
                           className="mr-1 h-4 w-4"
@@ -357,7 +395,11 @@ export default function Orders() {
                       </Button>
                     )}
                     {order.payment_status === ORDER_STATUS.COMPLETED && (
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadAllPhotos(order.id, order.order_number)}
+                      >
                         <svg
                           className="mr-1 h-4 w-4"
                           fill="none"
@@ -377,10 +419,10 @@ export default function Orders() {
                   </div>
 
                   {/* Informations de paiement */}
-                  {order.payment_id && (
+                  {order.transaction_id && (
                     <div className="mt-4 p-3 bg-white rounded-lg">
                       <p className="text-xs text-gray-500">
-                        ID de transaction : {order.payment_id}
+                        ID de transaction : {order.transaction_id}
                       </p>
                     </div>
                   )}

@@ -195,26 +195,38 @@ export default function Checkout() {
         <div className="mb-8 flex items-center justify-center">
           {steps.map((step, index) => (
             <div key={step.number} className="flex items-center">
-              <div
-                className={`flex flex-col items-center ${
-                  currentStep >= step.number ? 'opacity-100' : 'opacity-40'
-                }`}
-              >
+              <div className="flex flex-col items-center">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${
-                    currentStep >= step.number
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all ${
+                    currentStep > step.number
+                      ? 'bg-green-500 text-white'
+                      : currentStep === step.number
                       ? 'bg-primary text-white'
-                      : 'bg-gray-300 text-gray-600'
+                      : 'bg-gray-200 text-gray-400'
                   }`}
                 >
-                  {currentStep > step.number ? '✓' : step.icon}
+                  {currentStep > step.number ? (
+                    <FiCheck className="w-6 h-6" />
+                  ) : (
+                    step.icon
+                  )}
                 </div>
-                <p className="text-sm font-medium mt-2">{step.title}</p>
+                <p
+                  className={`text-sm font-medium mt-2 ${
+                    currentStep > step.number
+                      ? 'text-green-600'
+                      : currentStep === step.number
+                      ? 'text-primary'
+                      : 'text-gray-400'
+                  }`}
+                >
+                  {step.title}
+                </p>
               </div>
               {index < steps.length - 1 && (
                 <div
-                  className={`w-24 h-1 mx-4 ${
-                    currentStep > step.number ? 'bg-primary' : 'bg-gray-300'
+                  className={`w-24 h-1 mx-4 transition-all ${
+                    currentStep > step.number ? 'bg-green-500' : 'bg-gray-200'
                   }`}
                 />
               )}

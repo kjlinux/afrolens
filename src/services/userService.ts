@@ -2,6 +2,32 @@
 import { UserProfileService } from '@/api';
 
 /**
+ * Interface pour le profil photographe
+ */
+export interface PhotographerProfile {
+  id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  cover_photo_url?: string | null;
+  location?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  portfolio_url?: string | null;
+  specialties?: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  commission_rate: string;
+  total_sales: number;
+  total_revenue: number;
+  followers_count: number;
+  rejection_reason?: string | null;
+  approved_at?: string | null;
+  approved_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * Interface pour le profil utilisateur
  */
 export interface UserProfile {
@@ -12,14 +38,15 @@ export interface UserProfile {
   phone?: string | null;
   bio?: string | null;
   avatar_url?: string | null;
-  role: 'user' | 'photographer' | 'admin';
+  account_type: 'buyer' | 'photographer' | 'admin';
+  is_verified: boolean;
+  is_active: boolean;
+  email_verified_at?: string | null;
+  last_login?: string | null;
   created_at: string;
-  photographer_profile?: {
-    id: string;
-    status: 'pending' | 'approved' | 'rejected';
-    portfolio_url?: string | null;
-    total_revenue: number;
-  } | null;
+  updated_at: string;
+  deleted_at?: string | null;
+  photographer_profile?: PhotographerProfile | null;
 }
 
 /**
@@ -30,6 +57,8 @@ export interface UpdateProfileData {
   last_name?: string;
   phone?: string | null;
   bio?: string | null;
+  location?: string | null;
+  website?: string | null;
 }
 
 /**
@@ -47,7 +76,7 @@ export interface ChangePasswordData {
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
   try {
-    const response = await UserProfileService.f982Fed939320696F49Aae69E0D6();
+    const response = await UserProfileService.getUserProfile();
 
     if (response.success && response.data) {
       return response.data as UserProfile;
@@ -71,9 +100,7 @@ export const updateUserProfile = async (
   data: UpdateProfileData
 ): Promise<UserProfile> => {
   try {
-    const response = await UserProfileService.ed1Eeb1Dca260Eaf9823A1164A32738C(
-      data
-    );
+    const response = await UserProfileService.updateUserProfile(data);
 
     if (response.success && response.data) {
       return response.data as UserProfile;
@@ -95,7 +122,7 @@ export const updateUserProfile = async (
  */
 export const updateAvatar = async (avatarFile: File): Promise<boolean> => {
   try {
-    const response = await UserProfileService.e2D2514A22B7Fd00C76D733Aba3936A2({
+    const response = await UserProfileService.avatarUserProfile({
       avatar: avatarFile,
     });
 
@@ -117,7 +144,7 @@ export const changePassword = async (
   data: ChangePasswordData
 ): Promise<boolean> => {
   try {
-    const response = await UserProfileService.a242B9024697A504E108E26A89F2(data);
+    const response = await UserProfileService.passwordUserProfile(data);
 
     return response.success || false;
   } catch (error: any) {
@@ -134,9 +161,13 @@ export const changePassword = async (
   }
 };
 
+// Alias pour compatibilité
+export const updatePassword = changePassword;
+
 export default {
   getUserProfile,
   updateUserProfile,
   updateAvatar,
   changePassword,
+  updatePassword,
 };

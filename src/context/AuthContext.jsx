@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import {
   hasPermission,
@@ -11,6 +12,8 @@ import {
   canUploadPhotos as checkCanUploadPhotos,
   getUserCapabilities,
 } from '../utils/permissions';
+import { setupAxiosInterceptor } from '../utils/axiosInterceptor';
+import { clearAuthToken } from '../config/apiConfig';
 
 const AuthContext = createContext(null);
 
@@ -18,6 +21,20 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+
+  // Force logout function for interceptor (synchronous, no API call)
+  const forceLogout = useCallback(() => {
+    clearAuthToken();
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  // Setup axios interceptor for 401 errors
+  useEffect(() => {
+    const cleanup = setupAxiosInterceptor(forceLogout, navigate);
+    return cleanup;
+  }, [forceLogout, navigate]);
 
   useEffect(() => {
     // Charger l'utilisateur depuis localStorage au démarrage

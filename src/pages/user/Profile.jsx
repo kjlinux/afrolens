@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getUserProfile, updateUserProfile, updateAvatar, changePassword } from '../../services/userService';
-import { generateAvatarUrl } from '../../utils/helpers';
+import { getUserProfile, updateUserProfile, updateAvatar, updatePassword } from '../../services/userService';
+import { generateAvatarUrl, formatPrice } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
+import Modal from '../../components/common/Modal';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -14,7 +15,18 @@ export default function Profile() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [message, setMessage] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const fileInputRef = useRef(null);
+
+  // États pour le modal de changement de mot de passe
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState(null);
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    password: '',
+    password_confirmation: '',
+  });
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -38,6 +50,14 @@ export default function Profile() {
       setProfileLoading(true);
       const profile = await getUserProfile();
 
+      // Stocker le profil complet pour les statistiques
+      setProfileData(profile);
+
+      // Extraire location et website depuis photographer_profile si disponible
+      const photographerProfile = profile.photographer_profile;
+      const location = photographerProfile?.location || '';
+      const website = photographerProfile?.website || photographerProfile?.portfolio_url || '';
+
       // Mettre à jour formData avec les données du profil
       setFormData({
         first_name: profile.first_name || '',
@@ -45,8 +65,8 @@ export default function Profile() {
         email: profile.email || '',
         phone: profile.phone || '',
         bio: profile.bio || '',
-        location: profile.location || '',
-        website: profile.website || '',
+        location: location,
+        website: website,
       });
 
       // Mettre à jour l'avatar
@@ -148,13 +168,77 @@ export default function Profile() {
     setAvatarFile(null);
   };
 
-  const getRoleBadge = (role) => {
+  // Fonctions pour le changement de mot de passe
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordLoading(true);
+    setPasswordMessage(null);
+
+    // Validation côté client
+    if (passwordData.password !== passwordData.password_confirmation) {
+      setPasswordMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' });
+      setPasswordLoading(false);
+      return;
+    }
+
+    if (passwordData.password.length < 8) {
+      setPasswordMessage({ type: 'error', text: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
+      setPasswordLoading(false);
+      return;
+    }
+
+    try {
+      await updatePassword({
+        current_password: passwordData.current_password,
+        password: passwordData.password,
+        password_confirmation: passwordData.password_confirmation,
+      });
+
+      setPasswordMessage({ type: 'success', text: 'Mot de passe modifié avec succès' });
+
+      // Réinitialiser le formulaire et fermer le modal après 2 secondes
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPasswordData({
+          current_password: '',
+          password: '',
+          password_confirmation: '',
+        });
+        setPasswordMessage(null);
+      }, 2000);
+    } catch (error) {
+      const errorMessage = error.body?.message || error.message || 'Erreur lors de la modification du mot de passe';
+      setPasswordMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPasswordData({
+      current_password: '',
+      password: '',
+      password_confirmation: '',
+    });
+    setPasswordMessage(null);
+  };
+
+  const getRoleBadge = (accountType) => {
     const configs = {
       buyer: { variant: 'info', label: 'Acheteur' },
       photographer: { variant: 'success', label: 'Photographe' },
       admin: { variant: 'danger', label: 'Administrateur' },
     };
-    const config = configs[role] || configs.buyer;
+    const config = configs[accountType] || configs.buyer;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
@@ -267,7 +351,7 @@ export default function Profile() {
                 {formData.first_name} {formData.last_name}
               </h2>
               <div className="flex justify-center mb-4">
-                {getRoleBadge(user?.role)}
+                {getRoleBadge(profileData?.account_type)}
               </div>
               <p className="text-sm text-gray-600 mb-4">{formData.email}</p>
 
@@ -323,33 +407,31 @@ export default function Profile() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Membre depuis</span>
                   <span className="font-medium text-gray-900">
-                    {new Date(user?.created_at || Date.now()).toLocaleDateString('fr-FR', {
+                    {new Date(profileData?.created_at || Date.now()).toLocaleDateString('fr-FR', {
                       month: 'short',
                       year: 'numeric'
                     })}
                   </span>
                 </div>
-                {user?.role === 'buyer' && (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Photos achetées</span>
-                      <span className="font-medium text-gray-900">0</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Favoris</span>
-                      <span className="font-medium text-gray-900">0</span>
-                    </div>
-                  </>
+                {profileData?.is_verified && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Email vérifié</span>
+                    <span className="font-medium text-green-600">Oui</span>
+                  </div>
                 )}
-                {user?.role === 'photographer' && (
+                {profileData?.account_type === 'photographer' && profileData?.photographer_profile && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Photos publiées</span>
-                      <span className="font-medium text-gray-900">0</span>
+                      <span className="text-gray-600">Ventes totales</span>
+                      <span className="font-medium text-gray-900">
+                        {profileData.photographer_profile.total_sales}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Ventes</span>
-                      <span className="font-medium text-gray-900">0</span>
+                      <span className="text-gray-600">Revenus totaux</span>
+                      <span className="font-medium text-gray-900">
+                        {formatPrice(profileData.photographer_profile.total_revenue)}
+                      </span>
                     </div>
                   </>
                 )}
@@ -494,31 +576,102 @@ export default function Profile() {
                 <div>
                   <p className="font-medium text-gray-900">Mot de passe</p>
                   <p className="text-sm text-gray-600">
-                    Dernière modification: Il y a 30 jours
+                    Modifiez votre mot de passe pour sécuriser votre compte
                   </p>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => setShowPasswordModal(true)}>
                   Modifier
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    Authentification à deux facteurs
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Sécurisez votre compte avec 2FA
-                  </p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Activer
                 </Button>
               </div>
             </div>
           </Card>
         </div>
       </div>
+
+      {/* Modal de changement de mot de passe */}
+      <Modal
+        isOpen={showPasswordModal}
+        onClose={closePasswordModal}
+        title="Modifier le mot de passe"
+        size="sm"
+      >
+        {/* Message de succès/erreur */}
+        {passwordMessage && (
+          <div
+            className={`mb-4 p-3 rounded-lg ${
+              passwordMessage.type === 'success'
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}
+          >
+            {passwordMessage.text}
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordSubmit}>
+          <Input
+            label="Mot de passe actuel"
+            name="current_password"
+            type="password"
+            value={passwordData.current_password}
+            onChange={handlePasswordInputChange}
+            required
+            icon={
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            }
+          />
+
+          <Input
+            label="Nouveau mot de passe"
+            name="password"
+            type="password"
+            value={passwordData.password}
+            onChange={handlePasswordInputChange}
+            required
+            helperText="Minimum 8 caractères"
+            icon={
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+            }
+          />
+
+          <Input
+            label="Confirmer le nouveau mot de passe"
+            name="password_confirmation"
+            type="password"
+            value={passwordData.password_confirmation}
+            onChange={handlePasswordInputChange}
+            required
+            icon={
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            }
+          />
+
+          <div className="flex space-x-3 mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={closePasswordModal}
+              disabled={passwordLoading}
+              fullWidth
+            >
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              loading={passwordLoading}
+              fullWidth
+            >
+              Modifier
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -18,24 +18,42 @@ export class PhotographerRevenueService {
             data?: Array<{
                 id?: string;
                 photographer_id?: string;
-                photo_id?: string;
-                photo?: {
-                    id?: string;
-                    title?: string;
-                };
                 /**
-                 * Photographer's share (80%) in FCFA
+                 * Month of the revenue record
                  */
-                photographer_amount?: number;
+                month?: string;
+                /**
+                 * Total sales amount in FCFA
+                 */
+                total_sales?: number;
                 /**
                  * Platform commission (20%) in FCFA
                  */
-                platform_commission?: number;
-                sold_at?: string;
+                commission?: number;
                 /**
-                 * When revenue becomes available for withdrawal
+                 * Photographer's net revenue (80%) in FCFA
                  */
-                available_at?: string;
+                net_revenue?: number;
+                /**
+                 * Available balance for withdrawal in FCFA
+                 */
+                available_balance?: number;
+                /**
+                 * Pending balance in FCFA
+                 */
+                pending_balance?: number;
+                /**
+                 * Amount already withdrawn in FCFA
+                 */
+                withdrawn?: number;
+                /**
+                 * Number of sales
+                 */
+                sales_count?: number;
+                /**
+                 * Number of unique photos sold
+                 */
+                photos_sold?: number;
             }>;
             current_page?: number;
             per_page?: number;
@@ -84,20 +102,30 @@ export class PhotographerRevenueService {
         data?: Array<{
             id?: string;
             photographer_id?: string;
-            photo_id?: string;
-            photo?: {
-                id?: string;
-                title?: string;
-            };
             /**
-             * Photographer's share (80%) in FCFA
+             * Month of the revenue record
              */
-            photographer_amount?: number;
-            sold_at?: string;
+            month?: string;
             /**
-             * When this revenue will become available
+             * Total sales amount in FCFA
              */
-            available_at?: string;
+            total_sales?: number;
+            /**
+             * Platform commission (20%) in FCFA
+             */
+            commission?: number;
+            /**
+             * Photographer's net revenue (80%) in FCFA
+             */
+            net_revenue?: number;
+            /**
+             * Available balance for withdrawal in FCFA
+             */
+            available_balance?: number;
+            /**
+             * Pending balance in FCFA
+             */
+            pending_balance?: number;
         }>;
     }> {
         return __request(OpenAPI, {
@@ -109,8 +137,8 @@ export class PhotographerRevenueService {
         });
     }
     /**
-     * Get revenue history by date
-     * Get daily revenue summary with total earnings and sales count, grouped by date. Shows photographer's 80% share after 20% platform commission.
+     * Get revenue history by month
+     * Get monthly revenue summary with total earnings and sales count. Shows photographer's 80% share after 20% platform commission.
      * @returns any Revenue history retrieved successfully
      * @throws ApiError
      */
@@ -119,22 +147,22 @@ export class PhotographerRevenueService {
         data?: {
             data?: Array<{
                 /**
-                 * Date of sales
+                 * Month of sales
                  */
-                date?: string;
+                month?: string;
                 /**
-                 * Total photographer earnings for the day in FCFA
+                 * Total photographer earnings for the month in FCFA
                  */
                 total?: number;
                 /**
-                 * Number of sales on this date
+                 * Number of sales in this month
                  */
                 sales?: number;
             }>;
             current_page?: number;
             per_page?: number;
             /**
-             * Total number of days with sales
+             * Total number of months with sales
              */
             total?: number;
         };
@@ -142,6 +170,83 @@ export class PhotographerRevenueService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/photographer/revenue/history',
+            errors: {
+                401: `Unauthorized - Authentication required`,
+            },
+        });
+    }
+    /**
+     * Get recent detailed transactions
+     * Get paginated list of individual sales transactions with detailed information including photo title, sale date, net amount, and status.
+     * @param perPage Number of transactions per page
+     * @param status Filter by transaction status
+     * @returns any Transactions retrieved successfully
+     * @throws ApiError
+     */
+    public static getPhotographerRevenueTransactions(
+        perPage: number = 15,
+        status?: 'completed' | 'pending',
+    ): CancelablePromise<{
+        success?: boolean;
+        data?: {
+            data?: Array<{
+                /**
+                 * Transaction ID (OrderItem ID)
+                 */
+                id?: string;
+                /**
+                 * Photo title
+                 */
+                description?: string;
+                /**
+                 * Sale date
+                 */
+                date?: string;
+                /**
+                 * Net amount for photographer in FCFA (80% of sale)
+                 */
+                amount?: number;
+                /**
+                 * Gross sale amount in FCFA
+                 */
+                gross_amount?: number;
+                /**
+                 * Platform commission in FCFA (20%)
+                 */
+                commission?: number;
+                /**
+                 * Transaction status
+                 */
+                status?: 'completed' | 'pending';
+                /**
+                 * Photo ID
+                 */
+                photo_id?: string;
+                /**
+                 * Photo thumbnail URL
+                 */
+                photo_thumbnail?: string;
+                /**
+                 * License type purchased
+                 */
+                license_type?: string;
+                /**
+                 * Order number
+                 */
+                order_number?: string;
+            }>;
+            current_page?: number;
+            per_page?: number;
+            total?: number;
+        };
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/photographer/revenue/transactions',
+            query: {
+                'per_page': perPage,
+                'status': status,
+            },
             errors: {
                 401: `Unauthorized - Authentication required`,
             },

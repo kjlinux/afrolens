@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/common/Toast';
 import { PHOTOGRAPHER_STATUS } from './utils/permissions';
@@ -300,11 +301,13 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <CartProvider>
-          <ToastProvider>
-            <AppContent />
-          </ToastProvider>
-        </CartProvider>
+        <FavoritesProvider>
+          <CartProvider>
+            <ToastProvider>
+              <AppContent />
+            </ToastProvider>
+          </CartProvider>
+        </FavoritesProvider>
       </AuthProvider>
     </Router>
   );

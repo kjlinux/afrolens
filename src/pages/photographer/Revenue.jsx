@@ -56,20 +56,58 @@ export default function Revenue() {
       setLoading(true);
       setError(null);
 
-      const [summary, history, sales, withdrawals] = await Promise.all([
+      // Utiliser Promise.allSettled pour ne pas bloquer si une requête échoue
+      const [summaryResult, historyResult, salesResult, withdrawalsResult] = await Promise.allSettled([
         getRevenueSummary(),
         getRevenueHistory(),
         getSalesHistory(),
         getWithdrawals(),
       ]);
 
+      // Extraire les données ou utiliser des valeurs par défaut
+      const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : {
+        availableBalance: 0,
+        pendingBalance: 0,
+        totalSales: 0,
+        commission: 0,
+        netRevenue: 0,
+        totalWithdrawn: 0,
+        nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+
+      const history = historyResult.status === 'fulfilled' ? historyResult.value : [];
+      const sales = salesResult.status === 'fulfilled' ? salesResult.value : [];
+      const withdrawals = withdrawalsResult.status === 'fulfilled' ? withdrawalsResult.value : [];
+
       setRevenueData(summary);
-      setMonthlyRevenue(history);
-      setRecentTransactions(sales);
-      setWithdrawalHistory(withdrawals);
+
+      // Ensure arrays are properly extracted from paginated API responses
+      // API returns { data: { data: [...] } } for paginated responses
+      const extractArray = (response) => {
+        if (Array.isArray(response)) return response;
+        if (Array.isArray(response?.data?.data)) return response.data.data;
+        if (Array.isArray(response?.data)) return response.data;
+        return [];
+      };
+
+      setMonthlyRevenue(extractArray(history));
+      setRecentTransactions(extractArray(sales));
+      setWithdrawalHistory(extractArray(withdrawals));
     } catch (err) {
       console.error('Erreur lors du chargement des revenus:', err);
-      setError(err.message || 'Impossible de charger les données de revenus');
+      // En cas d'erreur générale, utiliser des valeurs par défaut
+      setRevenueData({
+        availableBalance: 0,
+        pendingBalance: 0,
+        totalSales: 0,
+        commission: 0,
+        netRevenue: 0,
+        totalWithdrawn: 0,
+        nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+      setMonthlyRevenue([]);
+      setRecentTransactions([]);
+      setWithdrawalHistory([]);
     } finally {
       setLoading(false);
     }
@@ -85,7 +123,7 @@ export default function Revenue() {
       return;
     }
 
-    if (amount > revenueData.availableBalance) {
+    if (amount > (revenueData?.availableBalance || 0)) {
       toast.error('Le montant demandé dépasse votre solde disponible');
       return;
     }
@@ -120,40 +158,6 @@ export default function Revenue() {
     }
   };
 
-  const withdrawalHistory2 = [
-    {
-      id: 1,
-      amount: 2500.0,
-      method: "Orange Money",
-      accountNumber: "+226 XX XX XX 89",
-      date: "2025-10-25T09:00:00Z",
-      status: "completed",
-      processedDate: "2025-10-25T14:30:00Z",
-    },
-    {
-      id: 2,
-      amount: 3000.0,
-      method: "Orange Money",
-      accountNumber: "+226 XX XX XX 89",
-      date: "2025-09-20T10:00:00Z",
-      status: "completed",
-      processedDate: "2025-09-20T16:15:00Z",
-    },
-    {
-      id: 3,
-      amount: 4000.0,
-      method: "Virement bancaire",
-      accountNumber: "BF** **** **** **45",
-      date: "2025-08-15T08:30:00Z",
-      status: "completed",
-      processedDate: "2025-08-18T10:00:00Z",
-    },
-  ];
-
-  useEffect(() => {
-    // Simuler le chargement des données
-    setTimeout(() => setLoading(false), 500);
-  }, []);
 
   const handleWithdrawalRequest = async (e) => {
     e.preventDefault();
@@ -170,7 +174,7 @@ export default function Revenue() {
       return;
     }
 
-    if (amount > revenueData.availableBalance) {
+    if (amount > (revenueData?.availableBalance || 0)) {
       toast.error("Solde disponible insuffisant");
       return;
     }
@@ -206,12 +210,25 @@ export default function Revenue() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex flex-col justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
+          <p className="text-gray-600 text-lg">Chargement des données de revenus...</p>
         </div>
       </div>
     );
   }
+
+
+  // Si revenueData est null après le chargement, afficher avec des valeurs par défaut
+  const data = revenueData || {
+    availableBalance: 0,
+    pendingBalance: 0,
+    totalSales: 0,
+    commission: 0,
+    netRevenue: 0,
+    totalWithdrawn: 0,
+    nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -226,7 +243,7 @@ export default function Revenue() {
           </div>
           <Button
             onClick={() => setShowWithdrawalModal(true)}
-            disabled={revenueData.availableBalance < CONFIG.MINIMUM_WITHDRAWAL}
+            disabled={data.availableBalance < CONFIG.MINIMUM_WITHDRAWAL}
           >
             <svg
               className="mr-2 h-4 w-4"
@@ -253,7 +270,7 @@ export default function Revenue() {
             <div>
               <p className="text-sm text-gray-600 mb-1">Solde disponible</p>
               <p className="text-3xl font-bold text-green-600">
-                {formatPrice(revenueData.availableBalance)}
+                {formatPrice(data.availableBalance)}
               </p>
               <p className="text-xs text-gray-500 mt-2">Prêt à retirer</p>
             </div>
@@ -280,7 +297,7 @@ export default function Revenue() {
             <div>
               <p className="text-sm text-gray-600 mb-1">En attente</p>
               <p className="text-3xl font-bold text-yellow-600">
-                {formatPrice(revenueData.pendingBalance)}
+                {formatPrice(data.pendingBalance)}
               </p>
               <p className="text-xs text-gray-500 mt-2">
                 Sécurité {CONFIG.SECURITY_HOLD_DAYS}j
@@ -309,7 +326,7 @@ export default function Revenue() {
             <div>
               <p className="text-sm text-gray-600 mb-1">Revenus nets</p>
               <p className="text-3xl font-bold text-blue-600">
-                {formatPrice(revenueData.netRevenue)}
+                {formatPrice(data.netRevenue)}
               </p>
               <p className="text-xs text-gray-500 mt-2">
                 Total après commission
@@ -338,7 +355,7 @@ export default function Revenue() {
             <div>
               <p className="text-sm text-gray-600 mb-1">Total retiré</p>
               <p className="text-3xl font-bold text-gray-900">
-                {formatPrice(revenueData.totalWithdrawn)}
+                {formatPrice(data.totalWithdrawn)}
               </p>
               <p className="text-xs text-gray-500 mt-2">Depuis le début</p>
             </div>
@@ -402,7 +419,7 @@ export default function Revenue() {
               </li>
               <li>
                 • Prochaine date de paiement automatique:{" "}
-                {formatDate(revenueData.nextPayoutDate, "dd MMMM yyyy")}
+                {formatDate(data.nextPayoutDate, "dd MMMM yyyy")}
               </li>
             </ul>
           </div>
@@ -448,7 +465,7 @@ export default function Revenue() {
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-600">Ventes totales</span>
                 <span className="font-semibold">
-                  {formatPrice(revenueData.totalSales)}
+                  {formatPrice(data.totalSales)}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -465,7 +482,7 @@ export default function Revenue() {
                   Commission ({CONFIG.COMMISSION_RATE * 100}%)
                 </span>
                 <span className="font-semibold text-red-600">
-                  -{formatPrice(revenueData.commission)}
+                  -{formatPrice(data.commission)}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -482,7 +499,7 @@ export default function Revenue() {
                   Revenus nets
                 </span>
                 <span className="font-bold text-green-600">
-                  {formatPrice(revenueData.netRevenue)}
+                  {formatPrice(data.netRevenue)}
                 </span>
               </div>
             </div>
@@ -491,19 +508,19 @@ export default function Revenue() {
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Disponible</span>
                 <span className="font-semibold text-green-600">
-                  {formatPrice(revenueData.availableBalance)}
+                  {formatPrice(data.availableBalance)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">En attente</span>
                 <span className="font-semibold text-yellow-600">
-                  {formatPrice(revenueData.pendingBalance)}
+                  {formatPrice(data.pendingBalance)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Déjà retiré</span>
                 <span className="font-semibold text-gray-900">
-                  {formatPrice(revenueData.totalWithdrawn)}
+                  {formatPrice(data.totalWithdrawn)}
                 </span>
               </div>
             </div>
@@ -515,7 +532,7 @@ export default function Revenue() {
         {/* Transactions récentes */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-6">Transactions récentes</h3>
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
             {recentTransactions.map((transaction) => (
               <div
                 key={transaction.id}
@@ -658,7 +675,7 @@ export default function Revenue() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">Solde disponible</p>
               <p className="text-2xl font-bold text-green-600">
-                {formatPrice(revenueData.availableBalance)}
+                {formatPrice(data.availableBalance)}
               </p>
             </div>
 
@@ -669,7 +686,7 @@ export default function Revenue() {
               onChange={(e) => setWithdrawalAmount(e.target.value)}
               required
               min={CONFIG.MINIMUM_WITHDRAWAL}
-              max={revenueData.availableBalance}
+              max={data.availableBalance}
               step="0.01"
               helperText={`Minimum: ${formatPrice(CONFIG.MINIMUM_WITHDRAWAL)}`}
             />

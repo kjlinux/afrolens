@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getDashboardStats } from '../../services/photographerService';
-import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
-} from 'recharts';
 import { formatPrice, formatNumber } from '../../utils/helpers';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -14,59 +10,12 @@ import Badge from '../../components/common/Badge';
 export default function Dashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('30d'); // 7d, 30d, 90d, 1y
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
 
-  // Données des ventes par jour (30 derniers jours)
-  const salesData = [
-    { date: '01/01', sales: 12, revenue: 450 },
-    { date: '02/01', sales: 8, revenue: 320 },
-    { date: '03/01', sales: 15, revenue: 580 },
-    { date: '04/01', sales: 10, revenue: 410 },
-    { date: '05/01', sales: 18, revenue: 720 },
-    { date: '06/01', sales: 14, revenue: 560 },
-    { date: '07/01', sales: 22, revenue: 890 },
-    { date: '08/01', sales: 16, revenue: 640 },
-    { date: '09/01', sales: 11, revenue: 450 },
-    { date: '10/01', sales: 19, revenue: 760 },
-    { date: '11/01', sales: 25, revenue: 1020 },
-    { date: '12/01', sales: 20, revenue: 800 },
-    { date: '13/01', sales: 17, revenue: 680 },
-    { date: '14/01', sales: 13, revenue: 520 },
-    { date: '15/01', sales: 21, revenue: 840 },
-  ];
-
-  // Répartition des ventes par catégorie
-  const categoryData = [
-    { name: 'Football', value: 280, color: '#22c55e' },
-    { name: 'Cyclisme', value: 85, color: '#3b82f6' },
-    { name: 'Athlétisme', value: 45, color: '#f59e0b' },
-    { name: 'Culture', value: 52, color: '#8b5cf6' },
-    { name: 'Autres', value: 25, color: '#6b7280' },
-  ];
-
-  // Top 5 photos les plus vendues
-  const topPhotos = [
-    { id: 1, title: 'Gardien des Étalons avec trophée CAF', sales: 45, revenue: 1800 },
-    { id: 2, title: 'Match des Étalons - Action de jeu', sales: 38, revenue: 1520 },
-    { id: 3, title: 'Équipe cycliste nationale', sales: 32, revenue: 1280 },
-    { id: 4, title: 'Supportrice en costume traditionnel', sales: 29, revenue: 1160 },
-    { id: 5, title: 'Portrait joueur Étalons', sales: 26, revenue: 1040 },
-  ];
-
-  // Activité récente
-  const recentActivity = [
-    { type: 'sale', message: '3 photos vendues', time: 'Il y a 2 heures', amount: 120 },
-    { type: 'like', message: '12 nouveaux favoris', time: 'Il y a 4 heures' },
-    { type: 'follower', message: '5 nouveaux abonnés', time: 'Il y a 6 heures' },
-    { type: 'upload', message: 'Photo approuvée: "Match des Étalons"', time: 'Hier' },
-    { type: 'sale', message: '2 photos vendues', time: 'Hier', amount: 85 },
-  ];
-
   useEffect(() => {
     loadDashboardData();
-  }, [timeRange]);
+  }, []);
 
   const loadDashboardData = async () => {
     try {
@@ -131,24 +80,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Filtres de période */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {[
-          { value: '7d', label: '7 jours' },
-          { value: '30d', label: '30 jours' },
-          { value: '90d', label: '90 jours' },
-          { value: '1y', label: '1 an' },
-        ].map(range => (
-          <Button
-            key={range.value}
-            variant={timeRange === range.value ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={() => setTimeRange(range.value)}
-          >
-            {range.label}
-          </Button>
-        ))}
-      </div>
 
       {/* Cartes de statistiques principales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -176,11 +107,8 @@ export default function Dashboard() {
             <div>
               <p className="text-sm text-gray-600 mb-1">Total ventes</p>
               <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.totalSales)}</p>
-              <p className="text-sm text-green-600 mt-1 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +12% ce mois
+              <p className="text-sm text-gray-500 mt-1">
+                {stats.thisMonthSales} ce mois
               </p>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">
@@ -216,7 +144,7 @@ export default function Dashboard() {
               <p className="text-sm text-gray-600 mb-1">Vues totales</p>
               <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.totalViews)}</p>
               <p className="text-sm text-gray-500 mt-1">
-                {stats.totalLikes} favoris
+                {stats.thisMonthSales} ventes ce mois
               </p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
@@ -229,157 +157,101 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Graphique des ventes */}
-        <Card className="p-6 lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-6">Ventes et revenus</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={salesData}>
-              <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis yAxisId="left" />
-              <YAxis yAxisId="right" orientation="right" />
-              <Tooltip />
-              <Legend />
-              <Area
-                yAxisId="right"
-                type="monotone"
-                dataKey="revenue"
-                stroke="#22c55e"
-                fillOpacity={1}
-                fill="url(#colorRevenue)"
-                name="Revenus (FCFA)"
-              />
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="sales"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="Ventes"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Répartition par catégorie */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-6">Ventes par catégorie</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-4 space-y-2">
-            {categoryData.map((cat, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }}></div>
-                  <span>{cat.name}</span>
-                </div>
-                <span className="font-semibold">{cat.value}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top photos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Ventes récentes */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold">Top 5 photos</h3>
-            <Link to="/photographer/analytics">
+            <h3 className="text-lg font-semibold">Ventes récentes</h3>
+            <Link to="/photographer/revenue">
               <Button variant="ghost" size="sm">
                 Voir tout
               </Button>
             </Link>
           </div>
           <div className="space-y-4">
-            {topPhotos.map((photo, index) => (
-              <div key={photo.id} className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <span className="text-primary font-semibold">#{index + 1}</span>
+            {stats.recentSales && stats.recentSales.length > 0 ? (
+              stats.recentSales.slice(0, 5).map((sale) => (
+                <div key={sale.id} className="flex items-center gap-4">
+                  <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                    {sale.photo_thumbnail ? (
+                      <img
+                        src={sale.photo_thumbnail}
+                        alt={sale.photo_title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{sale.photo_title}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(sale.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-green-600">+{formatPrice(sale.photographer_amount)}</p>
+                    <p className="text-xs text-gray-500">{sale.license_type}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 truncate">{photo.title}</p>
-                  <p className="text-sm text-gray-600">{photo.sales} ventes</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">{formatPrice(photo.revenue)}</p>
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Aucune vente récente
               </div>
-            ))}
+            )}
           </div>
         </Card>
 
-        {/* Activité récente */}
+        {/* Photos récentes */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-6">Activité récente</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold">Photos récentes</h3>
+            <Link to="/photographer/photos">
+              <Button variant="ghost" size="sm">
+                Voir tout
+              </Button>
+            </Link>
+          </div>
           <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-start gap-4">
-                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                  activity.type === 'sale' ? 'bg-green-100' :
-                  activity.type === 'like' ? 'bg-red-100' :
-                  activity.type === 'follower' ? 'bg-blue-100' :
-                  'bg-purple-100'
-                }`}>
-                  {activity.type === 'sale' && (
-                    <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            {stats.recentPhotos && stats.recentPhotos.length > 0 ? (
+              stats.recentPhotos.slice(0, 5).map((photo) => (
+                <div key={photo.id} className="flex items-center gap-4">
+                  <div className="shrink-0 w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                  )}
-                  {activity.type === 'like' && (
-                    <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {activity.type === 'follower' && (
-                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  )}
-                  {activity.type === 'upload' && (
-                    <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.message}</p>
-                  <p className="text-sm text-gray-500">{activity.time}</p>
-                </div>
-                {activity.amount && (
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-green-600">+{formatPrice(activity.amount)}</p>
                   </div>
-                )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{photo.title}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(photo.created_at).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <Badge
+                      variant={photo.status === 'approved' ? 'success' : photo.status === 'pending' ? 'warning' : 'danger'}
+                      size="sm"
+                    >
+                      {photo.status === 'approved' ? 'Approuvée' : photo.status === 'pending' ? 'En attente' : 'Rejetée'}
+                    </Badge>
+                    <p className="text-xs text-gray-500 mt-1">{formatNumber(photo.views_count)} vues</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Aucune photo récente
               </div>
-            ))}
+            )}
           </div>
         </Card>
       </div>
+
 
       {/* Actions rapides */}
       <Card className="p-6 mt-6">

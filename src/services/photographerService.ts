@@ -8,6 +8,22 @@ import {
   Photo,
 } from '@/api';
 
+// Type for transaction data
+interface Transaction {
+  id: string;
+  type: 'sale';
+  description: string;
+  date: string;
+  net: number;
+  gross: number;
+  commission: number;
+  status: 'completed' | 'pending';
+  photoId?: string;
+  thumbnail?: string;
+  licenseType?: string;
+  orderNumber?: string;
+}
+
 // =====================
 // Analytics Service
 // =====================
@@ -84,6 +100,7 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
     // Transform conversion over time data
     const conversionOverTime = (conversionOverTimeResponse.data || []).map((item: any) => ({
       date: item.date,
+      value: item.conversion_rate,
       conversion: item.conversion_rate,
     }));
 
@@ -144,10 +161,16 @@ export const getAnalytics = async (period: string = '30d'): Promise<any> => {
           rank: index + 1,
         };
       }) : [],
-      categoryPerformance: categoryPerformance,
-      revenueByCategory: categoryPerformance.map((cat: any) => ({
-        category: cat.category,
+      categoryPerformance: categoryPerformance.map((cat: any) => ({
+        name: cat.category,
+        photos: cat.photos || 0,
+        views: cat.views,
+        sales: cat.sales,
         revenue: cat.revenue,
+      })),
+      revenueByCategory: categoryPerformance.map((cat: any) => ({
+        name: cat.category,
+        value: cat.revenue,
       })),
       viewsOverTime: viewsOverTime,
       salesOverTime: salesOverTime,
@@ -200,8 +223,42 @@ export const getDashboardStats = async (): Promise<any> => {
   try {
     const response = await PhotographerDashboardService.getPhotographerDashboard();
 
-    if (response.success) {
-      return response.data;
+    if (response.success && response.data) {
+      const data = response.data;
+
+      // Transform API response to match Dashboard component expectations
+      const totalEarnings = data.revenue?.total_earnings || 0;
+      // Calculate total revenue (before 20% commission): netRevenue = 80% of totalRevenue
+      // So totalRevenue = netRevenue / 0.8
+      const totalRevenue = totalEarnings > 0 ? Math.round(totalEarnings / 0.8) : 0;
+
+      return {
+        // Photo stats
+        totalPhotos: data.photos?.total || 0,
+        publishedPhotos: data.photos?.approved || 0,
+        pendingPhotos: data.photos?.pending || 0,
+        rejectedPhotos: data.photos?.rejected || 0,
+        totalViews: data.photos?.views || 0,
+
+        // Revenue stats
+        netRevenue: totalEarnings,
+        totalRevenue: totalRevenue,
+        availableBalance: data.revenue?.available || 0,
+        pendingRevenue: data.revenue?.pending || 0,
+        thisMonthRevenue: data.revenue?.this_month || 0,
+
+        // Sales stats
+        totalSales: data.sales?.total_sales || 0,
+        totalDownloads: data.sales?.total_downloads || 0,
+        thisMonthSales: data.sales?.this_month_sales || 0,
+
+        // Likes (not provided by API, default to 0)
+        totalLikes: 0,
+
+        // Recent data
+        recentSales: data.recent_sales || [],
+        recentPhotos: data.recent_photos || [],
+      };
     }
 
     throw new Error('Erreur lors de la récupération des stats');
@@ -502,33 +559,121 @@ export const getRevenueHistory = async (): Promise<any> => {
   try {
     const response = await PhotographerRevenueService.getPhotographerRevenueHistory();
 
-    if (response.success) {
-      return response.data;
+    if (response.success && response.data?.data) {
+      // Transform API response to match chart expectations
+      // API returns: { month, total, sales }
+      // Chart expects: { month, sales (gross), net }
+      return response.data.data.map((item: any) => ({
+        month: item.month,
+        sales: Math.round((item.total || 0) / 0.8), // Convert net to gross (total is 80% of gross)
+        net: item.total || 0,
+      }));
     }
 
-    throw new Error('Erreur lors de la récupération de l\'historique');
+    return [];
   } catch (error: any) {
     console.error('Erreur lors de la récupération de l\'historique:', error);
-    throw new Error(
-      error.body?.message || 'Impossible de récupérer l\'historique des revenus'
-    );
+    // Retourner un tableau vide en cas d'erreur pour ne pas bloquer la page
+    return [];
   }
 };
 
 /**
- * Récupérer le résumé des revenus (alias pour getAvailableBalance)
+ * Récupérer le résumé des revenus
  * @returns Promise<any>
  */
 export const getRevenueSummary = async (): Promise<any> => {
-  return getAvailableBalance();
+  try {
+    // Récupérer les données disponibles et en attente en parallèle
+    const [availableResponse, pendingResponse] = await Promise.allSettled([
+      PhotographerRevenueService.getPhotographerRevenueAvailable(),
+      PhotographerRevenueService.getPhotographerRevenuePending(),
+    ]);
+
+    // Extraire le solde disponible
+    let availableBalance = 0;
+    if (availableResponse.status === 'fulfilled' && availableResponse.value.success) {
+      availableBalance = availableResponse.value.data?.available_amount || 0;
+    }
+
+    // Calculer le solde en attente
+    let pendingBalance = 0;
+    if (pendingResponse.status === 'fulfilled' && pendingResponse.value.success) {
+      const pendingData = pendingResponse.value.data;
+      if (Array.isArray(pendingData)) {
+        pendingBalance = pendingData.reduce((sum: number, item: any) => sum + (item.photographer_amount || 0), 0);
+      }
+    }
+
+    // Calculer les totaux
+    const totalSales = availableBalance + pendingBalance;
+    const commission = totalSales * 0.15; // 15% commission
+    const netRevenue = totalSales - commission;
+
+    return {
+      availableBalance,
+      pendingBalance,
+      totalSales,
+      commission,
+      netRevenue,
+      totalWithdrawn: 0, // TODO: Récupérer depuis l'API des retraits
+      nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Prochaine semaine
+    };
+  } catch (error: any) {
+    console.error('Erreur lors de la récupération du résumé des revenus:', error);
+    // Retourner des valeurs par défaut en cas d'erreur
+    return {
+      availableBalance: 0,
+      pendingBalance: 0,
+      totalSales: 0,
+      commission: 0,
+      netRevenue: 0,
+      totalWithdrawn: 0,
+      nextPayoutDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+  }
 };
 
 /**
- * Récupérer l'historique des ventes (alias pour getRevenueHistory)
- * @returns Promise<any>
+ * Récupérer l'historique des ventes (transactions récentes détaillées)
+ * @param perPage - Nombre de transactions par page
+ * @param status - Filtrer par statut
+ * @returns Promise<Transaction[]>
  */
-export const getSalesHistory = async (): Promise<any> => {
-  return getRevenueHistory();
+export const getSalesHistory = async (
+  perPage: number = 15,
+  status?: 'completed' | 'pending'
+): Promise<Transaction[]> => {
+  try {
+    const response = await PhotographerRevenueService.getPhotographerRevenueTransactions(
+      perPage,
+      status
+    );
+
+    if (response.success && response.data?.data) {
+      // Transform API response to match component expectations
+      return response.data.data.map((item: any) => ({
+        id: item.id,
+        type: 'sale' as const,
+        description: item.description || 'Vente de photo',
+        date: item.date,
+        net: item.amount || 0,
+        gross: item.gross_amount || 0,
+        commission: item.commission || 0,
+        status: item.status || 'completed',
+        photoId: item.photo_id,
+        thumbnail: item.photo_thumbnail,
+        licenseType: item.license_type,
+        orderNumber: item.order_number,
+      }));
+    }
+
+    return [];
+  } catch (error: any) {
+    console.error('Erreur lors de la récupération des transactions:', error);
+    // Retourner un tableau vide en cas d'erreur pour ne pas bloquer la page
+    return [];
+  }
 };
 
 // =====================
@@ -543,16 +688,44 @@ export const getWithdrawals = async (): Promise<any> => {
   try {
     const response = await PhotographerWithdrawalsService.getPhotographerWithdrawals();
 
-    if (response.success) {
-      return response.data;
+    if (response.success && response.data?.data) {
+      // Transform API response to match component expectations
+      return response.data.data.map((withdrawal: any) => {
+        // Extract account number from payment_details
+        let accountNumber = 'N/A';
+        if (withdrawal.payment_details) {
+          accountNumber = withdrawal.payment_details.phone_number ||
+                         withdrawal.payment_details.account_number ||
+                         withdrawal.payment_details.iban ||
+                         'N/A';
+        }
+
+        // Map payment_method to display name
+        const methodNames: Record<string, string> = {
+          'mobile_money': 'Mobile Money',
+          'orange_money': 'Orange Money',
+          'moov_money': 'Moov Money',
+          'telecel_money': 'Telecel Money',
+          'bank_transfer': 'Virement bancaire',
+        };
+
+        return {
+          id: withdrawal.id,
+          amount: withdrawal.amount,
+          method: methodNames[withdrawal.payment_method] || withdrawal.payment_method,
+          accountNumber: accountNumber,
+          date: withdrawal.created_at,
+          status: withdrawal.status,
+          processedDate: withdrawal.processed_at,
+        };
+      });
     }
 
-    throw new Error('Erreur lors de la récupération des retraits');
+    return [];
   } catch (error: any) {
     console.error('Erreur lors de la récupération des retraits:', error);
-    throw new Error(
-      error.body?.message || 'Impossible de récupérer les demandes de retrait'
-    );
+    // Retourner un tableau vide en cas d'erreur pour ne pas bloquer la page
+    return [];
   }
 };
 

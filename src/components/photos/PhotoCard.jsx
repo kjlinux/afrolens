@@ -4,6 +4,8 @@ import { FiHeart, FiShoppingCart, FiEye } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import { formatPrice } from '../../utils/helpers';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { useFavorites } from '../../context/FavoritesContext';
 import ImageWatermark from './ImageWatermark';
 
 /**
@@ -13,14 +15,27 @@ import ImageWatermark from './ImageWatermark';
  * @param {boolean} props.showPhotographer - Afficher le nom du photographe
  */
 export default function PhotoCard({ photo, showPhotographer = true }) {
-  const [isFavorite, setIsFavorite] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
-  const handleFavoriteClick = (e) => {
+  const photoIsFavorite = isFavorite(photo.id);
+
+  const handleFavoriteClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
+
+    // Require authentication
+    if (!user) {
+      return;
+    }
+
+    try {
+      await toggleFavorite(photo.id);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
   const handleAddToCart = (e) => {
@@ -75,9 +90,9 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
               <button
                 onClick={handleFavoriteClick}
                 className="p-2 sm:p-3 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors shadow-lg"
-                title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                title={photoIsFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
               >
-                {isFavorite ? (
+                {photoIsFavorite ? (
                   <FaHeart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
                 ) : (
                   <FiHeart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -99,9 +114,9 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
           <button
             onClick={handleFavoriteClick}
             className="p-2 bg-white/90 backdrop-blur-sm text-gray-900 rounded-full shadow-lg active:scale-95 transition-transform"
-            title={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            title={photoIsFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
           >
-            {isFavorite ? (
+            {photoIsFavorite ? (
               <FaHeart className="w-4 h-4 text-red-500" />
             ) : (
               <FiHeart className="w-4 h-4" />

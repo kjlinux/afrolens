@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getPhotographerPhotos, deletePhoto, updatePhoto, getPhotoStats } from '../../services/photographerService';
+import { CategoriesService } from '../../api';
 import { formatPrice, formatDate, formatNumber } from '../../utils/helpers';
 import { PHOTO_STATUS } from '../../utils/constants';
 import { PERMISSIONS } from '../../utils/permissions';
@@ -37,17 +38,39 @@ export default function MyPhotos() {
   const [photoToDelete, setPhotoToDelete] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     loadPhotos();
   }, [user]);
 
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await CategoriesService.indexCategories();
+        if (response.data) {
+          setCategories(response.data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des catégories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Helper functions for categories
+  const getMainCategories = () => categories.filter(cat => !cat.parent_id);
+  const getSubCategories = (parentId) => categories.filter(cat => cat.parent_id === parentId);
+
   const loadPhotos = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getPhotographerPhotos();
-      setMyPhotos(data);
+      const response = await getPhotographerPhotos();
+      // Handle both { data: [...] } and direct array responses
+      const photos = Array.isArray(response) ? response : (response?.data || []);
+      setMyPhotos(Array.isArray(photos) ? photos : []);
     } catch (err) {
       console.error('Erreur lors du chargement des photos:', err);
       setError(err.message || 'Impossible de charger les photos');
@@ -56,8 +79,9 @@ export default function MyPhotos() {
     }
   };
 
-  // Filtrage et tri
-  const filteredPhotos = myPhotos
+  // Filtrage et tri - ensure myPhotos is always an array
+  const photosArray = Array.isArray(myPhotos) ? myPhotos : [];
+  const filteredPhotos = photosArray
     .filter(photo => {
       // Filtre par statut
       if (filterStatus !== 'all' && photo.status !== filterStatus) return false;
@@ -159,10 +183,10 @@ export default function MyPhotos() {
   }));
 
   const stats = {
-    total: myPhotos.length,
-    approved: myPhotos.filter(p => p.status === PHOTO_STATUS.APPROVED).length,
-    pending: myPhotos.filter(p => p.status === PHOTO_STATUS.PENDING).length,
-    rejected: myPhotos.filter(p => p.status === PHOTO_STATUS.REJECTED).length,
+    total: photosArray.length,
+    approved: photosArray.filter(p => p.status === PHOTO_STATUS.APPROVED).length,
+    pending: photosArray.filter(p => p.status === PHOTO_STATUS.PENDING).length,
+    rejected: photosArray.filter(p => p.status === PHOTO_STATUS.REJECTED).length,
   };
 
   if (loading) {
@@ -184,7 +208,7 @@ export default function MyPhotos() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Mes Photos</h1>
               <p className="text-gray-600">
-                Gérez votre portfolio de {myPhotos.length} photo{myPhotos.length > 1 ? 's' : ''}
+                Gérez votre portfolio de {photosArray.length} photo{photosArray.length > 1 ? 's' : ''}
               </p>
             </div>
             <Link to="/photographer/upload">
@@ -559,6 +583,8 @@ export default function MyPhotos() {
               setEditingPhoto(null);
             }}
             onCancel={() => setEditingPhoto(null)}
+            getMainCategories={getMainCategories}
+            getSubCategories={getSubCategories}
           />
         </Modal>
       )}
@@ -608,12 +634,29 @@ export default function MyPhotos() {
 }
 
 // Composant formulaire d'édition
-function EditPhotoForm({ photo, onSave, onCancel }) {
+function EditPhotoForm({ photo, onSave, onCancel, getMainCategories, getSubCategories }) {
+  // Helper function to parse tags properly
+  const parseTags = (tags) => {
+    if (!tags) return '';
+    if (Array.isArray(tags)) return tags.join(', ');
+    // If it's a string that looks like JSON array, parse it
+    if (typeof tags === 'string') {
+      try {
+        const parsed = JSON.parse(tags);
+        if (Array.isArray(parsed)) return parsed.join(', ');
+      } catch {
+        // Not JSON, return as-is
+        return tags;
+      }
+    }
+    return String(tags);
+  };
+
   const [formData, setFormData] = useState({
     title: photo.title,
     description: photo.description || '',
     category_id: photo.category_id,
-    tags: Array.isArray(photo.tags) ? photo.tags.join(', ') : photo.tags || '',
+    tags: parseTags(photo.tags),
     price_standard: photo.price_standard,
     price_extended: photo.price_extended,
     location: photo.location || '',
