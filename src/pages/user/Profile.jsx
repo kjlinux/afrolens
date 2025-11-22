@@ -7,6 +7,7 @@ import Input from '../../components/common/Input';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import Spinner from '../../components/common/Spinner';
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
@@ -246,10 +247,7 @@ export default function Profile() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex justify-center items-center min-h-[400px]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-            <p className="text-gray-600">Chargement du profil...</p>
-          </div>
+          <Spinner size="lg" text="Chargement du profil..." />
         </div>
       </div>
     );

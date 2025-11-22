@@ -30,6 +30,7 @@ import Input from "../../components/common/Input";
 import Card from "../../components/common/Card";
 import Badge from "../../components/common/Badge";
 import Modal from "../../components/common/Modal";
+import Spinner from "../../components/common/Spinner";
 
 export default function Revenue() {
   const { user } = useAuth();
@@ -211,8 +212,7 @@ export default function Revenue() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
-          <p className="text-gray-600 text-lg">Chargement des données de revenus...</p>
+          <Spinner size="lg" text="Chargement des données de revenus..." />
         </div>
       </div>
     );

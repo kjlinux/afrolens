@@ -6,6 +6,7 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/common/Toast';
 import { PHOTOGRAPHER_STATUS } from './utils/permissions';
+import Spinner from './components/common/Spinner';
 
 // Layouts
 import Navbar from './components/layout/Navbar';
@@ -49,6 +50,7 @@ import AdminUsers from './pages/admin/Users';
 import AdminModeration from './pages/admin/Moderation';
 import AdminPhotographersPending from './pages/admin/PhotographersPending';
 import AdminWithdrawals from './pages/admin/Withdrawals';
+import AdminOrders from './pages/admin/Orders';
 
 // Component pour routes protégées (amélioré avec support permissions et statut photographe)
 const ProtectedRoute = ({
@@ -70,7 +72,7 @@ const ProtectedRoute = ({
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -284,6 +286,14 @@ function AppContent() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminWithdrawals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminOrders />
               </ProtectedRoute>
             }
           />

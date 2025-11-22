@@ -25,6 +25,7 @@ import Card from "../../components/common/Card";
 import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import Modal from "../../components/common/Modal";
+import Spinner from "../../components/common/Spinner";
 
 export default function Withdrawals() {
   const { toast } = useToast();
@@ -56,12 +57,19 @@ export default function Withdrawals() {
       // API returns: { success, data: { current_page, data: [...], total } }
       const allWithdrawals = response.data?.data || [];
 
-      // Trier par date (plus récent en premier)
-      const sortedWithdrawals = Array.isArray(allWithdrawals)
-        ? [...allWithdrawals].sort(
-            (a, b) => new Date(b.requested_at) - new Date(a.requested_at)
-          )
+      // Parser payment_details et trier par date (plus récent en premier)
+      const parsedWithdrawals = Array.isArray(allWithdrawals)
+        ? allWithdrawals.map(w => ({
+            ...w,
+            payment_details: typeof w.payment_details === 'string'
+              ? JSON.parse(w.payment_details)
+              : w.payment_details || {}
+          }))
         : [];
+
+      const sortedWithdrawals = [...parsedWithdrawals].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
 
       setWithdrawals(sortedWithdrawals);
 
@@ -240,7 +248,7 @@ export default function Withdrawals() {
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="font-medium">
-                  {formatDate(withdrawal.requested_at, "dd MMMM yyyy HH:mm")}
+                  {formatDate(withdrawal.created_at, "dd MMMM yyyy HH:mm")}
                 </span>
               </div>
             </div>
@@ -270,8 +278,8 @@ export default function Withdrawals() {
               <div className="space-y-2 text-sm">
                 <div>
                   <span className="text-gray-600">Opérateur:</span>
-                  <span className="ml-2 font-medium capitalize">
-                    {withdrawal.payment_details.provider.replace("_", " ")}
+                  <span className="ml-2 font-medium">
+                    {withdrawal.payment_details.operator_name || withdrawal.payment_details.operator?.replace(/_/g, " ")}
                   </span>
                 </div>
                 <div>
@@ -283,7 +291,7 @@ export default function Withdrawals() {
                 <div>
                   <span className="text-gray-600">Nom:</span>
                   <span className="ml-2 font-medium">
-                    {withdrawal.payment_details.name}
+                    {withdrawal.payment_details.account_name}
                   </span>
                 </div>
               </div>
@@ -493,7 +501,7 @@ export default function Withdrawals() {
       <Card className="p-6">
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <Spinner size="lg" />
           </div>
         ) : withdrawals.length === 0 ? (
           <div className="text-center py-12">
@@ -561,7 +569,7 @@ export default function Withdrawals() {
                           <Calendar className="w-4 h-4" />
                           <span>
                             {formatDate(
-                              withdrawal.requested_at,
+                              withdrawal.created_at,
                               "dd/MM/yyyy HH:mm"
                             )}
                           </span>

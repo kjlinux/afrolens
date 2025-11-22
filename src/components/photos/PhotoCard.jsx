@@ -7,6 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import ImageWatermark from './ImageWatermark';
+import Spinner from '../common/Spinner';
 
 /**
  * Composant PhotoCard pour afficher une photo dans une grille
@@ -53,7 +54,7 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
       <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <Spinner size="md" />
           </div>
         )}
         <img

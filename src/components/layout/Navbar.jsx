@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings, FiMenu, FiX, FiSearch, FiAlertCircle } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiLogOut, FiCamera, FiSettings, FiMenu, FiX, FiSearch, FiAlertCircle, FiPackage } from 'react-icons/fi';
 import { PERMISSIONS, PHOTOGRAPHER_STATUS } from '../../utils/permissions';
 
 export default function Navbar() {
@@ -95,6 +95,13 @@ export default function Navbar() {
                         className="flex items-center px-4 py-2 hover:bg-gray-100"
                       >
                         <FiUser className="mr-2" /> Profil
+                      </Link>
+
+                      <Link
+                        to="/orders"
+                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                      >
+                        <FiPackage className="mr-2" /> Mes achats
                       </Link>
 
                       {/* Photographer Dashboard - Only if approved */}
@@ -241,6 +248,16 @@ export default function Navbar() {
                 >
                   <FiUser className="w-5 h-5 mr-3" />
                   Profil
+                </Link>
+
+                {/* Orders / Purchase History */}
+                <Link
+                  to="/orders"
+                  className="flex items-center py-2 px-3 hover:bg-gray-50 rounded-lg"
+                  onClick={closeMobileMenu}
+                >
+                  <FiPackage className="w-5 h-5 mr-3" />
+                  Mes achats
                 </Link>
 
                 {/* Photographer Dashboard - Only if photographer role */}

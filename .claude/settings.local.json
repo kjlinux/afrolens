@@ -1,26 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(robocopy:*)",
-      "Bash(dir:*)",
-      "Bash(pnpm dev)",
-      "Bash(pnpm add:*)",
-      "Bash(node -c:*)",
-      "Bash(pnpm list:*)",
-      "Bash(node -e:*)",
-      "Bash(node -p:*)",
-      "Bash(pnpm run dev)",
-      "Bash(timeout:*)",
-      "Bash(del \"c:\\laragon\\www\\afrolens\\src\\pages\\ComponentsDemo.jsx\")",
-      "Bash(find:*)",
-      "Bash(nul)",
-      "Bash(pnpm run build:*)",
-      "Bash(test:*)",
-      "Bash(npm run build:*)",
-      "Bash(npm run generate:api:*)",
-      "Bash(Remove-Item -Recurse -Force \"c:\\laragon\\www\\afrolens\\src\\data\")",
-      "Bash(pnpm run generate:api:*)",
-      "Bash(del \"c:\\laragon\\www\\afrolens\\src\\services\\authService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\photoService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\cartService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\userService.js.backup\" \"c:\\laragon\\www\\afrolens\\src\\services\\orderService.js.backup\")"
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

@@ -6,6 +6,7 @@ import { getDashboardStats } from '../../services/adminService';
 import { formatPrice, formatNumber, formatDate } from '../../utils/helpers';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import Spinner from '../../components/common/Spinner';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -68,7 +69,9 @@ export default function Dashboard() {
         activePhotographers: data.platform?.active_photographers || 0,
         averagePhotoPrice: parseFloat(data.platform?.average_photo_price) || 0,
         conversionRate: data.platform?.conversion_rate || 0,
-        topPhotographers: data.platform?.top_photographers || [],
+        // Trier les top photographes par ventes décroissantes
+        topPhotographers: (data.platform?.top_photographers || [])
+          .sort((a, b) => (parseFloat(b.total_sales) || 0) - (parseFloat(a.total_sales) || 0)),
       };
 
       setDashboardData(transformedData);
@@ -84,7 +87,7 @@ export default function Dashboard() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         <div className="flex justify-center items-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
+          <Spinner size="lg" />
         </div>
       </div>
     );
@@ -473,7 +476,7 @@ export default function Dashboard() {
       {/* Actions rapides */}
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-6">Actions rapides</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Link to="/admin/moderation">
             <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary-600 hover:bg-primary-600/5 transition-colors text-left">
               <Clock className="w-6 h-6 text-orange-600 mb-2" />
@@ -495,14 +498,6 @@ export default function Dashboard() {
               <Users className="w-6 h-6 text-blue-600 mb-2" />
               <p className="font-semibold text-gray-900">Gérer utilisateurs</p>
               <p className="text-sm text-gray-600">{stats.totalUsers} utilisateurs</p>
-            </button>
-          </Link>
-
-          <Link to="/admin/orders">
-            <button className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-primary-600 hover:bg-primary-600/5 transition-colors text-left">
-              <ShoppingCart className="w-6 h-6 text-green-600 mb-2" />
-              <p className="font-semibold text-gray-900">Commandes</p>
-              <p className="text-sm text-gray-600">{stats.pendingOrders} en attente</p>
             </button>
           </Link>
         </div>

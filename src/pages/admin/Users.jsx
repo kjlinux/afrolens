@@ -11,6 +11,7 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import Spinner from '../../components/common/Spinner';
 
 export default function Users() {
   // Permission checks
@@ -389,7 +390,7 @@ export default function Users() {
       <Card className="overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <Spinner size="lg" />
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12">

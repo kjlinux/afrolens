@@ -11,6 +11,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import Spinner from '../../components/common/Spinner';
 
 export default function Moderation() {
   // Permissions checks
@@ -375,7 +376,7 @@ export default function Moderation() {
       <Card className="p-6">
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <Spinner size="lg" />
           </div>
         ) : photos.length === 0 ? (
           <div className="text-center py-12">

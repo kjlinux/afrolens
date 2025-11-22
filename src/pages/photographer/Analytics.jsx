@@ -30,6 +30,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getAnalytics } from '../../services/photographerService';
 import { formatPrice, formatNumber } from '../../utils/helpers';
 import { PhotographerGuard } from '../../components/auth';
+import Spinner from '../../components/common/Spinner';
 
 // Period filter options
 const PERIODS = [
@@ -80,7 +81,7 @@ const Analytics = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <Spinner size="lg" />
       </div>
     );
   }

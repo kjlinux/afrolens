@@ -5,6 +5,7 @@ import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/helpers';
 import Lightbox from '../components/common/Lightbox';
+import Spinner from '../components/common/Spinner';
 import ImageWatermark from '../components/photos/ImageWatermark';
 
 export default function Home() {
@@ -94,7 +95,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <Spinner size="lg" />
       </div>
     );
   }

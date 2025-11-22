@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { getOrders } from '../../services/orderService';
-import { DownloadsService } from '../../api';
 import { formatPrice, formatDate } from '../../utils/helpers';
-import { ORDER_STATUS, PAYMENT_METHODS } from '../../utils/constants';
+import { ORDER_STATUS, PAYMENT_METHODS, STORAGE_KEYS } from '../../utils/constants';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Card from '../../components/common/Card';
@@ -73,7 +73,18 @@ export default function Orders() {
 
   const handleDownloadPhoto = async (photoId, photoTitle) => {
     try {
-      const blob = await DownloadsService.getDownloadsPhoto(photoId);
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/downloads/photo/${photoId}`,
+        {
+          responseType: 'blob',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -84,13 +95,25 @@ export default function Orders() {
       document.body.removeChild(a);
     } catch (err) {
       console.error('Erreur lors du téléchargement de la photo:', err);
-      alert('Impossible de télécharger la photo');
+      const errorMessage = err.response?.data?.message || 'Impossible de télécharger la photo. Le fichier n\'existe peut-être pas sur le serveur.';
+      alert(errorMessage);
     }
   };
 
   const handleDownloadAllPhotos = async (orderId, orderNumber) => {
     try {
-      const blob = await DownloadsService.getDownloadsOrder(orderId);
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/downloads/order/${orderId}`,
+        {
+          responseType: 'blob',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -101,13 +124,25 @@ export default function Orders() {
       document.body.removeChild(a);
     } catch (err) {
       console.error('Erreur lors du téléchargement des photos:', err);
-      alert('Impossible de télécharger les photos');
+      const errorMessage = err.response?.data?.message || 'Impossible de télécharger les photos. Les fichiers n\'existent peut-être pas sur le serveur.';
+      alert(errorMessage);
     }
   };
 
   const handleDownloadInvoice = async (orderId, orderNumber) => {
     try {
-      const blob = await DownloadsService.getDownloadsInvoice(orderId);
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/downloads/invoice/${orderId}`,
+        {
+          responseType: 'blob',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -118,7 +153,8 @@ export default function Orders() {
       document.body.removeChild(a);
     } catch (err) {
       console.error('Erreur lors du téléchargement de la facture:', err);
-      alert('Impossible de télécharger la facture');
+      const errorMessage = err.response?.data?.message || 'Impossible de télécharger la facture. Une erreur serveur s\'est produite.';
+      alert(errorMessage);
     }
   };
 

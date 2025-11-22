@@ -24,6 +24,7 @@ export type { ValidationErrorResponse } from './models/ValidationErrorResponse';
 
 export { AdminAnalyticsService } from './services/AdminAnalyticsService';
 export { AdminDashboardService } from './services/AdminDashboardService';
+export { AdminOrdersService } from './services/AdminOrdersService';
 export { AdminPhotographersService } from './services/AdminPhotographersService';
 export { AdminPhotoModerationService } from './services/AdminPhotoModerationService';
 export { AdminUsersService } from './services/AdminUsersService';
