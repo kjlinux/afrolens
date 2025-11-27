@@ -86,6 +86,21 @@ export const NOTIFICATION_TYPES = {
   APPLICATION_SUBMITTED: 'application_submitted',
 };
 
+// Types d'URL S3
+export const S3_URL_TYPES = {
+  PREVIEW: 'preview',
+  THUMBNAIL: 'thumbnail',
+  AVATAR: 'avatar',
+};
+
+// TTL (Time To Live) pour les URLs S3 signées (en minutes)
+// Avec buffer de sécurité pour éviter les expirations
+export const S3_URL_TTL = {
+  PREVIEW: 50,        // 50 minutes (buffer de 10 min avant expiration à 60 min)
+  THUMBNAIL: 50,      // 50 minutes (buffer de 10 min avant expiration à 60 min)
+  AVATAR: 23 * 60,    // 23 heures (buffer de 1h avant expiration à 24h)
+};
+
 // Clés localStorage
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'pouire_auth_token',
@@ -201,6 +216,8 @@ export default {
   PHOTO_ORIENTATIONS,
   SORT_OPTIONS,
   NOTIFICATION_TYPES,
+  S3_URL_TYPES,
+  S3_URL_TTL,
   STORAGE_KEYS,
   CONFIG,
   ERROR_MESSAGES,

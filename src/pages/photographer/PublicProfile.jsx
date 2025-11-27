@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Calendar, Award, Image, Heart, Share2, Mail } from 'lucide-react';
 import { SearchService, CategoriesService } from '../../api';
-import { formatDate, formatNumber } from '../../utils/helpers';
+import { formatDate, formatNumber, generateAvatarUrl } from '../../utils/helpers';
 import { useAuth } from '../../context/AuthContext';
+import { useS3Image } from '../../hooks/useS3Image';
 import PhotoGrid from '../../components/photos/PhotoGrid';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
@@ -20,6 +21,18 @@ export default function PublicProfile() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [activeTab, setActiveTab] = useState('all'); // all, category
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Use S3 hook for photographer avatar with automatic refresh
+  const {
+    imageUrl: avatarUrl,
+    loading: avatarLoading,
+    handleImageError: handleAvatarError,
+  } = useS3Image({
+    resourceId: photographer?.id || photographerId,
+    resourceType: 'user',
+    urlType: 'avatar',
+    initialUrl: photographer?.avatar_url,
+  });
 
   useEffect(() => {
     loadPhotographerData();
@@ -151,9 +164,18 @@ export default function PublicProfile() {
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              <div className="w-32 h-32 rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold border-4 border-white">
-                {photographer.first_name[0]}{photographer.last_name[0]}
-              </div>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={`${photographer.first_name} ${photographer.last_name}`}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-white"
+                  onError={handleAvatarError}
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold border-4 border-white">
+                  {photographer.first_name[0]}{photographer.last_name[0]}
+                </div>
+              )}
             </div>
 
             {/* Info */}

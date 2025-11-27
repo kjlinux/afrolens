@@ -4,6 +4,8 @@ import { getPhoto, getSimilar, incrementViews } from '../services/photoService';
 import { toggleFavorite, isFavorite } from '../services/favoritesService';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useS3Image } from '../hooks/useS3Image';
+import { refreshUrl } from '../services/urlRefreshService';
 import { formatPrice, formatDate } from '../utils/helpers';
 import {
   FiHeart,
@@ -44,6 +46,34 @@ export default function PhotoDetail() {
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const viewTracked = useRef(false);
+
+  // Use S3 image hook for main photo preview
+  const {
+    imageUrl: photoPreviewUrl,
+    loading: photoLoading,
+    error: photoError,
+    handleImageError: handlePhotoError
+  } = useS3Image({
+    resourceId: id,
+    resourceType: 'photo',
+    urlType: 'preview',
+    initialUrl: photo?.preview_url,
+    fetchUrlFn: (photoId) => refreshUrl(photoId, 'preview', 'photo')
+  });
+
+  // Use S3 image hook for photographer avatar
+  const {
+    imageUrl: avatarUrl,
+    loading: avatarLoading,
+    error: avatarError,
+    handleImageError: handleAvatarError
+  } = useS3Image({
+    resourceId: photo?.photographer?.id,
+    resourceType: 'user',
+    urlType: 'avatar',
+    initialUrl: photo?.photographer?.avatar_url,
+    fetchUrlFn: (userId) => refreshUrl(userId, 'avatar', 'user')
+  });
 
   useEffect(() => {
     loadPhoto();
@@ -171,13 +201,26 @@ export default function PhotoDetail() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="relative aspect-[4/3] bg-gray-200 group">
-                <img
-                  src={photo.preview_url}
-                  alt={photo.title}
-                  className="w-full h-full object-contain"
-                  onContextMenu={(e) => e.preventDefault()}
-                  draggable={false}
-                />
+                {photoLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Spinner size="lg" />
+                  </div>
+                )}
+                {photoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                    <p className="text-gray-500">Image non disponible</p>
+                  </div>
+                )}
+                {photoPreviewUrl && !photoError && (
+                  <img
+                    src={photoPreviewUrl}
+                    alt={photo.title}
+                    className="w-full h-full object-contain"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onError={handlePhotoError}
+                    draggable={false}
+                  />
+                )}
 
                 {/* Filigrane Pouire */}
                 <ImageWatermark
@@ -219,11 +262,16 @@ export default function PhotoDetail() {
 
               {/* Photographe */}
               <div className="flex items-center gap-3 mb-6 pb-6 border-b">
-                {photo.photographer?.avatar_url ? (
+                {avatarLoading ? (
+                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Spinner size="sm" />
+                  </div>
+                ) : avatarUrl && !avatarError ? (
                   <img
-                    src={photo.photographer.avatar_url}
-                    alt={`${photo.photographer.first_name} ${photo.photographer.last_name}`}
+                    src={avatarUrl}
+                    alt={`${photo.photographer?.first_name} ${photo.photographer?.last_name}`}
                     className="w-12 h-12 rounded-full object-cover"
+                    onError={handleAvatarError}
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">

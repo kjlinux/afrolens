@@ -5,7 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { createOrderAndPay } from '../../services/orderService';
 import { formatPrice } from '../../utils/helpers';
-import { FiCreditCard, FiSmartphone, FiCheck } from 'react-icons/fi';
+import { useS3Image } from '../../hooks/useS3Image';
+import { FiSmartphone, FiCheck } from 'react-icons/fi';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
@@ -13,6 +14,35 @@ import PhoneInput from '../../components/common/PhoneInput';
 import Modal from '../../components/common/Modal';
 import Spinner from '../../components/common/Spinner';
 import ImageWatermark from '../../components/photos/ImageWatermark';
+
+// Helper component for cart item images
+const CartItemImage = ({ item }) => {
+  const { imageUrl, loading, handleImageError } = useS3Image({
+    resourceId: item.photo_id || item.id,
+    resourceType: 'photo',
+    urlType: 'preview',
+    initialUrl: item.preview_url,
+  });
+
+  if (loading) {
+    return (
+      <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center">
+        <Spinner size="sm" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl || item.preview_url}
+      alt={item.title}
+      className="w-full h-full rounded object-cover"
+      onContextMenu={(e) => e.preventDefault()}
+      onError={handleImageError}
+      draggable={false}
+    />
+  );
+};
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -35,14 +65,8 @@ export default function Checkout() {
   });
 
   const [paymentDetails, setPaymentDetails] = useState({
-    // Mobile Money
-    mobileProvider: 'orange',
+    // Mobile Money - Ligdicash supporte tous les opérateurs
     mobileNumber: '',
-    // Card
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: '',
-    cardName: '',
   });
 
   // Marquer le composant comme monté
@@ -65,13 +89,6 @@ export default function Checkout() {
     setBillingInfo({ ...billingInfo, phone: phoneValue });
   };
 
-  const handleMobileNumberChange = (phoneValue) => {
-    setPaymentDetails({ ...paymentDetails, mobileNumber: phoneValue });
-  };
-
-  const handlePaymentDetailsChange = (e) => {
-    setPaymentDetails({ ...paymentDetails, [e.target.name]: e.target.value });
-  };
 
   const handleSubmitBilling = (e) => {
     e.preventDefault();
@@ -110,38 +127,19 @@ export default function Checkout() {
         billing_phone: billingInfo.phone,
       };
 
-      // Mapper les opérateurs vers les codes CinetPay
-      const providerMap = {
-        orange: 'FLOOZ',
-        moov: 'MOOV',
-        telecel: 'TMONEY',
-      };
-
-      // Formater le numéro de téléphone pour CinetPay (sans le signe +)
-      const formatPhoneForPayment = (phone) => {
-        if (!phone) return '';
-        // Retirer tous les caractères non numériques sauf le +
-        return phone.replace(/^\+/, '').replace(/\D/g, '');
-      };
-
-      // Préparer les données de paiement CinetPay
+      // Préparer les données de paiement Ligdicash
+      // Ligdicash gère tous les opérateurs automatiquement via sa plateforme
       const paymentData = {
-        payment_method: paymentMethod,
-        payment_provider: paymentMethod === 'mobile_money'
-          ? providerMap[paymentDetails.mobileProvider] || 'FLOOZ'
-          : 'CARD',
-        ...(paymentMethod === 'mobile_money' && paymentDetails.mobileNumber
-          ? { phone: formatPhoneForPayment(paymentDetails.mobileNumber) }
-          : {}),
+        payment_method: 'mobile_money', // Ligdicash ne supporte que mobile_money
       };
 
       console.log('Payment data being sent:', paymentData);
 
-      // Créer la commande et initier le paiement avec CinetPay
+      // Créer la commande et initier le paiement avec Ligdicash
       const response = await createOrderAndPay(orderData, paymentData);
 
       if (response.payment_url) {
-        // Rediriger vers la page de paiement CinetPay
+        // Rediriger vers la page de paiement Ligdicash
         window.location.href = response.payment_url;
       } else if (response.order) {
         // Paiement réussi (cas où il n'y a pas de redirection)
@@ -287,28 +285,21 @@ export default function Checkout() {
                 <div className="space-y-4">
                   <button
                     onClick={() => handlePaymentMethodSelect('mobile_money')}
-                    className="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-primary transition-colors text-left"
+                    className="w-full p-6 border-2 border-primary bg-primary/5 rounded-lg transition-colors text-left"
                   >
                     <div className="flex items-center gap-4">
-                      <FiSmartphone className="w-8 h-8 text-primary" />
-                      <div>
-                        <h3 className="font-semibold text-lg">Mobile Money</h3>
-                        <p className="text-sm text-gray-600">
-                          Orange Money, Moov Money, Telecel
-                        </p>
+                      <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2">
+                        <img
+                          src="/images/ligdicash.png"
+                          alt="Ligdicash"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => handlePaymentMethodSelect('card')}
-                    className="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-primary transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-4">
-                      <FiCreditCard className="w-8 h-8 text-primary" />
-                      <div>
-                        <h3 className="font-semibold text-lg">Carte bancaire</h3>
-                        <p className="text-sm text-gray-600">Visa, Mastercard</p>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">Payer avec Ligdicash</h3>
+                        <p className="text-sm text-gray-600">
+                          Orange Money, Moov Money, Wave, MTN Money
+                        </p>
                       </div>
                     </div>
                   </button>
@@ -325,110 +316,41 @@ export default function Checkout() {
               </Card>
             )}
 
-            {/* Étape 3: Détails paiement */}
+            {/* Étape 3: Confirmation et paiement */}
             {currentStep === 3 && (
               <Card>
-                <h2 className="text-xl font-bold mb-6">
-                  {paymentMethod === 'mobile_money'
-                    ? 'Paiement Mobile Money'
-                    : 'Paiement par carte'}
-                </h2>
+                <h2 className="text-xl font-bold mb-6">Confirmer et payer</h2>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <FiSmartphone className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Paiement sécurisé avec Ligdicash</p>
+                      <p>
+                        Vous serez redirigé vers la plateforme Ligdicash pour choisir votre moyen de
+                        paiement (Orange Money, Moov Money, Wave, MTN) et finaliser la transaction.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <form onSubmit={handleSubmitPayment}>
-                  {paymentMethod === 'mobile_money' ? (
-                    <>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">
-                          Opérateur
-                        </label>
-                        <div className="grid grid-cols-3 gap-3">
-                          {[
-                            { id: 'orange', label: 'Orange' },
-                            { id: 'moov', label: 'Moov' },
-                            { id: 'telecel', label: 'Telecel' }
-                          ].map((provider) => {
-                            const isSelected = paymentDetails.mobileProvider === provider.id;
-                            return (
-                              <button
-                                key={provider.id}
-                                type="button"
-                                onClick={() =>
-                                  setPaymentDetails({
-                                    ...paymentDetails,
-                                    mobileProvider: provider.id,
-                                  })
-                                }
-                                className={`
-                                  p-4 border-2 rounded-lg font-semibold transition-all relative
-                                  ${isSelected
-                                    ? 'border-green-600 bg-green-600 text-white shadow-lg scale-105'
-                                    : 'border-gray-300 bg-white text-gray-800 hover:border-green-600 hover:shadow-md'
-                                  }
-                                `}
-                              >
-                                {isSelected && (
-                                  <FiCheck className="absolute top-1.5 right-1.5 w-4 h-4" />
-                                )}
-                                <span className="block text-center">{provider.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 className="font-semibold mb-3">Récapitulatif</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nombre d'articles</span>
+                        <span className="font-medium">{cart.length}</span>
                       </div>
-                      <PhoneInput
-                        label="Numéro de téléphone"
-                        value={paymentDetails.mobileNumber}
-                        onChange={handleMobileNumberChange}
-                        required
-                        defaultCountry="BF"
-                        helperText="Vous recevrez une notification pour confirmer le paiement"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Input
-                        label="Numéro de carte"
-                        name="cardNumber"
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        value={paymentDetails.cardNumber}
-                        onChange={handlePaymentDetailsChange}
-                        required
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <Input
-                          label="Date d'expiration"
-                          name="cardExpiry"
-                          type="text"
-                          placeholder="MM/AA"
-                          value={paymentDetails.cardExpiry}
-                          onChange={handlePaymentDetailsChange}
-                          required
-                        />
-                        <Input
-                          label="CVV"
-                          name="cardCvv"
-                          type="text"
-                          placeholder="123"
-                          value={paymentDetails.cardCvv}
-                          onChange={handlePaymentDetailsChange}
-                          required
-                        />
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Montant total</span>
+                        <span className="font-bold text-lg text-primary">{formatPrice(getTotal())}</span>
                       </div>
-                      <Input
-                        label="Nom sur la carte"
-                        name="cardName"
-                        type="text"
-                        placeholder="JOHN DOE"
-                        value={paymentDetails.cardName}
-                        onChange={handlePaymentDetailsChange}
-                        required
-                      />
-                    </>
-                  )}
+                    </div>
+                  </div>
 
                   <Button type="submit" fullWidth className="mt-6">
-                    Payer {formatPrice(getTotal())}
+                    Procéder au paiement
                   </Button>
 
                   <Button
@@ -452,14 +374,8 @@ export default function Checkout() {
               <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                 {cart.map((item) => (
                   <div key={item.id} className="flex gap-3">
-                    <div className="relative w-16 h-12 flex-shrink-0">
-                      <img
-                        src={item.preview_url}
-                        alt={item.title}
-                        className="w-full h-full rounded object-cover"
-                        onContextMenu={(e) => e.preventDefault()}
-                        draggable={false}
-                      />
+                    <div className="relative w-16 h-12 shrink-0">
+                      <CartItemImage item={item} />
                       <ImageWatermark
                         brandName="Pouire"
                         showPattern={false}

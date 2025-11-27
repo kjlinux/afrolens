@@ -18,7 +18,7 @@ export interface CreateOrderData {
   tax?: number;
   discount?: number;
   total: number;
-  payment_method: 'mobile_money' | 'card';
+  payment_method: 'mobile_money'; // Ligdicash supporte uniquement mobile_money
   billing_email: string;
   billing_first_name: string;
   billing_last_name: string;
@@ -26,12 +26,11 @@ export interface CreateOrderData {
 }
 
 /**
- * Interface pour initier le paiement
+ * Interface pour initier le paiement avec Ligdicash
+ * Ligdicash gère automatiquement tous les opérateurs (Orange, Moov, Wave, MTN)
  */
 export interface PaymentInitData {
-  payment_method: 'mobile_money' | 'card';
-  payment_provider: 'FLOOZ' | 'TMONEY' | 'MOOV' | 'CARD';
-  phone?: string;
+  payment_method: 'mobile_money'; // Ligdicash supporte uniquement mobile_money
 }
 
 /**

@@ -30,8 +30,8 @@ Le frontend attend les champs suivants dans la réponse de `GET /api/orders` :
       "subtotal": 15000,
       "total": 15000,
       "payment_status": "completed|pending|failed|refunded",
-      "payment_method": "mobile_money|card",
-      "transaction_id": "CINETPAY-123456",
+      "payment_method": "mobile_money",
+      "transaction_id": "LIGDICASH-TOKEN-123456",
       "created_at": "2024-01-15T10:30:00Z",
       "updated_at": "2024-01-15T10:35:00Z",
       "items": [
@@ -76,8 +76,8 @@ Le frontend attend les champs suivants dans la réponse de `GET /api/orders` :
 | `subtotal` | number | Sous-total en FCFA | ✅ Oui |
 | `total` | number | Total final en FCFA | ✅ Oui |
 | `payment_status` | string | Statut: completed, pending, failed, refunded | ✅ Oui |
-| `payment_method` | string | Méthode: mobile_money, card | ✅ Oui |
-| `transaction_id` | string | ID de transaction CinetPay | ⚠️ Optionnel |
+| `payment_method` | string | Méthode: mobile_money (Ligdicash) | ✅ Oui |
+| `transaction_id` | string | Token de transaction Ligdicash | ⚠️ Optionnel |
 | `created_at` | datetime | Date de création | ✅ Oui |
 | `items` | array | Liste des items de la commande | ✅ Oui |
 

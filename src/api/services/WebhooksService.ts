@@ -7,71 +7,96 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class WebhooksService {
     /**
-     * CinetPay payment webhook (callback)
-     * Receives payment notifications from CinetPay when payment status changes. Uses HMAC signature verification for security. This endpoint is called by CinetPay servers only.
-     * @param requestBody CinetPay webhook payload
+     * Ligdicash payment webhook (callback)
+     * Receives payment notifications from Ligdicash when payment status changes. This endpoint is called by Ligdicash servers only. Ligdicash sends two POST requests (application/x-www-form-urlencoded and application/json) with the same data.
+     * @param requestBody Ligdicash webhook payload
      * @returns any Webhook processed successfully
      * @throws ApiError
      */
-    public static storeWebhooksCinetpay(
+    public static storeWebhooksLigdicash(
         requestBody: {
             /**
-             * CinetPay transaction ID
+             * Response code ('00' = success, '01' = error)
              */
-            cpm_trans_id?: string;
+            response_code?: string;
             /**
-             * Order number (custom field)
+             * Transaction token
              */
-            cpm_custom?: string;
+            token?: string;
+            /**
+             * Transaction status (completed, pending, notcompleted)
+             */
+            status?: string;
             /**
              * Payment amount in FCFA
              */
-            cpm_amount?: number;
+            amount?: number;
             /**
-             * Payment result code ('00' = success)
+             * Payment operator name
              */
-            cpm_result?: string;
+            operator_name?: string;
             /**
-             * HMAC signature = sha256(site_id + order_number + api_key)
+             * Custom data sent in initial request
              */
-            signature?: string;
-            /**
-             * Payment provider used
-             */
-            payment_method?: string;
+            custom_data?: {
+                order_id?: string;
+                order_number?: string;
+                user_id?: string;
+            };
         },
     ): CancelablePromise<{
         status?: string;
     }> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/webhooks/cinetpay',
+            url: '/api/webhooks/ligdicash',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                400: `Invalid signature`,
                 404: `Order not found`,
             },
         });
     }
     /**
-     * CinetPay payment return URL
-     * User is redirected here after completing payment on CinetPay. Checks payment status and redirects to frontend success/failure page.
+     * Ligdicash payment return URL
+     * User is redirected here after completing payment on Ligdicash. Checks payment status and redirects to frontend success/failure page.
      * @param order Order UUID
      * @returns void
      * @throws ApiError
      */
-    public static getWebhooksCinetpayReturn(
+    public static getWebhooksLigdicashReturn(
         order: string,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/webhooks/cinetpay/return/{order}',
+            url: '/api/webhooks/ligdicash/return/{order}',
             path: {
                 'order': order,
             },
             errors: {
                 302: `Redirect to frontend success or failure page`,
+                404: `Resource not found`,
+            },
+        });
+    }
+    /**
+     * Ligdicash payment cancel URL
+     * User is redirected here when cancelling payment on Ligdicash.
+     * @param order Order UUID
+     * @returns void
+     * @throws ApiError
+     */
+    public static getWebhooksLigdicashCancel(
+        order: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/webhooks/ligdicash/cancel/{order}',
+            path: {
+                'order': order,
+            },
+            errors: {
+                302: `Redirect to frontend cancelled page`,
                 404: `Resource not found`,
             },
         });

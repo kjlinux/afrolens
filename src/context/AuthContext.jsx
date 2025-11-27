@@ -39,6 +39,21 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Charger l'utilisateur depuis localStorage au démarrage
     const loadUser = () => {
+      // Migration: Clear stale URLs from localStorage
+      const userData = localStorage.getItem('pouire_user_data');
+      if (userData) {
+        try {
+          const parsed = JSON.parse(userData);
+          if (parsed.avatar_url || parsed.cover_url) {
+            const { avatar_url, cover_url, ...rest } = parsed;
+            localStorage.setItem('pouire_user_data', JSON.stringify(rest));
+            console.log('[AuthContext] Migrated user data - removed stale URLs');
+          }
+        } catch (error) {
+          console.error('[AuthContext] Error migrating user data:', error);
+        }
+      }
+
       const currentUser = authService.getCurrentUser();
       if (currentUser) {
         setUser(currentUser);
@@ -73,7 +88,10 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (updates) => {
     const updatedUser = { ...user, ...updates };
     setUser(updatedUser);
-    localStorage.setItem('pouire_user_data', JSON.stringify(updatedUser));
+
+    // Strip URLs before storing in localStorage
+    const { avatar_url, cover_url, ...sanitizedUser } = updatedUser;
+    localStorage.setItem('pouire_user_data', JSON.stringify(sanitizedUser));
   };
 
   /**

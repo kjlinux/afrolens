@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, updateUserProfile, updateAvatar, updatePassword } from '../../services/userService';
 import { generateAvatarUrl, formatPrice } from '../../utils/helpers';
+import { useS3Image } from '../../hooks/useS3Image';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Card from '../../components/common/Card';
@@ -40,6 +41,18 @@ export default function Profile() {
   });
 
   const [avatarPreview, setAvatarPreview] = useState(null);
+
+  // Use S3 hook for avatar image with automatic refresh
+  const {
+    imageUrl: avatarUrl,
+    loading: avatarLoading,
+    handleImageError: handleAvatarError,
+  } = useS3Image({
+    resourceId: user?.id,
+    resourceType: 'user',
+    urlType: 'avatar',
+    initialUrl: profileData?.avatar_url,
+  });
 
   // Charger le profil depuis l'API
   useEffect(() => {
@@ -303,9 +316,10 @@ export default function Profile() {
               {/* Avatar */}
               <div className="relative inline-block mb-4">
                 <img
-                  src={avatarPreview}
+                  src={avatarPreview || avatarUrl || generateAvatarUrl(formData.first_name + ' ' + formData.last_name)}
                   alt={`${formData.first_name} ${formData.last_name}`}
                   className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                  onError={handleAvatarError}
                 />
                 {isEditing && (
                   <button

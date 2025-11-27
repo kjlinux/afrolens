@@ -1,15 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { getOrders } from '../../services/orderService';
 import { formatPrice, formatDate } from '../../utils/helpers';
 import { ORDER_STATUS, PAYMENT_METHODS, STORAGE_KEYS } from '../../utils/constants';
+import { useS3Image } from '../../hooks/useS3Image';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Card from '../../components/common/Card';
 import Spinner from '../../components/common/Spinner';
 import ImageWatermark from '../../components/photos/ImageWatermark';
+import { usePhotoDownload } from '../../hooks/usePhotoDownload';
+
+// Helper component for order item images
+const OrderItemImage = ({ item }) => {
+  const { imageUrl, loading, handleImageError } = useS3Image({
+    resourceId: item.photo_id,
+    resourceType: 'photo',
+    urlType: 'thumbnail',
+    initialUrl: item.photo?.thumbnail_url || item.photo?.preview_url,
+  });
+
+  if (loading) {
+    return (
+      <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
+        <Spinner size="sm" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl || item.photo?.preview_url || item.photo?.thumbnail_url}
+      alt={item.photo?.title || 'Photo'}
+      className="w-24 h-24 object-cover rounded-lg"
+      onContextMenu={(e) => e.preventDefault()}
+      onError={handleImageError}
+      draggable={false}
+    />
+  );
+};
 
 export default function Orders() {
   const { user } = useAuth();
@@ -18,6 +48,7 @@ export default function Orders() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const { downloadPhoto, downloadOrder, downloadInvoice, downloading } = usePhotoDownload();
 
   useEffect(() => {
     loadOrders();
@@ -69,93 +100,6 @@ export default function Orders() {
       'card': 'Carte bancaire',
     };
     return labels[method] || method;
-  };
-
-  const handleDownloadPhoto = async (photoId, photoTitle) => {
-    try {
-      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/downloads/photo/${photoId}`,
-        {
-          responseType: 'blob',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const blob = response.data;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${photoTitle || 'photo'}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error('Erreur lors du téléchargement de la photo:', err);
-      const errorMessage = err.response?.data?.message || 'Impossible de télécharger la photo. Le fichier n\'existe peut-être pas sur le serveur.';
-      alert(errorMessage);
-    }
-  };
-
-  const handleDownloadAllPhotos = async (orderId, orderNumber) => {
-    try {
-      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/downloads/order/${orderId}`,
-        {
-          responseType: 'blob',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const blob = response.data;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Commande_${orderNumber}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error('Erreur lors du téléchargement des photos:', err);
-      const errorMessage = err.response?.data?.message || 'Impossible de télécharger les photos. Les fichiers n\'existent peut-être pas sur le serveur.';
-      alert(errorMessage);
-    }
-  };
-
-  const handleDownloadInvoice = async (orderId, orderNumber) => {
-    try {
-      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/downloads/invoice/${orderId}`,
-        {
-          responseType: 'blob',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const blob = response.data;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Facture_${orderNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      console.error('Erreur lors du téléchargement de la facture:', err);
-      const errorMessage = err.response?.data?.message || 'Impossible de télécharger la facture. Une erreur serveur s\'est produite.';
-      alert(errorMessage);
-    }
   };
 
   const toggleOrderDetails = (orderId) => {
@@ -321,13 +265,7 @@ export default function Orders() {
                           to={`/photo/${item.photo_id}`}
                           className="shrink-0 relative"
                         >
-                          <img
-                            src={item.photo?.preview_url || item.photo?.thumbnail_url}
-                            alt={item.photo?.title || 'Photo'}
-                            className="w-24 h-24 object-cover rounded-lg"
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable={false}
-                          />
+                          <OrderItemImage item={item} />
                           <ImageWatermark
                             brandName="Pouire"
                             showPattern={false}
@@ -357,22 +295,32 @@ export default function Orders() {
                           {order.payment_status === ORDER_STATUS.COMPLETED && (
                             <Button
                               size="sm"
-                              onClick={() => handleDownloadPhoto(item.photo_id, item.photo?.title)}
+                              onClick={() => downloadPhoto(item.photo_id, item.photo?.title)}
+                              disabled={downloading}
                             >
-                              <svg
-                                className="mr-1 h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                />
-                              </svg>
-                              Télécharger
+                              {downloading ? (
+                                <>
+                                  <Spinner size="sm" className="mr-1" />
+                                  Téléchargement...
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    className="mr-1 h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                    />
+                                  </svg>
+                                  Télécharger
+                                </>
+                              )}
                             </Button>
                           )}
                         </div>
@@ -412,44 +360,64 @@ export default function Orders() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDownloadInvoice(order.id, order.order_number)}
+                        onClick={() => downloadInvoice(order.id, order.order_number)}
+                        disabled={downloading}
                       >
-                        <svg
-                          className="mr-1 h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        Télécharger la facture
+                        {downloading ? (
+                          <>
+                            <Spinner size="sm" className="mr-1" />
+                            Téléchargement...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="mr-1 h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            Télécharger la facture
+                          </>
+                        )}
                       </Button>
                     )}
                     {order.payment_status === ORDER_STATUS.COMPLETED && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDownloadAllPhotos(order.id, order.order_number)}
+                        onClick={() => downloadOrder(order.id, order.order_number)}
+                        disabled={downloading}
                       >
-                        <svg
-                          className="mr-1 h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                          />
-                        </svg>
-                        Télécharger tout ({order.items.length})
+                        {downloading ? (
+                          <>
+                            <Spinner size="sm" className="mr-1" />
+                            Téléchargement...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="mr-1 h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                              />
+                            </svg>
+                            Télécharger tout ({order.items.length})
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>

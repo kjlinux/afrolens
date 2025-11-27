@@ -6,6 +6,8 @@ import { formatPrice } from '../../utils/helpers';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useFavorites } from '../../context/FavoritesContext';
+import { useS3Image } from '../../hooks/useS3Image';
+import { refreshUrl } from '../../services/urlRefreshService';
 import ImageWatermark from './ImageWatermark';
 import Spinner from '../common/Spinner';
 
@@ -16,11 +18,20 @@ import Spinner from '../common/Spinner';
  * @param {boolean} props.showPhotographer - Afficher le nom du photographe
  */
 export default function PhotoCard({ photo, showPhotographer = true }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const { addToCart } = useCart();
   const { user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  // Use S3 image hook to handle signed URL expiration
+  const { imageUrl, loading: imageLoading, error: imageError, handleImageError } = useS3Image({
+    resourceId: photo.id,
+    resourceType: 'photo',
+    urlType: 'preview',
+    initialUrl: photo.preview_url,
+    fetchUrlFn: (photoId) => refreshUrl(photoId, 'preview', 'photo')
+  });
+
+  const [imageLoaded, setImageLoaded] = useState(false);
   const photoIsFavorite = isFavorite(photo.id);
 
   const handleFavoriteClick = async (e) => {
@@ -52,23 +63,31 @@ export default function PhotoCard({ photo, showPhotographer = true }) {
     >
       {/* Image */}
       <div className="relative aspect-[4/3] bg-gray-200 overflow-hidden">
-        {!imageLoaded && (
+        {(imageLoading || !imageLoaded) && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Spinner size="md" />
           </div>
         )}
-        <img
-          src={photo.preview_url}
-          alt={photo.title}
-          className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 protected-image ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={() => setImageLoaded(true)}
-          onContextMenu={(e) => e.preventDefault()}
-          onDragStart={(e) => e.preventDefault()}
-          draggable={false}
-          loading="lazy"
-        />
+        {imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <p className="text-gray-500 text-sm">Image non disponible</p>
+          </div>
+        )}
+        {imageUrl && !imageError && (
+          <img
+            src={imageUrl}
+            alt={photo.title}
+            className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 protected-image ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={() => setImageLoaded(true)}
+            onError={handleImageError}
+            onContextMenu={(e) => e.preventDefault()}
+            onDragStart={(e) => e.preventDefault()}
+            draggable={false}
+            loading="lazy"
+          />
+        )}
 
         {/* Filigrane Pouire */}
         <ImageWatermark

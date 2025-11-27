@@ -12,6 +12,17 @@ interface AuthResponse {
 }
 
 /**
+ * Sanitize user data by removing URL fields before storing in localStorage
+ * URLs expire and should not be cached long-term
+ * @param user - User object
+ * @returns Sanitized user object without URL fields
+ */
+const sanitizeUserData = (user: User): Omit<User, 'avatar_url' | 'cover_url'> => {
+  const { avatar_url, cover_url, ...rest } = user as any;
+  return rest;
+};
+
+/**
  * Connexion utilisateur
  * @param email - Email de l'utilisateur
  * @param password - Mot de passe
@@ -34,9 +45,10 @@ export const login = async (
       const { user, access_token } = response.data;
 
       if (user && access_token) {
-        // Stocker le token et les données utilisateur
+        // Stocker le token et les données utilisateur (sans URLs)
         setAuthToken(access_token);
-        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+        const sanitizedUser = sanitizeUserData(user);
+        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(sanitizedUser));
 
         if (rememberMe) {
           localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
@@ -74,9 +86,10 @@ export const register = async (data: {
       const { user, access_token } = response.data;
 
       if (user && access_token) {
-        // Stocker le token et les données utilisateur
+        // Stocker le token et les données utilisateur (sans URLs)
         setAuthToken(access_token);
-        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+        const sanitizedUser = sanitizeUserData(user);
+        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(sanitizedUser));
 
         return { user, token: access_token };
       }
@@ -120,8 +133,9 @@ export const fetchCurrentUser = async (): Promise<User | null> => {
     const response = await AuthenticationService.me();
 
     if (response.success && response.data) {
-      // Mettre à jour les données utilisateur dans le localStorage
-      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(response.data));
+      // Mettre à jour les données utilisateur dans le localStorage (sans URLs)
+      const sanitizedUser = sanitizeUserData(response.data);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(sanitizedUser));
       return response.data;
     }
 
@@ -238,13 +252,14 @@ export const fetchAbilities = async (): Promise<any> => {
     const response = await AuthenticationService.abilities();
 
     if (response.success && response.data) {
-      // Mettre à jour les données utilisateur dans le localStorage avec les nouvelles capacités
+      // Mettre à jour les données utilisateur dans le localStorage avec les nouvelles capacités (sans URLs)
       const currentUser = getCurrentUser();
       const updatedUser = {
         ...currentUser,
         ...response.data,
       };
-      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+      const sanitizedUser = sanitizeUserData(updatedUser as User);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(sanitizedUser));
 
       return response.data;
     }
