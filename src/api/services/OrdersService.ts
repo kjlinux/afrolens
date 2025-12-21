@@ -114,7 +114,7 @@ export class OrdersService {
     }
     /**
      * Initiate payment for order
-     * Start payment process via Ligdicash (Mobile Money). Returns payment URL to redirect user.
+     * Start payment process via CinetPay (Mobile Money or Card). Returns payment URL to redirect user.
      * @param order Order UUID
      * @param requestBody
      * @returns any Payment initiated successfully
@@ -124,9 +124,17 @@ export class OrdersService {
         order: string,
         requestBody: {
             /**
-             * Payment method type (only mobile_money supported by Ligdicash)
+             * Payment method type
              */
-            payment_method: 'mobile_money';
+            payment_method: 'mobile_money' | 'card';
+            /**
+             * CinetPay payment provider code
+             */
+            payment_provider: 'FLOOZ' | 'TMONEY' | 'MOOV' | 'CARD';
+            /**
+             * Phone number for mobile money (required for mobile_money)
+             */
+            phone?: string;
         },
     ): CancelablePromise<{
         success?: boolean;
@@ -137,7 +145,7 @@ export class OrdersService {
              */
             payment_url?: string;
             /**
-             * Ligdicash payment token
+             * CinetPay payment token
              */
             payment_token?: string;
         };
@@ -159,7 +167,7 @@ export class OrdersService {
     }
     /**
      * Check order payment status
-     * Check the current payment status of an order with Ligdicash (must be order owner)
+     * Check the current payment status of an order with CinetPay (must be order owner)
      * @param order Order UUID
      * @returns any Payment status retrieved successfully
      * @throws ApiError

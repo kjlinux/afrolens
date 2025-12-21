@@ -52,6 +52,35 @@ export const PAYMENT_PROVIDERS = {
   PAYPAL: 'paypal',
 };
 
+// Providers OTP (nouveaux codes Ligdicash)
+export const OTP_PROVIDERS = ['ORANGE', 'LIGDICASH_WALLET'];
+export const REDIRECT_PROVIDERS = ['MTN', 'MOOV', 'WAVE'];
+
+// Noms d'affichage des providers
+export const PROVIDER_NAMES = {
+  ORANGE: 'Orange Money',
+  LIGDICASH_WALLET: 'Ligdicash Wallet',
+  MTN: 'MTN Mobile Money',
+  MOOV: 'Moov Money',
+  WAVE: 'Wave'
+};
+
+// Icônes des providers (emojis)
+export const PROVIDER_ICONS = {
+  ORANGE: '🟠',
+  LIGDICASH_WALLET: '💰',
+  MTN: '🟡',
+  MOOV: '🔵',
+  WAVE: '🌊'
+};
+
+// Configuration OTP
+export const OTP_CONFIG = {
+  CODE_LENGTH: 6,
+  EXPIRY_MINUTES: 5,
+  MAX_ATTEMPTS: 3
+};
+
 // Orientations des photos
 export const PHOTO_ORIENTATIONS = {
   LANDSCAPE: 'landscape',

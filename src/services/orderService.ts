@@ -1,5 +1,7 @@
 // Service de gestion des commandes utilisant l'API générée
 import { OrdersService, Order } from '@/api';
+import { OpenAPI } from '@/api/core/OpenAPI';
+import { request as __request } from '@/api/core/request';
 
 /**
  * Interface pour les items d'une commande
@@ -41,6 +43,45 @@ export interface PaginatedOrdersResult {
   total: number;
   page: number;
   pages: number;
+}
+
+/**
+ * Interface pour la demande d'OTP
+ */
+export interface RequestOTPData {
+  phone: string;
+  payment_provider: 'ORANGE' | 'LIGDICASH_WALLET';
+}
+
+/**
+ * Interface pour la validation d'OTP
+ */
+export interface ValidateOTPData {
+  otp: string;
+}
+
+/**
+ * Interface pour la réponse de demande d'OTP
+ */
+export interface OTPResponse {
+  success: boolean;
+  message: string;
+  data: {
+    expires_at: string;
+    attempts_remaining: number;
+  };
+}
+
+/**
+ * Interface pour la réponse de validation d'OTP
+ */
+export interface ValidateOTPResponse {
+  success: boolean;
+  message: string;
+  data: {
+    order_id: string;
+    transaction_id: string;
+  };
 }
 
 /**
@@ -214,6 +255,98 @@ export const getPaymentStatus = async (orderId: string): Promise<string> => {
   }
 };
 
+/**
+ * Demander un code OTP pour le paiement
+ * @param orderId - ID de la commande
+ * @param otpData - Données pour la demande d'OTP (phone, payment_provider)
+ * @returns Promise<OTPResponse>
+ */
+export const requestOTP = async (
+  orderId: string,
+  otpData: RequestOTPData
+): Promise<OTPResponse> => {
+  try {
+    const response = await __request(OpenAPI, {
+      method: 'POST',
+      url: `/api/orders/${orderId}/request-otp`,
+      body: otpData,
+      mediaType: 'application/json',
+      errors: {
+        400: `Erreur lors de l'envoi du code OTP`,
+        401: `Unauthorized - Authentication required`,
+        422: `Validation error - phone format invalid or provider not supported`,
+      },
+    });
+
+    if (response.success) {
+      return response;
+    }
+
+    throw new Error('Erreur lors de la demande d\'OTP');
+  } catch (error: any) {
+    console.error('Erreur lors de la demande d\'OTP:', error);
+
+    let errorMessage = 'Impossible d\'envoyer le code OTP';
+
+    if (error.body?.message) {
+      errorMessage = error.body.message;
+    } else if (error.body?.errors) {
+      const errors = Object.values(error.body.errors).flat();
+      errorMessage = errors.join('. ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    throw new Error(errorMessage);
+  }
+};
+
+/**
+ * Valider le code OTP et finaliser le paiement
+ * @param orderId - ID de la commande
+ * @param otpData - Données de validation (otp code)
+ * @returns Promise<ValidateOTPResponse>
+ */
+export const validateOTP = async (
+  orderId: string,
+  otpData: ValidateOTPData
+): Promise<ValidateOTPResponse> => {
+  try {
+    const response = await __request(OpenAPI, {
+      method: 'POST',
+      url: `/api/orders/${orderId}/validate-otp`,
+      body: otpData,
+      mediaType: 'application/json',
+      errors: {
+        400: `Code OTP invalide ou paiement refusé`,
+        401: `Unauthorized - Authentication required`,
+        422: `OTP expiré ou nombre maximum de tentatives atteint`,
+      },
+    });
+
+    if (response.success) {
+      return response;
+    }
+
+    throw new Error('Erreur lors de la validation de l\'OTP');
+  } catch (error: any) {
+    console.error('Erreur lors de la validation de l\'OTP:', error);
+
+    let errorMessage = 'Code OTP invalide';
+
+    if (error.body?.message) {
+      errorMessage = error.body.message;
+    } else if (error.body?.errors) {
+      const errors = Object.values(error.body.errors).flat();
+      errorMessage = errors.join('. ');
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    throw new Error(errorMessage);
+  }
+};
+
 export default {
   getOrders,
   getOrder,
@@ -221,4 +354,6 @@ export default {
   initiatePayment,
   createOrderAndPay,
   getPaymentStatus,
+  requestOTP,
+  validateOTP,
 };
