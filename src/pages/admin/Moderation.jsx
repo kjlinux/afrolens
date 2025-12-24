@@ -42,8 +42,8 @@ export default function Moderation() {
 
       // Charger toutes les photos en attente (on peut paginer si besoin)
       const response = await getPendingPhotos(1, 100);
-      // API returns: { success, data: { current_page, data: [...], total } }
-      const allPhotos = response.data?.data || [];
+      // API returns: { success, data: [...] } - tableau direct ou { success, data: { data: [...] } } - paginé
+      const allPhotos = Array.isArray(response.data) ? response.data : (response.data?.data || []);
 
       // Filtrer par statut si nécessaire
       let filteredPhotos = Array.isArray(allPhotos) ? allPhotos : [];
@@ -222,44 +222,44 @@ export default function Moderation() {
           )}
 
           {/* Métadonnées techniques */}
-          {photo.metadata && (
+          {(photo.camera || photo.lens || photo.iso || photo.aperture || photo.shutter_speed || photo.focal_length) && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-semibold text-gray-700 mb-3">Métadonnées EXIF</p>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                {photo.metadata.camera && (
+                {photo.camera && (
                   <div>
                     <span className="text-gray-600">Appareil:</span>
-                    <span className="ml-2 font-medium">{photo.metadata.camera}</span>
+                    <span className="ml-2 font-medium">{photo.camera}</span>
                   </div>
                 )}
-                {photo.metadata.lens && (
+                {photo.lens && (
                   <div>
                     <span className="text-gray-600">Objectif:</span>
-                    <span className="ml-2 font-medium">{photo.metadata.lens}</span>
+                    <span className="ml-2 font-medium">{photo.lens}</span>
                   </div>
                 )}
-                {photo.metadata.iso && (
+                {photo.iso && (
                   <div>
                     <span className="text-gray-600">ISO:</span>
-                    <span className="ml-2 font-medium">{photo.metadata.iso}</span>
+                    <span className="ml-2 font-medium">{photo.iso}</span>
                   </div>
                 )}
-                {photo.metadata.aperture && (
+                {photo.aperture && (
                   <div>
                     <span className="text-gray-600">Ouverture:</span>
-                    <span className="ml-2 font-medium">f/{photo.metadata.aperture}</span>
+                    <span className="ml-2 font-medium">f/{photo.aperture}</span>
                   </div>
                 )}
-                {photo.metadata.shutter_speed && (
+                {photo.shutter_speed && (
                   <div>
                     <span className="text-gray-600">Vitesse:</span>
-                    <span className="ml-2 font-medium">{photo.metadata.shutter_speed}s</span>
+                    <span className="ml-2 font-medium">{photo.shutter_speed}s</span>
                   </div>
                 )}
-                {photo.metadata.focal_length && (
+                {photo.focal_length && (
                   <div>
                     <span className="text-gray-600">Focale:</span>
-                    <span className="ml-2 font-medium">{photo.metadata.focal_length}mm</span>
+                    <span className="ml-2 font-medium">{photo.focal_length}mm</span>
                   </div>
                 )}
               </div>

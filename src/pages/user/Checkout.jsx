@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { createOrder, requestOTP, validateOTP, initiatePayment } from '../../services/orderService';
+import { createOrder, initiatePayment } from '../../services/orderService';
 import { formatPrice } from '../../utils/helpers';
 import { useS3Image } from '../../hooks/useS3Image';
-import { FiSmartphone, FiCheck } from 'react-icons/fi';
+import { FiCheck } from 'react-icons/fi';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
@@ -15,8 +15,6 @@ import Modal from '../../components/common/Modal';
 import Spinner from '../../components/common/Spinner';
 import ImageWatermark from '../../components/photos/ImageWatermark';
 import PaymentProviderSelector from '../../components/payment/PaymentProviderSelector';
-import OTPInput from '../../components/payment/OTPInput';
-import { OTP_PROVIDERS } from '../../utils/constants';
 
 // Helper component for cart item images
 const CartItemImage = ({ item }) => {
@@ -67,20 +65,6 @@ export default function Checkout() {
     phone: user?.phone || '',
   });
 
-  const [paymentDetails, setPaymentDetails] = useState({
-    // Mobile Money - Ligdicash supporte tous les opérateurs
-    mobileNumber: '',
-  });
-
-  // États pour le flux OTP
-  const [selectedProvider, setSelectedProvider] = useState('');
-  const [paymentFlow, setPaymentFlow] = useState(null); // 'otp' ou 'redirect'
-  const [showOTPModal, setShowOTPModal] = useState(false);
-  const [otpData, setOTPData] = useState({
-    expiresAt: null,
-    attemptsRemaining: 3
-  });
-
   // Marquer le composant comme monté
   useEffect(() => {
     isMountedRef.current = true;
@@ -92,13 +76,6 @@ export default function Checkout() {
       navigate('/cart');
     }
   }, [loading, cart.length, navigate]);
-
-  // Détection automatique du flux de paiement
-  useEffect(() => {
-    if (selectedProvider) {
-      setPaymentFlow(OTP_PROVIDERS.includes(selectedProvider) ? 'otp' : 'redirect');
-    }
-  }, [selectedProvider]);
 
   const handleBillingChange = (e) => {
     setBillingInfo({ ...billingInfo, [e.target.name]: e.target.value });
@@ -114,15 +91,8 @@ export default function Checkout() {
     setCurrentStep(2);
   };
 
-  const handlePaymentMethodSelect = (method) => {
-    setPaymentMethod(method);
-    setCurrentStep(3);
-  };
-
-  const handleProviderChange = (provider, flowType) => {
-    setSelectedProvider(provider);
-    setPaymentFlow(flowType);
-    setPaymentMethod('mobile_money'); // Tous les providers utilisent mobile_money
+  const handleProviderChange = () => {
+    setPaymentMethod('mobile_money');
     setCurrentStep(3);
   };
 
@@ -157,14 +127,8 @@ export default function Checkout() {
       const order = await createOrder(orderData);
       setOrderId(order.id);
 
-      // Selon le flux de paiement
-      if (paymentFlow === 'otp') {
-        // Flux OTP : demander un code OTP
-        await handleRequestOTP(order.id);
-      } else {
-        // Flux avec redirection : initier le paiement classique
-        await handleRedirectPayment(order.id);
-      }
+      // Initier le paiement avec redirection Ligdicash
+      await handleRedirectPayment(order.id);
     } catch (error) {
       console.error('Erreur paiement:', error);
 
@@ -189,53 +153,12 @@ export default function Checkout() {
     }
   };
 
-  // Demander un code OTP
-  const handleRequestOTP = async (orderId) => {
-    try {
-      const response = await requestOTP(orderId, {
-        phone: billingInfo.phone,
-        payment_provider: selectedProvider
-      });
-
-      setOTPData({
-        expiresAt: response.data.expires_at,
-        attemptsRemaining: response.data.attempts_remaining
-      });
-      setShowPaymentModal(false);
-      setShowOTPModal(true);
-      toast.success(response.message || 'Code OTP envoyé avec succès');
-    } catch (error) {
-      toast.error(error.message || 'Erreur lors de l\'envoi du code OTP');
-      throw error;
-    }
-  };
-
-  // Valider le code OTP
-  const handleValidateOTP = async (otpCode) => {
-    try {
-      const response = await validateOTP(orderId, { otp: otpCode });
-
-      setPaymentSuccess(true);
-      setShowOTPModal(false);
-      setShowPaymentModal(true);
-      toast.success('Paiement effectué avec succès !');
-      clearCart();
-
-      setTimeout(() => {
-        navigate('/orders');
-      }, 2000);
-    } catch (error) {
-      toast.error(error.message || 'Code OTP invalide ou expiré');
-      throw error; // Pour que OTPInput puisse gérer l'erreur
-    }
-  };
-
-  // Paiement avec redirection (flux classique)
+  // Paiement avec redirection Ligdicash
   const handleRedirectPayment = async (orderId) => {
     try {
       const paymentData = {
         payment_method: 'mobile_money',
-        payment_provider: selectedProvider,
+        payment_provider: 'LIGDICASH',
         phone: billingInfo.phone
       };
 
@@ -362,7 +285,6 @@ export default function Checkout() {
             {currentStep === 2 && (
               <Card>
                 <PaymentProviderSelector
-                  selectedProvider={selectedProvider}
                   onProviderChange={handleProviderChange}
                   disabled={processing}
                 />
@@ -384,17 +306,15 @@ export default function Checkout() {
                 <h2 className="text-xl font-bold mb-6">Confirmer et payer</h2>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <FiSmartphone className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                  <div className="flex items-center gap-4">
+                    <img
+                      src="/images/ligdicash.png"
+                      alt="Ligdicash"
+                      className="h-10 object-contain"
+                    />
                     <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">
-                        {paymentFlow === 'otp' ? 'Paiement rapide par OTP' : 'Paiement sécurisé avec Ligdicash'}
-                      </p>
-                      <p>
-                        {paymentFlow === 'otp'
-                          ? 'Vous allez recevoir un code à 6 chiffres par SMS pour valider votre paiement instantanément.'
-                          : 'Vous serez redirigé vers la plateforme Ligdicash pour finaliser la transaction.'}
-                      </p>
+                      <p className="font-medium mb-1">Paiement sécurisé avec Ligdicash</p>
+                      <p>Vous serez redirigé vers la plateforme Ligdicash pour finaliser la transaction.</p>
                     </div>
                   </div>
                 </div>
@@ -510,28 +430,6 @@ export default function Checkout() {
           </div>
         ) : null}
       </Modal>
-
-      {/* Modal OTP */}
-      {showOTPModal && (
-        <Modal
-          isOpen={showOTPModal}
-          onClose={() => setShowOTPModal(false)}
-          title="Validation du paiement"
-          closeOnOverlayClick={false}
-          showCloseButton={true}
-        >
-          <OTPInput
-            orderId={orderId}
-            phoneNumber={billingInfo.phone}
-            expiresAt={otpData.expiresAt}
-            attemptsRemaining={otpData.attemptsRemaining}
-            onSuccess={handleValidateOTP}
-            onError={(msg) => toast.error(msg)}
-            onRequestNewOTP={() => handleRequestOTP(orderId)}
-            onClose={() => setShowOTPModal(false)}
-          />
-        </Modal>
-      )}
     </div>
   );
 }

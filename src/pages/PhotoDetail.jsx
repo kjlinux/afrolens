@@ -18,6 +18,7 @@ import {
   FiCalendar,
   FiAperture,
   FiGrid,
+  FiInfo,
 } from 'react-icons/fi';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
@@ -328,6 +329,19 @@ export default function PhotoDetail() {
                           <span className="w-4 h-4 border-2 border-gray-300 rounded-full"></span>
                         )}
                         Standard
+                        <span className="relative group">
+                          <FiInfo className="w-4 h-4 text-gray-400 hover:text-primary cursor-help" />
+                          <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                            <strong className="block mb-1">Licence Standard</strong>
+                            <ul className="space-y-1 text-gray-300">
+                              <li>• Usage personnel, blog, réseaux sociaux</li>
+                              <li>• Tirages limités (&lt; 500 000 copies)</li>
+                              <li>• Revente interdite</li>
+                              <li>• Pour usage interne uniquement</li>
+                            </ul>
+                            <span className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-gray-900"></span>
+                          </span>
+                        </span>
                       </span>
                       <span className="text-lg font-bold text-primary">
                         {formatPrice(photo.price_standard)}
@@ -359,6 +373,19 @@ export default function PhotoDetail() {
                             <span className="w-4 h-4 border-2 border-gray-300 rounded-full"></span>
                           )}
                           Extended
+                          <span className="relative group">
+                            <FiInfo className="w-4 h-4 text-gray-400 hover:text-primary cursor-help" />
+                            <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+                              <strong className="block mb-1">Licence Étendue</strong>
+                              <ul className="space-y-1 text-gray-300">
+                                <li>• Usage commercial illimité</li>
+                                <li>• Tirages illimités</li>
+                                <li>• Revente autorisée (templates, merchandising)</li>
+                                <li>• Produits dérivés et vendus à des tiers</li>
+                              </ul>
+                              <span className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-gray-900"></span>
+                            </span>
+                          </span>
                         </span>
                         <span className="text-lg font-bold text-primary">
                           {formatPrice(photo.price_extended)}

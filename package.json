@@ -14,6 +14,7 @@
     "@tailwindcss/postcss": "^4.1.16",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.21",
+    "baseline-browser-mapping": "^2.9.11",
     "openapi-typescript-codegen": "^0.29.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.16",

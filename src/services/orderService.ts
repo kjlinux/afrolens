@@ -32,7 +32,8 @@ export interface CreateOrderData {
  * Ligdicash gère automatiquement tous les opérateurs (Orange, Moov, Wave, MTN)
  */
 export interface PaymentInitData {
-  payment_method: 'mobile_money'; // Ligdicash supporte uniquement mobile_money
+  payment_method: 'mobile_money';
+  phone: string;
 }
 
 /**
@@ -159,9 +160,9 @@ export const createOrder = async (orderData: CreateOrderData): Promise<Order> =>
 };
 
 /**
- * Initier le paiement pour une commande
+ * Initier le paiement pour une commande via Ligdicash
  * @param orderId - ID de la commande
- * @param paymentData - Données du paiement
+ * @param paymentData - Données du paiement (payment_method + phone)
  * @returns Promise<{ payment_url: string; payment_token: string }>
  */
 export const initiatePayment = async (
@@ -169,10 +170,21 @@ export const initiatePayment = async (
   paymentData: PaymentInitData
 ): Promise<{ payment_url: string; payment_token: string }> => {
   try {
-    const response = await OrdersService.payOrders(
-      orderId,
-      paymentData
-    );
+    // Appel direct pour Ligdicash (sans payment_provider car géré côté backend)
+    const response = await __request(OpenAPI, {
+      method: 'POST',
+      url: `/api/orders/${orderId}/pay`,
+      body: {
+        payment_method: paymentData.payment_method,
+        phone: paymentData.phone,
+      },
+      mediaType: 'application/json',
+      errors: {
+        400: `Payment initiation failed - order already processed or payment error`,
+        401: `Unauthorized - Authentication required`,
+        422: `Validation error`,
+      },
+    });
 
     if (response.success && response.data) {
       return {
