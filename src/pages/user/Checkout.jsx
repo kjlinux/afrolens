@@ -128,7 +128,10 @@ export default function Checkout() {
       setOrderId(order.id);
 
       // Initier le paiement avec redirection Ligdicash
+      // Note: handleRedirectPayment va rediriger vers Ligdicash, donc on ne fait rien après
       await handleRedirectPayment(order.id);
+      // Si on arrive ici, c'est que la redirection va se produire
+      // On ne modifie pas l'état car la page va être remplacée
     } catch (error) {
       console.error('Erreur paiement:', error);
 
@@ -148,7 +151,6 @@ export default function Checkout() {
 
       toast.error(errorMessage);
       setShowPaymentModal(false);
-    } finally {
       setProcessing(false);
     }
   };
@@ -158,7 +160,6 @@ export default function Checkout() {
     try {
       const paymentData = {
         payment_method: 'mobile_money',
-        payment_provider: 'LIGDICASH',
         phone: billingInfo.phone
       };
 
