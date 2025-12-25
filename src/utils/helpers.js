@@ -238,6 +238,31 @@ export const generateAvatarUrl = (name, bg = '22c55e') => {
 };
 
 /**
+ * Construit l'URL complète S3 à partir d'un chemin relatif
+ * @param {string} path - Chemin relatif (ex: "users/xxx/avatars/avatar.jpg")
+ * @returns {string|null} - URL complète S3 ou null si path est invalide
+ */
+export const getS3Url = (path) => {
+  if (!path) return null;
+
+  // Si c'est déjà une URL complète, la retourner telle quelle
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+
+  const bucketUrl = import.meta.env.VITE_S3_BUCKET_URL;
+  if (!bucketUrl) {
+    console.warn('VITE_S3_BUCKET_URL is not defined');
+    return null;
+  }
+
+  // Nettoyer le chemin (supprimer les slashes au début)
+  const cleanPath = path.replace(/^\/+/, '');
+
+  return `${bucketUrl}/${cleanPath}`;
+};
+
+/**
  * Calcule le total d'un panier
  * @param {Array} items - Items du panier
  * @returns {object} - { subtotal, tax, total }
@@ -395,6 +420,7 @@ export default {
   delay,
   imageExists,
   generateAvatarUrl,
+  getS3Url,
   calculateCartTotal,
   groupBy,
   debounce,

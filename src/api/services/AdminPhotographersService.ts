@@ -112,7 +112,7 @@ export class AdminPhotographersService {
         data?: Record<string, any>;
     }> {
         return __request(OpenAPI, {
-            method: 'PUT',
+            method: 'POST',
             url: '/api/admin/photographers/{photographer}/approve',
             path: {
                 'photographer': photographer,
@@ -147,7 +147,7 @@ export class AdminPhotographersService {
         data?: Record<string, any>;
     }> {
         return __request(OpenAPI, {
-            method: 'PUT',
+            method: 'POST',
             url: '/api/admin/photographers/{photographer}/reject',
             path: {
                 'photographer': photographer,

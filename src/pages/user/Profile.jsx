@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getUserProfile, updateUserProfile, updateAvatar, updatePassword } from '../../services/userService';
-import { generateAvatarUrl, formatPrice } from '../../utils/helpers';
-import { useS3Image } from '../../hooks/useS3Image';
+import { generateAvatarUrl, formatPrice, getS3Url } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Card from '../../components/common/Card';
@@ -41,18 +40,6 @@ export default function Profile() {
   });
 
   const [avatarPreview, setAvatarPreview] = useState(null);
-
-  // Use S3 hook for avatar image with automatic refresh
-  const {
-    imageUrl: avatarUrl,
-    loading: avatarLoading,
-    handleImageError: handleAvatarError,
-  } = useS3Image({
-    resourceId: user?.id,
-    resourceType: 'user',
-    urlType: 'avatar',
-    initialUrl: profileData?.avatar_url,
-  });
 
   // Charger le profil depuis l'API
   useEffect(() => {
@@ -151,7 +138,7 @@ export default function Profile() {
       }
 
       // Mettre à jour le profil
-      const updatedProfile = await updateUserProfile({
+      await updateUserProfile({
         first_name: formData.first_name,
         last_name: formData.last_name,
         phone: formData.phone,
@@ -160,8 +147,12 @@ export default function Profile() {
         website: formData.website,
       });
 
-      // Mettre à jour l'utilisateur dans le contexte
-      updateUser(updatedProfile);
+      // Recharger le profil complet pour obtenir la nouvelle avatar_url
+      const freshProfile = await getUserProfile();
+
+      // Mettre à jour l'utilisateur dans le contexte (pour que le header se mette à jour)
+      updateUser(freshProfile);
+      setProfileData(freshProfile);
 
       setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
       setIsEditing(false);
@@ -316,10 +307,9 @@ export default function Profile() {
               {/* Avatar */}
               <div className="relative inline-block mb-4">
                 <img
-                  src={avatarPreview || avatarUrl || generateAvatarUrl(formData.first_name + ' ' + formData.last_name)}
+                  src={avatarPreview || generateAvatarUrl(formData.first_name + ' ' + formData.last_name)}
                   alt={`${formData.first_name} ${formData.last_name}`}
                   className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  onError={handleAvatarError}
                 />
                 {isEditing && (
                   <button

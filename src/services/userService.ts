@@ -1,5 +1,6 @@
 // Service de gestion du profil utilisateur utilisant l'API générée
-import { UserProfileService } from '@/api';
+import { UserProfileService, OpenAPI } from '@/api';
+import axios from 'axios';
 
 /**
  * Interface pour le profil photographe
@@ -122,15 +123,30 @@ export const updateUserProfile = async (
  */
 export const updateAvatar = async (avatarFile: File): Promise<boolean> => {
   try {
-    const response = await UserProfileService.avatarUserProfile({
-      avatar: avatarFile,
-    });
+    // Use native FormData and axios directly to properly handle file upload
+    const formData = new FormData();
+    formData.append('avatar', avatarFile);
 
-    return response.success || false;
+    const token = typeof OpenAPI.TOKEN === 'function'
+      ? await OpenAPI.TOKEN({} as any)
+      : OpenAPI.TOKEN;
+
+    const response = await axios.post(
+      `${OpenAPI.BASE}/api/user/profile/avatar`,
+      formData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Let axios set Content-Type automatically with boundary
+        },
+      }
+    );
+
+    return response.data?.success || false;
   } catch (error: any) {
     console.error('Erreur lors de la mise à jour de l\'avatar:', error);
     throw new Error(
-      error.body?.message || 'Impossible de mettre à jour l\'avatar'
+      error.response?.data?.message || 'Impossible de mettre à jour l\'avatar'
     );
   }
 };

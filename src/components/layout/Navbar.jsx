@@ -24,6 +24,14 @@ export default function Navbar() {
   const photographerStatus = getPhotographerStatus();
   const canAccessPhotographerDashboard = hasRole('photographer') && isApprovedPhotographer();
 
+  // Generate user initials from first and last name
+  const getUserInitials = () => {
+    if (!user) return '';
+    const first = user.first_name?.charAt(0)?.toUpperCase() || '';
+    const last = user.last_name?.charAt(0)?.toUpperCase() || '';
+    return first + last || user.email?.charAt(0)?.toUpperCase() || '?';
+  };
+
   const handleLogout = async () => {
     await logout();
     setMobileMenuOpen(false);
@@ -79,11 +87,17 @@ export default function Navbar() {
                 {/* User Menu */}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg">
-                    <img
-                      src={user.avatar_url}
-                      alt={user.first_name}
-                      className="w-8 h-8 rounded-full"
-                    />
+                    {user.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.first_name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
+                        {getUserInitials()}
+                      </div>
+                    )}
                     <span className="hidden lg:block">{user.first_name}</span>
                   </button>
 
@@ -212,11 +226,17 @@ export default function Navbar() {
               <>
                 {/* User Info */}
                 <div className="flex items-center space-x-3 pb-3 border-b">
-                  <img
-                    src={user.avatar_url}
-                    alt={user.first_name}
-                    className="w-10 h-10 rounded-full"
-                  />
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.first_name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white text-base font-medium">
+                      {getUserInitials()}
+                    </div>
+                  )}
                   <div>
                     <p className="font-medium">{user.first_name} {user.last_name}</p>
                     <p className="text-sm text-gray-500">{user.email}</p>

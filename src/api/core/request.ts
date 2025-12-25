@@ -4,7 +4,7 @@
 /* eslint-disable */
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios';
-import FormData from 'form-data';
+// Use native browser FormData instead of 'form-data' Node.js package
 
 import { ApiError } from './ApiError';
 import type { ApiRequestOptions } from './ApiRequestOptions';
@@ -26,15 +26,23 @@ export const isStringWithValue = (value: any): value is string => {
 };
 
 export const isBlob = (value: any): value is Blob => {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    // Check if value is a File or Blob instance
+    if (typeof File !== 'undefined' && value instanceof File) {
+        return true;
+    }
+    if (typeof Blob !== 'undefined' && value instanceof Blob) {
+        return true;
+    }
+
+    // Duck-typing fallback: check for File/Blob-like properties
     return (
-        typeof value === 'object' &&
-        typeof value.type === 'string' &&
-        typeof value.stream === 'function' &&
-        typeof value.arrayBuffer === 'function' &&
-        typeof value.constructor === 'function' &&
-        typeof value.constructor.name === 'string' &&
-        /^(Blob|File)$/.test(value.constructor.name) &&
-        /^(Blob|File)$/.test(value[Symbol.toStringTag])
+        typeof value.name === 'string' &&
+        typeof value.size === 'number' &&
+        typeof value.type === 'string'
     );
 };
 
@@ -152,13 +160,10 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
         resolve(options, config.HEADERS),
     ]);
 
-    const formHeaders = typeof formData?.getHeaders === 'function' && formData?.getHeaders() || {}
-
     const headers = Object.entries({
         Accept: 'application/json',
         ...additionalHeaders,
         ...options.headers,
-        ...formHeaders,
     })
     .filter(([_, value]) => isDefined(value))
     .reduce((headers, [key, value]) => ({
@@ -173,6 +178,12 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
     if (isStringWithValue(username) && isStringWithValue(password)) {
         const credentials = base64(`${username}:${password}`);
         headers['Authorization'] = `Basic ${credentials}`;
+    }
+
+    // Don't set Content-Type for FormData - let the browser/axios set it automatically with the correct boundary
+    if (formData) {
+        // FormData will be handled by axios, which sets the correct Content-Type with boundary
+        return headers;
     }
 
     if (options.body !== undefined) {

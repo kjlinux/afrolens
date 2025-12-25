@@ -35,8 +35,26 @@ export const getDashboardStats = async () => {
  */
 export const getUsers = async (page: number = 1, perPage: number = 20, filters?: any) => {
   try {
+    // Si on filtre par photographer_status, utiliser l'endpoint des photographes
+    if (filters?.photographer_status) {
+      const response = await AdminPhotographersService.getAdminPhotographers(
+        filters.photographer_status as 'pending' | 'approved' | 'rejected',
+        filters?.search,
+        perPage
+      );
+      // Transformer les données pour correspondre au format attendu
+      if (response.data?.data) {
+        response.data.data = response.data.data.map((photographer: any) => ({
+          ...photographer,
+          account_type: 'photographer',
+          photographer_status: filters.photographer_status
+        }));
+      }
+      return response;
+    }
+
     const response = await AdminUsersService.getAdminUsers(
-      filters?.role,
+      filters?.account_type,
       filters?.status === 'active' ? true : filters?.status === 'banned' ? false : undefined,
       filters?.search,
       perPage
@@ -168,7 +186,7 @@ export const deletePhoto = async (photoId: string) => {
  */
 export const getPendingPhotographers = async () => {
   try {
-    const response = await AdminPhotographersService.getPendingPhotographers();
+    const response = await AdminPhotographersService.getAdminPhotographersPending();
     return response;
   } catch (error: any) {
     console.error('Error fetching pending photographers:', error);
@@ -181,7 +199,7 @@ export const getPendingPhotographers = async () => {
  */
 export const approvePhotographer = async (userId: string) => {
   try {
-    const response = await AdminPhotographersService.approvePhotographer(userId);
+    const response = await AdminPhotographersService.approveAdminPhotographer(userId);
     return response;
   } catch (error: any) {
     console.error('Error approving photographer:', error);
@@ -194,7 +212,7 @@ export const approvePhotographer = async (userId: string) => {
  */
 export const rejectPhotographer = async (userId: string, reason: string) => {
   try {
-    const response = await AdminPhotographersService.rejectPhotographer(userId, { rejection_reason: reason });
+    const response = await AdminPhotographersService.rejectAdminPhotographer(userId, { rejection_reason: reason });
     return response;
   } catch (error: any) {
     console.error('Error rejecting photographer:', error);
