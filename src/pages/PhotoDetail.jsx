@@ -63,17 +63,21 @@ export default function PhotoDetail() {
   });
 
   // Use S3 image hook for photographer avatar
+  // Only initialize when photo data is available
+  const photographerId = photo?.photographer?.id;
+  const photographerAvatarUrl = photo?.photographer?.avatar_url;
+
   const {
     imageUrl: avatarUrl,
     loading: avatarLoading,
     error: avatarError,
     handleImageError: handleAvatarError
   } = useS3Image({
-    resourceId: photo?.photographer?.id,
+    resourceId: photographerId || null,
     resourceType: 'user',
     urlType: 'avatar',
-    initialUrl: photo?.photographer?.avatar_url,
-    fetchUrlFn: (userId) => refreshUrl(userId, 'avatar', 'user')
+    initialUrl: photographerAvatarUrl || null,
+    fetchUrlFn: photographerId ? (userId) => refreshUrl(userId, 'avatar', 'user') : null
   });
 
   useEffect(() => {

@@ -155,21 +155,27 @@ export const useS3Image = ({
   useEffect(() => {
     if (resourceId && resourceType && urlType) {
       loadUrl(false);
+    } else if (!resourceId) {
+      // Reset state when resourceId is not available
+      setLoading(false);
+      setImageUrl(null);
+      setError(null);
     }
   }, [resourceId, resourceType, urlType, loadUrl]);
 
   // Use initial URL if provided and no cache exists
   useEffect(() => {
-    if (initialUrl && !imageUrl && !loading) {
+    if (initialUrl && resourceId && !imageUrl) {
       const cachedUrl = getCachedUrl(cacheKey);
       if (!cachedUrl) {
         // Cache the initial URL
         const ttl = S3_URL_TTL[urlType.toUpperCase()] || S3_URL_TTL.PREVIEW;
         setCachedUrl(cacheKey, initialUrl, ttl);
         setImageUrl(initialUrl);
+        setLoading(false);
       }
     }
-  }, [initialUrl, imageUrl, loading, cacheKey, urlType]);
+  }, [initialUrl, imageUrl, cacheKey, urlType, resourceId]);
 
   return {
     imageUrl,
