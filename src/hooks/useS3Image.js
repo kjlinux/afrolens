@@ -35,31 +35,33 @@ export const useS3Image = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const retryCountRef = useRef(0);
-  const maxRetries = 1; // Only retry once on 403 errors
+  const maxRetries = 1;
 
-  const cacheKey = generateCacheKey(resourceType, resourceId, urlType);
+  // Use refs to avoid re-renders when these change
+  const fetchUrlFnRef = useRef(fetchUrlFn);
+  const initialUrlRef = useRef(initialUrl);
+  const loadedRef = useRef(false);
 
-  /**
-   * Get fresh URL from API
-   */
-  const fetchFreshUrl = useCallback(async () => {
-    if (!fetchUrlFn) {
-      // If no custom fetch function, use initial URL
-      return initialUrl;
-    }
+  // Update refs when props change
+  useEffect(() => {
+    fetchUrlFnRef.current = fetchUrlFn;
+  }, [fetchUrlFn]);
 
-    try {
-      const url = await fetchUrlFn(resourceId, urlType);
-      return url;
-    } catch (err) {
-      throw new Error(`Failed to fetch URL: ${err.message}`);
-    }
-  }, [resourceId, urlType, initialUrl, fetchUrlFn]);
+  useEffect(() => {
+    initialUrlRef.current = initialUrl;
+  }, [initialUrl]);
+
+  const cacheKey = resourceId ? generateCacheKey(resourceType, resourceId, urlType) : null;
 
   /**
    * Load URL (from cache or API)
    */
   const loadUrl = useCallback(async (forceRefresh = false) => {
+    if (!resourceId || !cacheKey) {
+      setLoading(false);
+      return null;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -74,8 +76,20 @@ export const useS3Image = ({
         }
       }
 
-      // Fetch fresh URL
-      const freshUrl = await fetchFreshUrl();
+      // Try to use fetchUrlFn if available
+      let freshUrl = null;
+      if (fetchUrlFnRef.current) {
+        try {
+          freshUrl = await fetchUrlFnRef.current(resourceId, urlType);
+        } catch (err) {
+          console.error(`[useS3Image] Error fetching URL:`, err);
+        }
+      }
+
+      // Fall back to initialUrl if fetchUrlFn failed or wasn't provided
+      if (!freshUrl && initialUrlRef.current) {
+        freshUrl = initialUrlRef.current;
+      }
 
       if (!freshUrl) {
         throw new Error('No URL available');
@@ -87,7 +101,7 @@ export const useS3Image = ({
 
       setImageUrl(freshUrl);
       setLoading(false);
-      retryCountRef.current = 0; // Reset retry count on success
+      retryCountRef.current = 0;
 
       return freshUrl;
     } catch (err) {
@@ -96,26 +110,21 @@ export const useS3Image = ({
       setLoading(false);
       return null;
     }
-  }, [cacheKey, urlType, fetchFreshUrl]);
+  }, [resourceId, cacheKey, urlType]);
 
   /**
    * Handle image load error (403 = expired URL)
    */
-  const handleImageError = useCallback(async (event) => {
-    // Check if this is a 403 error (expired signed URL)
-    // We need to fetch the image to check the status
-    if (!imageUrl) return;
+  const handleImageError = useCallback(async () => {
+    if (!imageUrl || !cacheKey) return;
 
     try {
       const response = await fetch(imageUrl, { method: 'HEAD' });
 
       if (response.status === 403) {
         console.warn(`[useS3Image] 403 error for ${cacheKey} - URL expired, refreshing...`);
-
-        // Invalidate cache
         invalidateUrl(cacheKey);
 
-        // Retry once
         if (retryCountRef.current < maxRetries) {
           retryCountRef.current++;
           await loadUrl(true);
@@ -128,7 +137,6 @@ export const useS3Image = ({
       }
     } catch (err) {
       console.error(`[useS3Image] Failed to check image status:`, err);
-      // Don't set error here as it might be a network issue
     }
   }, [imageUrl, cacheKey, loadUrl]);
 
@@ -136,7 +144,8 @@ export const useS3Image = ({
    * Manual retry function
    */
   const retry = useCallback(async () => {
-    retryCountRef.current = 0; // Reset retry count
+    if (!cacheKey) return;
+    retryCountRef.current = 0;
     invalidateUrl(cacheKey);
     await loadUrl(true);
   }, [cacheKey, loadUrl]);
@@ -145,37 +154,61 @@ export const useS3Image = ({
    * Prefetch URL for later use
    */
   const prefetch = useCallback(async () => {
+    if (!cacheKey) return;
     const cachedUrl = getCachedUrl(cacheKey);
     if (!cachedUrl) {
       await loadUrl(false);
     }
   }, [cacheKey, loadUrl]);
 
-  // Load URL on mount or when dependencies change
+  // Load URL when resourceId changes
   useEffect(() => {
     if (resourceId && resourceType && urlType) {
+      // Check if we already have this URL cached or in state
+      if (cacheKey) {
+        const cachedUrl = getCachedUrl(cacheKey);
+        if (cachedUrl) {
+          setImageUrl(cachedUrl);
+          setLoading(false);
+          loadedRef.current = true;
+          return;
+        }
+      }
+
+      // Use initialUrl directly if available
+      if (initialUrlRef.current) {
+        const ttl = S3_URL_TTL[urlType.toUpperCase()] || S3_URL_TTL.PREVIEW;
+        if (cacheKey) {
+          setCachedUrl(cacheKey, initialUrlRef.current, ttl);
+        }
+        setImageUrl(initialUrlRef.current);
+        setLoading(false);
+        loadedRef.current = true;
+        return;
+      }
+
+      // Otherwise fetch the URL
       loadUrl(false);
+      loadedRef.current = true;
     } else if (!resourceId) {
-      // Reset state when resourceId is not available
       setLoading(false);
       setImageUrl(null);
       setError(null);
+      loadedRef.current = false;
     }
-  }, [resourceId, resourceType, urlType, loadUrl]);
+  }, [resourceId, resourceType, urlType, cacheKey]);
 
-  // Use initial URL if provided and no cache exists
+  // Handle initialUrl updates after initial load
   useEffect(() => {
-    if (initialUrl && resourceId && !imageUrl) {
-      const cachedUrl = getCachedUrl(cacheKey);
-      if (!cachedUrl) {
-        // Cache the initial URL
+    if (initialUrl && resourceId && !imageUrl && loadedRef.current) {
+      setImageUrl(initialUrl);
+      setLoading(false);
+      if (cacheKey) {
         const ttl = S3_URL_TTL[urlType.toUpperCase()] || S3_URL_TTL.PREVIEW;
         setCachedUrl(cacheKey, initialUrl, ttl);
-        setImageUrl(initialUrl);
-        setLoading(false);
       }
     }
-  }, [initialUrl, imageUrl, cacheKey, urlType, resourceId]);
+  }, [initialUrl, resourceId, imageUrl, cacheKey, urlType]);
 
   return {
     imageUrl,
@@ -183,7 +216,7 @@ export const useS3Image = ({
     error,
     retry,
     prefetch,
-    handleImageError // Expose for img onError handler
+    handleImageError
   };
 };
 
